@@ -49,6 +49,11 @@ public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
 	return allInheritanceRel+;
 }
 
+public set [loc] getAllClassesDefinedInSystem(M3 projectM3) {
+	return carrier(getNonFrameworkInheritanceRels(projectM3, getInheritanceRelations(projectM3)));
+}
+
+
 
 public bool inheritanceRelationExists(loc class1, loc class2, M3 projectM3) {
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);

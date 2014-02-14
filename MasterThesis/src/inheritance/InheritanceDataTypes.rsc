@@ -1,19 +1,21 @@
 module inheritance::InheritanceDataTypes
 
-public int INTERNAL_REUSE = 0;
-public int EXTERNAL_REUSE = 1;
-public int SUBTYPE = 2;
-public int DOWNCALL = 3;
-public int FRAMEWORK = 4;
-public int CONSTANTS = 5;
-public int MARKER = 6;
-public int SUPER = 7;
-public int GENERIC = 8;
+public inheritanceType INTERNAL_REUSE = 0;
+public inheritanceType EXTERNAL_REUSE = 1;
+public inheritanceType SUBTYPE = 2;
+public inheritanceType DOWNCALL = 3;
+public inheritanceType FRAMEWORK = 4;
+public inheritanceType CONSTANTS = 5;
+public inheritanceType MARKER = 6;
+public inheritanceType SUPER = 7;
+public inheritanceType GENERIC = 8;
 
-public int CLASS_CLASS = 100;
-public int CLASS_INTERFACE = 101;
-public int INTERFACE_INTERFACE = 102;
+public inheritanceType CLASS_CLASS = 100;
+public inheritanceType CLASS_INTERFACE = 101;
+public inheritanceType INTERFACE_INTERFACE = 102;
 
+
+public inheritanceType INITIAL_TYPE = 999;
 
 
 public alias inheritanceKey = tuple [loc child, loc parent];

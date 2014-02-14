@@ -13,7 +13,10 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::m3::TypeSymbol;
 
-loc DEFAULT_LOC = |java+project:///|;
+import inheritance::InheritanceDataTypes;
+import inheritance::InheritanceModules;
+
+
 
 private M3 getM3Model() {
 	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
@@ -31,17 +34,23 @@ private M3 getM3Model() {
 																		//from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow| ||
 																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow| ||
 																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow|  });
-	print ("Containment: "); iprintln({<dClass, dMethod> | <dClass, dMethod> <- inheritanceM3@containment,
-																dMethod == |java+method:///edu/uva/analysis/samples/P/returnOne()|}); 
+	//print ("Containment: "); iprintln({<dClass, dMethod> | <dClass, dMethod> <- inheritanceM3@containment,
+	//															dMethod == |java+method:///edu/uva/analysis/samples/P/returnOne()|}); 
 	//print ("Field access: "); iprintln(inheritanceM3@fieldAccess );
 	//print("Declaration: "); iprintln({<decl, prjct> | <decl, prjct> <- inheritanceM3@declarations}); 
 														//isClass(decl) || isInterface(decl)}));
 	//print ("Types: "); iprintln(inheritanceM3@types);
 	//println("******************************************************************************");
 	//print("Type dependency: "); 
-	//iprintln({<from, to> | <from, to> <- inheritanceM3@typeDependency, 
-	//							from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow| ||
-	//							from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow| });
+	iprintln(sort({<from, to> | <from, to> <- inheritanceM3@typeDependency, 
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP444| ||								
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anotherParent| ||
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aList| ||
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anSP33| ||
+								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aChild|  })); 
+								
 	//iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/trial1.log|, inheritanceM3@typeDependency);
 	return inheritanceM3;
 }
@@ -51,26 +60,72 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	//println("Method AST is: <methodAST>");run
 	visit(methodAST) {
-		case f1: \fieldAccess(_,_) : {
-			    // \fieldAccess(bool isSuper, str name)
-			    println("Field access 1: ");
-			    println("Is super: <isSuper>, name: <name>");
+		case dStmt : \declarationStatement(declr) : {
+		// \variables(Type \type, list[Expression] \fragments)
+			//print("Declaration statement:");
+			//println(dStmt);
+			//println("Declaration: <declr>");
+			;
 		}
-		case f2: \fieldAccess(_,_,_) : {
+		case dExpr : \declarationExpression(declr) : {
+			//print("Declaration expression:");
+			//println(dExpr);
+			//println("Declaration: <declr>");
+			;
+		}	
+		case var1 : \variables(varType, varFragments) : {
+		// \variables(Type \type, list[Expression] \fragments)		
+			println("Variables: ");
+			println("varType: <varType@typ>");
+			for (Expression anExpr <- varFragments) {
+				println("varFragments type : <anExpr@typ>");
+			}
+		}
+		case a:\assignment(lhs, operator, rhs) : {  
+        	// 	\assignment(Expression lhs, str operator, Expression rhs)
+        	println("--------------------------------------------------------------------");
+			println("assignment: ");  
+			loc lhsClass = getClassFromTypeSymbol(lhs@typ);
+			loc rhsClass = getClassFromTypeSymbol(rhs@typ);
+			println("Left hand side is of type : <lhsClass>");
+			println("Right hand side is of type : <rhsClass>");						
+			if (lhsClass != rhsClass) {
+				set [loc] allClasses = getAllClassesDefinedInSystem(projectModel);
+				if ( (lhsClass in allClasses) && (rhsClass in allClasses)) {
+					println("Lhs name: <lhs@decl>");
+					println("Rhs name: <rhs@decl>");					
+					println("Subtype via assignment.");
+				}	
+			}
+			
+			// Subtype via declarations are in the typeDependency annotation
+			// in typeDependency you get two entries instead of one, one is the type
+			// the other is the class where the variable refers to
+			
+        }
+		
+		case f1:\fieldAccess(isSuper,name) : {
+			    // \fieldAccess(bool isSuper, str name)
+			    //println("Field access 1: ");
+			    //println("Is super: <isSuper>, name: <name>");
+				;
+		}
+		case f2:\fieldAccess(isSuper,expression,name) : {
 				// 		(bool isSuper, Expression expression, str name)
-			    println("Field access 2: ");
-			    println("Is super: <isSuper>, expression: <expression>, name: <name>");
+			    //println("Field access 2: ");
+			    //println("Is super: <isSuper>, expression: <expression>, name: <name>");
+				;
 		}
 		
 		case m1:\methodCall(_, _, _): {
 			 // \methodCall(bool isSuper, str name, list[Expression] arguments)
-			//print("m1: ");
+			print("m1: ");
 			//println(m1);
 			;
 		}
 		case m2:\methodCall(_, receiver:_, _, _): {
         	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
-			//print("m2: ");
+			print("m2: ");
    //     	println(m2);
    //     	println("receiver: <receiver>");
    //     	println("m2 Annotations: <getAnnotations(m2)>");
@@ -93,11 +148,6 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
    //     	// The type of the receiver is also in the M3  	        	
    //     	println("Receiver declaration: <receiver@decl>");  	 
    ;
-        }
-        case a:\assignment(_, _, _) : {  
-        	// 	\assignment(Expression lhs, str operator, Expression rhs)
-			print("assignment: ");  
-			println(a); 
         }
         case c:\cast(_, _) : { 
         	//  \cast(Type \type, Expression expression)
@@ -122,16 +172,13 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	} // visit
 }
 
-public bool isMethodInProject(loc methodPar, M3 projectM3) {
-	return ! isEmpty({<aMethod> | <aClass, aMethod> <- projectM3@containment, aMethod == methodPar});
-}
 
 
 public void runInitialWork() {
 	M3 m3Model = getM3Model();
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse()|);
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
 	

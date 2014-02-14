@@ -5,10 +5,46 @@ import java.util.Iterator;
 
 public class N {
 	
+	String theFieldOfN = "I am a field of N"; 
+	
 	public N() {
 		StatChild sChild = new StatChild();
 		sChild.nonStaticParentMethod();
 	}
+	
+	
+	void aNewTrial() {
+		int j = 21;
+		int k = 43;
+		int l = 33;
+	}
+	
+	
+	void extReuse() {
+		this.theFieldOfN = "I am being updated";
+		theFieldOfN = "I am being updated again.";
+		C aCGlow = new C();
+		aCGlow.p();		// external reuse 
+		aCGlow.returnTwo(2);	// external reuse
+		this.callMeWithInt(2);
+		int k = aCGlow.intFieldParent;	// external reuse - field
+		aCGlow.intFieldParent = 0;
+		aCGlow.intFieldParent++;	// external reuse - field
+		aCGlow.intFieldChild++;		// no external reuse
+		G aGGlow = new G();
+		aGGlow.p();		// external reuse
+//		P aP = new P();
+//		aP.p(); 		// NOT an external reuse
+		int j = 43;
+		int lmk = 32;
+		G mySecondG = new G();
+		callMeWithInt(mySecondG.returnZero()); 	// external reuse, mySecondG.returnZero()
+		G myThirdG = new G();
+		j = myThirdG.returnOne() - 1 ;					// external reuse
+	}
+	
+	
+	
 	
 	void overrideTest() {
 		G aG = new G();
@@ -42,25 +78,7 @@ public class N {
 	}
 	
 	
-	void extReuse() {
-		C aCGlow = new C();
-		aCGlow.p();		// external reuse 
-		aCGlow.returnTwo(2);	// external reuse
-		this.callMeWithInt(2);
-		aCGlow.intFieldParent++;	// external reuse - field
-		aCGlow.intFieldChild++;		// no external reuse
-		G aGGlow = new G();
-		aGGlow.p();		// external reuse
-//		P aP = new P();
-//		aP.p(); 		// NOT an external reuse
-		int j = 43;
-		G mySecondG = new G();
-		callMeWithInt(mySecondG.returnZero()); 	// external reuse, mySecondG.returnZero()
-		G myThirdG = new G();
-		j = myThirdG.returnOne() - 1 ;					// external reuse
-	}
-	
-	
+		
 	int callMeWithInt(int intParameter) {
 		return intParameter++; 
 	}

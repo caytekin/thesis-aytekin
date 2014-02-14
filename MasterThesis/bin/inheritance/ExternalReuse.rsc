@@ -21,7 +21,8 @@ private alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {
-	// TODO: It should also work for arrays and collections
+	// TODO: I should also detect the external reuse via field access, but I have a problem 
+	// there, AST fieldAccess(_,_,) only detects field accesses via this(). !!!!!
 	//
 	// Decision: The external reuse cases are only about classes, see assumptions and decisions document.
 	rel 	[inheritanceKey, inheritanceType] resultRel = {<<|java+class:///|,|java+class:///|>, 999>};
