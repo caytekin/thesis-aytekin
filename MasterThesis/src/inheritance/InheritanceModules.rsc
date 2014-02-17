@@ -6,6 +6,7 @@ import Set;
 import Relation;
 import List;
 import ListRelation;
+import ValueIO;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -31,7 +32,7 @@ public bool isMethodInProject(loc methodPar, M3 projectM3) {
 
 
 
-public rel [loc, loc] getNonFrameworkInheritanceRels(M3 projectM3, rel [loc, loc] inheritanceRels) {
+public rel [loc, loc] getNonFrameworkInheritanceRels(rel [loc, loc] inheritanceRels, M3 projectM3) {
 	set [loc] allTypesInM3 = {decl | <decl, prjct> <- projectM3@declarations, 
 														isClass(decl) || isInterface(decl)};
 	return {<child, parent> | <child, parent> <- inheritanceRels, parent in allTypesInM3 };
@@ -49,8 +50,14 @@ public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
 	return allInheritanceRel+;
 }
 
-public set [loc] getAllClassesDefinedInSystem(M3 projectM3) {
-	return carrier(getNonFrameworkInheritanceRels(projectM3, getInheritanceRelations(projectM3)));
+//returns all the classes defined in the project.
+public set [loc] getAllClassesInProject(M3 projectM3) {
+	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) };
+}
+
+//returns all the classes and interfaces defined in the project.
+public set [loc]  getAllClassesAndInterfacesInProject(M3 projectM3) {
+	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) || isInterface(decl) };
 }
 
 
@@ -73,4 +80,52 @@ public loc getClassFromTypeSymbol(TypeSymbol typeSymbol) {
     };
     return classLoc;
 }
+
+
+public loc getInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
+	loc interfaceLoc = DEFAULT_LOC;
+	visit (typeSymbol) {
+    	case i:\interface(iLoc,_) : {
+    		interfaceLoc = iLoc;  	
+    	}
+    };
+    return interfaceLoc;
+}
+
+
+
+
+public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
+	loc classOrInterfaceLoc = DEFAULT_LOC;
+	classOrInterfaceLoc = getClassFromTypeSymbol(typeSymbol);
+	if ( classOrInterfaceLoc == DEFAULT_LOC) {
+		classOrInterfaceLoc= getInterfaceFromTypeSymbol(typeSymbol);
+    };
+    return classOrInterfaceLoc;
+}
+
+
+
+public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [loc, loc] inhRelations , M3 projectM3) {
+	rel [loc, loc] returnSet = { <from, to> | <from, to> <- inhRelations , 
+												(from == twoTypes[0] 	&&  to == twoTypes[1]) ||
+												(from == twoTypes[1] 	&& 	to == twoTypes[0]) };
+	if (size(returnSet) != 1) {
+		throw ("Size of different from 1 for list: <twoTypes> in get inheritance key.");
+	}								
+	return getOneFrom(returnSet);								
+}
+
+
+public void printSubtypeLog() {
+	//lrel [inheritanceKey, subtypeViaAssignmentASTLoc] subtypeASTLog 
+	value val = readTextValueFile(subtypeASTLogFile);
+	println("SUBTYPE AST LOG"); 
+	iprintln(val);
+	
+	val = readTextValueFile(subtypeTypeDepLogFile);
+	println("SUBTYPE VIA ASSIGNMENT - TYPE DEPENDENCY LOG:");
+	iprintln(val);
+}
+
 

@@ -32,6 +32,8 @@ public class Canvas {
 	
 	public void whatsMyType() {
 		P myNameIsP = new C();	
+		Shape iAmAShape = new Rectangle();
+	
 	}
 	
 	

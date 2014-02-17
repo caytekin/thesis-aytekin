@@ -15,13 +15,11 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 import inheritance::InternalReuse;
 import inheritance::ExternalReuse;
+import inheritance::SubtypeInheritance;
 
 
 
 // TODO: introduce log mechanism
-
-// TODO: I can put different functionality into different Rascal modules.
-
 
 
 
@@ -55,6 +53,10 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	print("External reuse edges: ");	
 	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE}));
 	
+	print("Subtype edges: ");	
+	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE}));
+	
+	
 }
 
 
@@ -62,13 +64,15 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	allInheritanceCases += getExternalReuseCases(projectM3);	
-	getNonFrameworkInheritanceRels(projectM3, allInheritanceRelations);
+	allInheritanceCases += getSubtypeCases(projectM3);	
+	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	printResults(allInheritanceCases);
+	printSubtypeLog();
 }
 

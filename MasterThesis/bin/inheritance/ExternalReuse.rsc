@@ -17,7 +17,6 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
-private alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {
@@ -58,7 +57,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
         	} // visit()
 		};	// for each method in the class															
 	};	// for each class in the project
-	iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|, externalReuseLog);
+	iprintToFile(externalReuseLogFile, externalReuseLog);
 	return resultRel;
 }
 

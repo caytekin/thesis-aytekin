@@ -13,7 +13,7 @@ import lang::java::jdt::m3::Core;
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
-alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
+
 
 
 public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3) {
@@ -31,7 +31,7 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	// A constructor can also invoke parent methods (not only super())
 	rel [inheritanceKey, inheritanceType] resultRel = {<<|java+class:///|,|java+class:///|>, 999>};
 	lrel [inheritanceKey, internalReuseDetail] internalReuseLog = [<<|java+class:///|,|java+class:///|>,<|java+method:///|,|java+method:///|>>]; 
-	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(projectM3, getInheritanceRelations(projectM3));
+	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	set [loc] intReuseClasses = { child | <child, parent> <- allInheritanceRels, isClass(child), isClass(parent)};
 	for (oneClass <- intReuseClasses) {
 		set [loc] ancestors = { parent | <child, parent> <- allInheritanceRels, child == oneClass};
@@ -67,7 +67,7 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 			};																			
 		};	
 	};
-	iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|, internalReuseLog);
+	iprintToFile(internalReuseLogFile , internalReuseLog);
 	return resultRel;
 }
 

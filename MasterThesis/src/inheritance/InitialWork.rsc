@@ -42,16 +42,28 @@ private M3 getM3Model() {
 	//print ("Types: "); iprintln(inheritanceM3@types);
 	//println("******************************************************************************");
 	//print("Type dependency: "); 
-	iprintln(sort({<from, to> | <from, to> <- inheritanceM3@typeDependency, 
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP444| ||								
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anotherParent| ||
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aList| ||
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anSP33| ||
-								from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aChild|  })); 
-								
+	rel [loc, loc] subtypeAssignmentTypeDef = { <from, to> | <from, to> <- inheritanceM3@typeDependency,
+																isVariable(from), isClass(to) || isInterface(to) };
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP444| ||								
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anotherParent| ||
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aList| ||
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anSP33| ||
+								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aChild|  }; 
+	//println("All type definitions for variables:");
+	//iprintln(sort(subtypeAssignmentTypeDef));	
+	map [loc, set[loc]]	mapTypeDef = toMap(subtypeAssignmentTypeDef);
+	//(fruit : fruits[fruit] | fruit <- fruits, size(fruit) <= 5);
+	set [loc] allSubtypeVars =  {typeDef | typeDef <- mapTypeDef, size(mapTypeDef[typeDef]) == 2};				
+	map [loc, set [loc] ] varsAndClasses = (typeDef : mapTypeDef[typeDef] | typeDef <- mapTypeDef, size(mapTypeDef[typeDef]) == 2);
+	for (loc x <- varsAndClasses) {
+		println("Variable: <x>");
+		println("Classes: <varsAndClasses[x]>");
+	}
 	//iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/trial1.log|, inheritanceM3@typeDependency);
+	//println("All type definitions for variables with two classes:");
+	//iprintln(varsAndClasses);	
 	return inheritanceM3;
 }
 
@@ -73,31 +85,26 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			//println("Declaration: <declr>");
 			;
 		}	
-		case var1 : \variables(varType, varFragments) : {
-		// \variables(Type \type, list[Expression] \fragments)		
-			println("Variables: ");
-			println("varType: <varType@typ>");
-			for (Expression anExpr <- varFragments) {
-				println("varFragments type : <anExpr@typ>");
-			}
-		}
 		case a:\assignment(lhs, operator, rhs) : {  
         	// 	\assignment(Expression lhs, str operator, Expression rhs)
         	println("--------------------------------------------------------------------");
 			println("assignment: ");  
 			loc lhsClass = getClassFromTypeSymbol(lhs@typ);
+			lhsClass = getInterfaceFromTypeSymbol(lhs@typ);
+			println("Class or interface: <getClassOrInterfaceFromTypeSymbol(lhs@typ)>");
 			loc rhsClass = getClassFromTypeSymbol(rhs@typ);
 			println("Left hand side is of type : <lhsClass>");
 			println("Right hand side is of type : <rhsClass>");						
 			if (lhsClass != rhsClass) {
-				set [loc] allClasses = getAllClassesDefinedInSystem(projectModel);
+				set [loc] allClasses = getAllClassesAndInterfacesInProject(projectModel);
 				if ( (lhsClass in allClasses) && (rhsClass in allClasses)) {
 					println("Lhs name: <lhs@decl>");
 					println("Rhs name: <rhs@decl>");					
 					println("Subtype via assignment.");
 				}	
 			}
-			
+			println("Assignment statement <a>");
+			println("Source of the assignment statement <a@src>");			
 			// Subtype via declarations are in the typeDependency annotation
 			// in typeDependency you get two entries instead of one, one is the type
 			// the other is the class where the variable refers to
@@ -174,11 +181,13 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 
 
 
+
+
 public void runInitialWork() {
 	M3 m3Model = getM3Model();
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()|);
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/interfaceRunner()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
 	

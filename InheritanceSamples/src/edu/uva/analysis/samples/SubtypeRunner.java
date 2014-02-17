@@ -6,6 +6,14 @@ import edu.uva.analysis.gensamples.MyArrayList;
 
 public class SubtypeRunner {
 	
+	
+	void interfaceRunner() {
+		  // Test case 8, Test the assignment with a interface definition, 
+		  I anI; 
+		  anI = new ImplementInterface();
+		
+	}
+	
 	void subtypeViaAssignment() {
 		SubtypeParent anotherParent = new SubtypeParent();
 		SubtypeParent aParent;
@@ -29,7 +37,11 @@ public class SubtypeRunner {
 		 // Test case 5, Test the assignment with a method call on the right side, it works
 		  SubtypeParent anSP33;
 		  anSP33 = getMeAChild();
-		  
+
+		  // Test case 8, Test the assignment with a interface definition, 
+		  I anI; 
+		  anI = new ImplementInterface();
+
 		 
 	}
 	
