@@ -11,7 +11,9 @@ import ValueIO;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
+import lang::java::jdt::m3::AST;
 import lang::java::m3::TypeSymbol;
+
 
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
@@ -42,9 +44,12 @@ private M3 getM3Model() {
 	//print ("Types: "); iprintln(inheritanceM3@types);
 	//println("******************************************************************************");
 	//print("Type dependency: "); 
-	rel [loc, loc] subtypeAssignmentTypeDef = { <from, to> | <from, to> <- inheritanceM3@typeDependency,
-																isVariable(from), isClass(to) || isInterface(to) };
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
+	rel [loc, loc] subtypeAssignmentTypeDep = { <from, to> | <from, to> <- inheritanceM3@typeDependency,
+																isVariable(from),
+																isClass(to) || isInterface(to) 
+											  };
+	//println(sort(subtypeAssignmentTypeDep));
+							//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP444| ||								
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anotherParent| ||
@@ -52,39 +57,77 @@ private M3 getM3Model() {
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anSP33| ||
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aChild|  }; 
 	//println("All type definitions for variables:");
-	//iprintln(sort(subtypeAssignmentTypeDef));	
-	map [loc, set[loc]]	mapTypeDef = toMap(subtypeAssignmentTypeDef);
-	//(fruit : fruits[fruit] | fruit <- fruits, size(fruit) <= 5);
-	set [loc] allSubtypeVars =  {typeDef | typeDef <- mapTypeDef, size(mapTypeDef[typeDef]) == 2};				
-	map [loc, set [loc] ] varsAndClasses = (typeDef : mapTypeDef[typeDef] | typeDef <- mapTypeDef, size(mapTypeDef[typeDef]) == 2);
-	for (loc x <- varsAndClasses) {
-		println("Variable: <x>");
-		println("Classes: <varsAndClasses[x]>");
-	}
+	//iprintln(sort(subtypeAssignmenttypeDep));	
+	//map [loc, set[loc]]	mapTypeDep = toMap(subtypeAssignmentTypeDep);
+	////(fruit : fruits[fruit] | fruit <- fruits, size(fruit) <= 5);
+	//set [loc] allSubtypeVars =  {typeDep | typeDep <- mapTypeDep, size(mapTypeDep[typeDep]) >= 2};				
+	//map [loc, set [loc] ] varsAndClasses = (typeDep : mapTypeDep[typeDep] | typeDep <- mapTypeDep, size(mapTypeDep[typeDep]) >= 2);
+	//for (loc x <- varsAndClasses) {
+	//	println("Variable: <x>");
+	//	println("has <size(varsAndClasses[x])> Classes: <varsAndClasses[x]>");
+	//}
 	//iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/trial1.log|, inheritanceM3@typeDependency);
 	//println("All type definitions for variables with two classes:");
 	//iprintln(varsAndClasses);	
 	return inheritanceM3;
 }
 
+public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
+	TypeSymbol returnSymbol; 
+	visit (aType) {
+		case sType: \simpleType(typeExpr) : {
+			returnSymbol =  typeExpr@typ;
+		}
+ 	}
+ 	return returnSymbol;
+}
+
+
 private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	//println("Method AST is: <methodAST>");run
 	visit(methodAST) {
-		case dStmt : \declarationStatement(declr) : {
-		// \variables(Type \type, list[Expression] \fragments)
-			//print("Declaration statement:");
-			//println(dStmt);
-			//println("Declaration: <declr>");
-			;
+		//case dStmt : \declarationStatement(declr) : {
+		// // \variables(Type \type, list[Expression] \fragments)
+		//	print("Declaration statement:");
+		//	println(dStmt);
+		//	println("Declaration: <declr>");
+		//	;
+		//}
+		//case dExpr : \declarationExpression(declr) : {
+		//	print("Declaration expression:");
+		//	println(dExpr);
+		//	println("Declaration: <declr>");
+		//	;
+		//}	
+		case variables : \variables(typeOfVar, fragments) : {
+			// typeOfVar is Type
+			// fragments is list of Expresssion's
+			println("--------------------------------------------------");
+		 	TypeSymbol lhsTypeSymbol ;
+		 	visit (typeOfVar) {
+		 		case sType: \simpleType(typeExpr) : {
+		 			lhsTypeSymbol =  getTypeSymbolFromSimpleType(sType);
+		 		}
+		 		case atype :\arrayType(simpleTypeOfArray) : {
+		 			lhsTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
+		 		}
+		 	}
+		 	//println("Lhs type symbol is: <lhsTypeSymbol>");
+		 	println("Lhs Java type is: <getClassOrInterfaceFromTypeSymbol(lhsTypeSymbol)>");
+			for (anExpression <- fragments) {
+				loc rhsClass;
+				println("Variable name: <anExpression@decl>");
+				visit (anExpression) {
+					case myVar: \variable(_,_,stmt) : {
+						rhsClass = getClassOrInterfaceFromTypeSymbol(stmt@typ);
+						println("Right hand side class: <rhsClass>");
+					} 
+				} // visit
+				
+			} // for
 		}
-		case dExpr : \declarationExpression(declr) : {
-			//print("Declaration expression:");
-			//println(dExpr);
-			//println("Declaration: <declr>");
-			;
-		}	
 		case a:\assignment(lhs, operator, rhs) : {  
         	// 	\assignment(Expression lhs, str operator, Expression rhs)
         	println("--------------------------------------------------------------------");
@@ -187,7 +230,7 @@ public void runInitialWork() {
 	M3 m3Model = getM3Model();
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/interfaceRunner()|);
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
 	

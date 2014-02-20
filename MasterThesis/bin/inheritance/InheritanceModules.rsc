@@ -111,7 +111,7 @@ public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [lo
 												(from == twoTypes[0] 	&&  to == twoTypes[1]) ||
 												(from == twoTypes[1] 	&& 	to == twoTypes[0]) };
 	if (size(returnSet) != 1) {
-		throw ("Size of different from 1 for list: <twoTypes> in get inheritance key.");
+		throw ("Size of list different from 1 for list: <twoTypes> in get inheritance key. Size of list is: <size(returnSet) >");
 	}								
 	return getOneFrom(returnSet);								
 }
@@ -119,13 +119,11 @@ public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [lo
 
 public void printSubtypeLog() {
 	//lrel [inheritanceKey, subtypeViaAssignmentASTLoc] subtypeASTLog 
-	value val = readTextValueFile(subtypeASTLogFile);
-	println("SUBTYPE AST LOG"); 
-	iprintln(val);
-	
-	val = readTextValueFile(subtypeTypeDepLogFile);
-	println("SUBTYPE VIA ASSIGNMENT - TYPE DEPENDENCY LOG:");
-	iprintln(val);
+	value val = readTextValueFile(subtypeAssignmentLogFile);
+	//rel [inheritanceKey iKey, loc subtypeDetailLoc, int inheritanceSubtype] logRelation = val;
+	println("SUBTYPE LOG"); 
+	println("SUBTYPE VIA ASSIGNMENT STATEMENT:");
+	iprintln(sort(val));
 }
 
 

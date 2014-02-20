@@ -1,10 +1,14 @@
 package edu.uva.analysis.samples;
 
 import java.util.ArrayList;
+import java.util.ResourceBundle;
+import javax.accessibility.AccessibleResourceBundle;
 
 import edu.uva.analysis.gensamples.MyArrayList;
 
 public class SubtypeRunner {
+	
+	ByteSample myParameter;
 	
 	
 	void interfaceRunner() {
@@ -47,8 +51,19 @@ public class SubtypeRunner {
 	
 	
 	void anotherSubtypeViaAssignment() {
-		 SubtypeParent anSP = new SubtypeChild();
+		 SubtypeParent anSP1111, anSP3333 = new SubtypeChild();
+
+		 SubtypeParent anSP2222, anSP7777 = getMeAChild();
 		
+		 SubtypeChild [] childArray = new SubtypeChild[3];
+
+		 SubtypeChild [][] childArrayTwoD = new SubtypeChild[3][3];
+		 
+		 
+		 SubtypeParent anSP9999 = childArrayTwoD[0][0];
+		 
+		 SubtypeParent var1, var2 = new SubtypeChild();
+		 
 		 SubtypeChild aChild = new SubtypeChild();
 		 SubtypeChild aChild222, aChild333 = new SubtypeChild();
 		 
@@ -57,8 +72,29 @@ public class SubtypeRunner {
 		  
 		  // Test case 7, Test the assignment in a definition statement with new.
 		  SubtypeParent anSP444 = new SubtypeChild();
-//		  
-		
+		  
+		  SubtypeRunner sRunner = new SubtypeRunner();
+
+		  int i,j,k = 0;
+		  
+		  
+		  int[] intArray = new int[4];
+		  
+		  
+		  try {
+			  byte[] bytes = myParameter.getBytes();
+		  }
+		  catch (Exception e) {
+			  System.out.println("An exception is thrown!" + e);
+		  }
+		  
+		  SubtypeParent anSP12345 = sRunner.getMeAChild();
+		  
+		  ResourceBundle myBundle = new ResourceBundleChild();
+		  
+		  ResourceBundle generalBundle = new AccessibleResourceBundle();
+		  
+		  
 	}
 	
 	

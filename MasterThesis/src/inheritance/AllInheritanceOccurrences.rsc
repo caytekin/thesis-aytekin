@@ -64,12 +64,14 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
+	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);
-	allInheritanceCases += getInternalReuseCases(projectM3);
-	allInheritanceCases += getExternalReuseCases(projectM3);	
+	//allInheritanceCases += getInternalReuseCases(projectM3);
+	//println("Internal use cases are done...");
+	//allInheritanceCases += getExternalReuseCases(projectM3);	
+	//println("External use cases are done...");	
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	printResults(allInheritanceCases);

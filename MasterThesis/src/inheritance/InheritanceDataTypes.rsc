@@ -1,5 +1,8 @@
 module inheritance::InheritanceDataTypes
 
+import lang::java::m3::TypeSymbol;
+
+
 public inheritanceType INTERNAL_REUSE = 0;
 public inheritanceType EXTERNAL_REUSE = 1;
 public inheritanceType SUBTYPE = 2;
@@ -15,8 +18,8 @@ public inheritanceType CLASS_INTERFACE = 101;
 public inheritanceType INTERFACE_INTERFACE = 102;
 
 
-public inheritanceSubtype SUBTYPE_ASSIGNMENT_AST = 201;
-public inheritanceSubtype SUBTYPE_ASSIGNMENT_TYPE_DEPENDENCY = 202;
+public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
+public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
 
 
 
@@ -29,16 +32,15 @@ public alias inheritanceKey = tuple [loc child, loc parent];
 public alias inheritanceType = int;
 
 public loc DEFAULT_LOC = |java+project:///|;
+public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);
 
 
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
-public alias subtypeViaAssignmentASTLoc = tuple [loc ASTDetailLoc, inheritanceSubtype inhSub];
-public alias subtypeViaAssignmentTypeDef = tuple [loc VariableLoc, inheritanceSubtype inhSub];
+public alias subtypeViaAssignmentDetail = tuple [loc subtypeDetailLoc, inheritanceSubtype inhSub];
 
 
-public loc subtypeASTLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAST.log|;
-public loc subtypeTypeDepLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeTypeDef.log|;
+public loc subtypeAssignmentLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAssignment.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 

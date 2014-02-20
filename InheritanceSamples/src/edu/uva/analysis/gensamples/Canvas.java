@@ -16,18 +16,18 @@ public class Canvas {
 	}
 	
 	public void aListSample() {
-		List <Shape> myListXxxx = new ArrayList<Shape> ();
-		myListXxxx.add(new Circle());
+//		List <Shape> myListXxxx = new ArrayList<Shape> ();
+//		myListXxxx.add(new Circle());
 		Shape s, myShape;
-		myShape = myListXxxx.get(0);
+//		myShape = myListXxxx.get(0);
 		
 		Circle aCircle = new Circle();
 		s = aCircle;
 	}	
 	
 	public void aCircleSample() {
-		List <Circle> myCircleList = new ArrayList<Circle> ();
-		drawAll(myCircleList);		
+//		List <Circle> myCircleList = new ArrayList<Circle> ();
+//		drawAll(myCircleList);		
 	}
 	
 	public void whatsMyType() {
