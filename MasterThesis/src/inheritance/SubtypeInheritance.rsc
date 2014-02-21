@@ -38,6 +38,9 @@ public tuple [bool, TypeSymbol] getTypeSymbolFromVariable(Expression varExpressi
 	TypeSymbol returnSymbol = DEFAULT_TYPE_SYMBOL;
 	//println("getTypeSymbolForVariable is called with <varExpression>");
 	visit (varExpression) {
+		case nullVar : \variable(_,_, null()) : { 
+			// a null initialization should not be counted as subtype
+		; }
 		case myVar: \variable(_,_,stmt) : {
 			returnSymbol = stmt@typ;
 			expressionHasStatement = true;
@@ -49,27 +52,36 @@ public tuple [bool, TypeSymbol] getTypeSymbolFromVariable(Expression varExpressi
 }
 
 
+TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
+	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
+ 	visit (rascalType) {
+ 		 // I'm only interested in the simpleType and arrayType at the moment
+ 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() ?
+ 		case sType: \simpleType(typeExpr) : {
+ 			retTypeSymbol =  getTypeSymbolFromSimpleType(sType);
+ 		}
+ 		case aType :\arrayType(simpleTypeOfArray) : {
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
+ 		}
+ 	}
+ 	return retTypeSymbol;	
+}
+
+
+
 
 
 
 private rel [inheritanceKey, loc] getVariableListWithSubtype(Type typeOfVar, list [Expression] fragments) {
  	rel [inheritanceKey, loc] returnList = {};
- 	TypeSymbol lhsTypeSymbol = DEFAULT_TYPE_SYMBOL ;
- 	//println("Variable is : <fragments[0]@decl> ------------");
- 	visit (typeOfVar) {
- 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() ?
- 		case sType: \simpleType(typeExpr) : {
- 			lhsTypeSymbol =  getTypeSymbolFromSimpleType(sType);
- 		}
- 		case aType :\arrayType(simpleTypeOfArray) : {
- 			lhsTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
- 		}
- 	}
- 	// I'm only interested in the simpleType and arrayType
+ 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
+ 	//println("Variables are : <{vars@decl| vars <- fragments}> ------------");
  	if (lhsTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+ 		//println("lhsTypeSymbol is: <lhsTypeSymbol>");
  		loc lhsJavaType = getClassOrInterfaceFromTypeSymbol(lhsTypeSymbol);
- 		tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[0]);
- 		if (typeSymbolTuple.hasStatement) {
+ 		tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
+ 		//println("hasStatement is: <typeSymbolTuple.hasStatement>, rhsTypeSymbol is: <typeSymbolTuple.rhsTypeSymbol>");
+ 		if ((typeSymbolTuple.hasStatement) && (typeSymbolTuple.rhsTypeSymbol != DEFAULT_TYPE_SYMBOL)) {
  			loc rhsJavaType = getClassOrInterfaceFromTypeSymbol(typeSymbolTuple.rhsTypeSymbol);
  			if (lhsJavaType != rhsJavaType)  {
  				for (anExpression <- fragments) {
@@ -84,12 +96,14 @@ private rel [inheritanceKey, loc] getVariableListWithSubtype(Type typeOfVar, lis
 
 
 
-private rel [inheritanceKey, inheritanceType] getSubtypeViaCastingFromAST(M3 projectM3) {
+
+
+private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromAST(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	lrel [inheritanceKey, subtypeViaAssignmentDetail] subtypeLog = []; 
 	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
 	set [loc] allClassesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	for (oneClass <- allClassesInProject) {
+	for (oneClass <- allClassesInProject ) {
 		set [loc] methodsInClass = {declared | <owner,declared> <- projectM3@containment, 
 																owner == oneClass, 
 																isMethod(declared) }; 
@@ -120,56 +134,25 @@ private rel [inheritanceKey, inheritanceType] getSubtypeViaCastingFromAST(M3 pro
 					}
 				;
 				} // case \variables
-        	} // visit()
-		};	// for each method in the class															
-	};	// for each class in the project
-	iprintToFile(subtypeAssignmentLogFile, subtypeLog);
-	return resultRel;
-}
-
-
-
-
-private rel [inheritanceKey, inheritanceType] getSubtypeViaAssignmentFromAST(M3 projectM3) {
-	rel [inheritanceKey, inheritanceType] resultRel = {};
-	lrel [inheritanceKey, subtypeViaAssignmentDetail] subtypeLog = []; 
-	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	set [loc] allClassesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	for (oneClass <- allClassesInProject) {
-		set [loc] methodsInClass = {declared | <owner,declared> <- projectM3@containment, 
-																owner == oneClass, 
-																isMethod(declared) }; 
-		// TODO:take also initializers in to account  
-		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
-		for (oneMethod <- methodsInClass) {
-			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
-			visit(methodAST) {
-				case aStmt:\assignment(lhs, operator, rhs) : {  
-		        	// 	\assignment(Expression lhs, str operator, Expression rhs)
-		        	loc lhsClass = getClassOrInterfaceFromTypeSymbol(lhs@typ);
-		        	loc rhsClass = getClassOrInterfaceFromTypeSymbol(rhs@typ);
-					if (lhsClass != rhsClass) {
-						if ( (lhsClass in allClassesAndInterfacesInProject) && (rhsClass in allClassesAndInterfacesInProject)) {
-							inheritanceKey iKey = <rhsClass, lhsClass>;
-							resultRel  += < iKey, SUBTYPE>;
-							subtypeLog += <iKey, <aStmt@src, SUBTYPE_ASSIGNMENT_STMT>>;
-						}
-					}		
-				} // case \assignment
-				case variables : \variables(typeOfVar, fragments) : {
-					rel [inheritanceKey, loc] variablesList = getVariableListWithSubtype(typeOfVar, fragments);
-					for (<inheritanceKey iKey, loc varLoc> <- variablesList) {
-						if ( (iKey.parent in allClassesAndInterfacesInProject) && (iKey.parent in allClassesAndInterfacesInProject) ) {
+				case castStmt:\cast(castType, castExpr) : {  
+					// The cast can be from child to parent, but also from parent to child
+					// Also, sideways cast is possible. This will give some irregularities 
+					// in the statistics, because we assume a <child, parent> tuple in CC, CI or II. 
+					TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(castType);
+					TypeSymbol rhsTypeSymbol = castExpr@typ;
+					if ((lhsTypeSymbol != DEFAULT_TYPE_SYMBOL) && (lhsTypeSymbol != rhsTypeSymbol)) { 
+						inheritanceKey iKey = <getClassOrInterfaceFromTypeSymbol(rhsTypeSymbol), 
+												getClassOrInterfaceFromTypeSymbol(lhsTypeSymbol)>;
+						if ( (iKey.child in allClassesAndInterfacesInProject) && (iKey.parent in allClassesAndInterfacesInProject) ) {
 							resultRel += <iKey, SUBTYPE>;
-							subtypeLog += <iKey, <varLoc, SUBTYPE_ASSIGNMENT_VAR_DECL>>;
+							subtypeLog += <iKey, <castStmt@src, SUBTYPE_VIA_CAST>>;
 						}
-					}
-				;
-				} // case \variables
+					} // if
+				} // case \cast
         	} // visit()
 		};	// for each method in the class															
 	};	// for each class in the project
-	iprintToFile(subtypeAssignmentLogFile, subtypeLog);
+	iprintToFile(subtypeASTLogFile, subtypeLog);
 	return resultRel;
 }
 
@@ -178,8 +161,7 @@ private rel [inheritanceKey, inheritanceType] getSubtypeViaAssignmentFromAST(M3 
 
 public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {};
-	resultRel += getSubtypeViaAssignmentFromAST(projectM3);
-	resultRel += getSubtypeViaCastingFromAST(projectM3);	
+	resultRel += getSubtypeCasesFromAST(projectM3);
 	return resultRel;
 }
 

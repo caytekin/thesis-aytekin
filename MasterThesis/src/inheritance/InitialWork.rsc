@@ -13,7 +13,7 @@ import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
 import lang::java::jdt::m3::AST;
 import lang::java::m3::TypeSymbol;
-
+import util::ValueUI;
 
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
@@ -86,7 +86,8 @@ public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
 private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
-	//println("Method AST is: <methodAST>");run
+	println("Method AST is: <methodAST>");
+	text(methodAST);
 	visit(methodAST) {
 		//case dStmt : \declarationStatement(declr) : {
 		// // \variables(Type \type, list[Expression] \fragments)
@@ -230,7 +231,7 @@ public void runInitialWork() {
 	M3 m3Model = getM3Model();
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()|);
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/fieldTest()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
 	

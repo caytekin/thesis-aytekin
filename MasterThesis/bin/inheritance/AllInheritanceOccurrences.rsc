@@ -46,6 +46,8 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	println("Number of II edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERFACE_INTERFACE})>"); 
 	println("Number of internal reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERNAL_REUSE})>"); 
 	println("Number of external reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE})>"); 
+	println("Number of subtype edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE})>"); 
+	
 	
 	print("Internal reuse edges: ");	
 	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERNAL_REUSE}));
@@ -64,7 +66,7 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);

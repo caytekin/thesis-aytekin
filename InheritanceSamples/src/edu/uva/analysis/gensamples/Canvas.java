@@ -22,6 +22,7 @@ public class Canvas {
 //		myShape = myListXxxx.get(0);
 		
 		Circle aCircle = new Circle();
+		// Tested, this is counted as subtype
 		s = aCircle;
 	}	
 	
@@ -32,6 +33,8 @@ public class Canvas {
 	
 	public void whatsMyType() {
 		P myNameIsP = new C();	
+		
+		// Tested, it works, counted as subtype
 		Shape iAmAShape = new Rectangle();
 	
 	}

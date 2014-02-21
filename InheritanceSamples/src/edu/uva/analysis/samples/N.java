@@ -59,6 +59,7 @@ public class N {
 	void fieldTest() {
 		C aC = new C();
 		int i = aC.intFieldParent;
+		i = aC.intFieldParent;
 	}
 	
 	

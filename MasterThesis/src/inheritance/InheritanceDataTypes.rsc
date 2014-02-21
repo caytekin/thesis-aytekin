@@ -20,6 +20,8 @@ public inheritanceType INTERFACE_INTERFACE = 102;
 
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
+public inheritanceSubtype SUBTYPE_VIA_CAST = 203;
+
 
 
 
@@ -40,7 +42,7 @@ public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias subtypeViaAssignmentDetail = tuple [loc subtypeDetailLoc, inheritanceSubtype inhSub];
 
 
-public loc subtypeAssignmentLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAssignment.log|;
+public loc subtypeASTLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAssignment.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 

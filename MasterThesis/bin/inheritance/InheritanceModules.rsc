@@ -119,11 +119,13 @@ public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [lo
 
 public void printSubtypeLog() {
 	//lrel [inheritanceKey, subtypeViaAssignmentASTLoc] subtypeASTLog 
-	value val = readTextValueFile(subtypeAssignmentLogFile);
+	value val = readTextValueFile(subtypeASTLogFile);
 	//rel [inheritanceKey iKey, loc subtypeDetailLoc, int inheritanceSubtype] logRelation = val;
 	println("SUBTYPE LOG"); 
-	println("SUBTYPE VIA ASSIGNMENT STATEMENT:");
 	iprintln(sort(val));
+	//
+
+	
 }
 
 

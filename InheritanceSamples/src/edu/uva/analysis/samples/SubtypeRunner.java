@@ -2,6 +2,7 @@ package edu.uva.analysis.samples;
 
 import java.util.ArrayList;
 import java.util.ResourceBundle;
+
 import javax.accessibility.AccessibleResourceBundle;
 
 import edu.uva.analysis.gensamples.MyArrayList;
@@ -12,11 +13,21 @@ public class SubtypeRunner {
 	
 	
 	void interfaceRunner() {
-		  // Test case 8, Test the assignment with a interface definition, 
-		  I anI; 
-		  anI = new ImplementInterface();
-		
+		  // Test case 12, Test the declaration with a interface definition, it works
+		  I anI = new ImplementInterface();
 	}
+	
+	void aNullExample() {
+		C thisIsAC = null;
+		C thisIsAnotherC; 
+		thisIsAnotherC = null;
+	}
+	
+	void thisexample() {
+		SubtypeRunner sRunner;
+		sRunner = this;
+	}
+	
 	
 	void subtypeViaAssignment() {
 		SubtypeParent anotherParent = new SubtypeParent();
@@ -38,11 +49,11 @@ public class SubtypeRunner {
 		// Test case 4, this is not counted as subtype because ArrayList is not system type, it works
 		 aList = myList;
 		 
-		 // Test case 5, Test the assignment with a method call on the right side, it works
+		 // Test case 5, Tested the assignment with a method call on the right side, it works
 		  SubtypeParent anSP33;
 		  anSP33 = getMeAChild();
 
-		  // Test case 8, Test the assignment with a interface definition, 
+		  // Test case 8, Tested the assignment with a interface definition, it works.
 		  I anI; 
 		  anI = new ImplementInterface();
 
@@ -59,7 +70,7 @@ public class SubtypeRunner {
 
 		 SubtypeChild [][] childArrayTwoD = new SubtypeChild[3][3];
 		 
-		 
+		 // Tested, it works, counted as subtype.
 		 SubtypeParent anSP9999 = childArrayTwoD[0][0];
 		 
 		 SubtypeParent var1, var2 = new SubtypeChild();
@@ -68,9 +79,11 @@ public class SubtypeRunner {
 		 SubtypeChild aChild222, aChild333 = new SubtypeChild();
 		 
 		 // Test case 6, Test the assignment in a definition statement, like
+		 // Tested, it works, it is counted as subtype
 		  SubtypeParent anSP2 = aChild;
 		  
 		  // Test case 7, Test the assignment in a definition statement with new.
+		  // Tested, it works, it's counted as subtype.
 		  SubtypeParent anSP444 = new SubtypeChild();
 		  
 		  SubtypeRunner sRunner = new SubtypeRunner();
@@ -88,6 +101,7 @@ public class SubtypeRunner {
 			  System.out.println("An exception is thrown!" + e);
 		  }
 		  
+		  // This is also reported as subtype, it works.
 		  SubtypeParent anSP12345 = sRunner.getMeAChild();
 		  
 		  ResourceBundle myBundle = new ResourceBundleChild();
@@ -109,9 +123,17 @@ public class SubtypeRunner {
 	}
 
 	
+	void sidewaysDemo(SidewaysA sa) {
+		// Tested, it works, counted as subtype
+		SidewaysB sb = (SidewaysB)sa;
+	}
+	
+	
 	void subtypeViaCasting() {
 		SubtypeChild aChild = new SubtypeChild();
 		SubtypeParent aParent = (SubtypeParent)aChild;
+		
+		aParent = (SubtypeParent)getMeAChild();
 	}
 	
 	void iExpectAParent(SubtypeParent aParent) {
