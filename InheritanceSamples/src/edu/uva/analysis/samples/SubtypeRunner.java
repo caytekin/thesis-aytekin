@@ -10,6 +10,33 @@ import edu.uva.analysis.gensamples.MyArrayList;
 public class SubtypeRunner {
 	
 	ByteSample myParameter;
+	SubtypeChild aChildToReturn;
+	
+	SubtypeParent[] anArrayReturn() {
+		// This test case works, it is reported as subtype via return type.
+		SubtypeChild [] childArray = new SubtypeChild[3];
+		return childArray;
+	}
+	
+	SubtypeParent aSubtypeViaReturnType() {
+		SubtypeChild childToReturn = new SubtypeChild();
+//		return childToReturn;
+		H myH = new H();
+//		return myH.iAlsoReturnAChild().iReturnAChild();
+//		return this.aChildToReturn;
+		SubtypeChild [] childArray = new SubtypeChild[3];
+		return childArray[0];
+		
+	}
+	
+	
+	
+	
+	SubtypeRunner returnASubtypeRunner() {
+		return this;
+	}
+	
+	
 	
 	
 	void interfaceRunner() {
@@ -117,12 +144,6 @@ public class SubtypeRunner {
 	}
 	
 	
-	SubtypeParent subtypeViaReturnType() {
-		SubtypeChild childToReturn = new SubtypeChild();
-		return childToReturn;
-	}
-
-	
 	void sidewaysDemo(SidewaysA sa) {
 		// Tested, it works, counted as subtype
 		SidewaysB sb = (SidewaysB)sa;
@@ -132,7 +153,8 @@ public class SubtypeRunner {
 	void subtypeViaCasting() {
 		SubtypeChild aChild = new SubtypeChild();
 		SubtypeParent aParent = (SubtypeParent)aChild;
-		
+		int i = 49;
+		byte myByte = (byte)i;
 		aParent = (SubtypeParent)getMeAChild();
 	}
 	
@@ -143,7 +165,7 @@ public class SubtypeRunner {
 	void subtypeViaParameterPassing() {
 		SubtypeChild aChild = new SubtypeChild();
 		iExpectAParent(aChild);
-		iExpectAParent(new SubtypeChild());
+//		iExpectAParent(new SubtypeChild());
 	}
 	
 	

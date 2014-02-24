@@ -1,5 +1,16 @@
 module inheritance::OldMethods
 
+public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [loc, loc] inhRelations , M3 projectM3) {
+	rel [loc, loc] returnSet = { <from, to> | <from, to> <- inhRelations , 
+												(from == twoTypes[0] 	&&  to == twoTypes[1]) ||
+												(from == twoTypes[1] 	&& 	to == twoTypes[0]) };
+	if (size(returnSet) != 1) {
+		throw ("Size of list different from 1 for list: <twoTypes> in get inheritance key. Size of list is: <size(returnSet) >");
+	}								
+	return getOneFrom(returnSet);								
+}
+
+
 private rel [inheritanceKey, inheritanceType] getSubtypeViaAssignmentFromTypeDef(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {<<DEFAULT_LOC, DEFAULT_LOC>, INITIAL_TYPE>};	
 	lrel [inheritanceKey, subtypeViaAssignmentTypeDef] subtypeLog = [<<DEFAULT_LOC,DEFAULT_LOC>,<DEFAULT_LOC,INITIAL_TYPE>>]; 
@@ -20,3 +31,16 @@ private rel [inheritanceKey, inheritanceType] getSubtypeViaAssignmentFromTypeDef
 	return resultRel;
 }
 
+private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromM3(M3 projectM3) {
+	rel [inheritanceKey, inheritanceType] resultRel = {};
+	lrel [inheritanceKey, subtypeM3Detail] subtypeLog = [];
+	set [loc] 	allMethodsInProject = 	{decl | <decl, prjct> <- projectM3@declarations, isMethod(decl) };
+	map [loc, set [loc] ] methodsAndTypes = toMap({ <from, to> | <from, to> <- projectM3@typeDependency,
+																from in allMethodsInProject });
+
+	map [loc, set [loc] ] subtypeMethods = (typeDep : methodsAndTypes[typeDep] | typeDep <- methodsAndTypes , size(methodsAndTypes[typeDep]) >= 1);
+	
+	iprintln(subtypeMethods);
+	//iprintToFile(subtypeM3LogFile, subtypeLog);
+	return resultRel;
+}

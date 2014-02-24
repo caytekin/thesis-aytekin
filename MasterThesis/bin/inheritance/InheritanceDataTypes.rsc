@@ -21,6 +21,8 @@ public inheritanceType INTERFACE_INTERFACE = 102;
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
 public inheritanceSubtype SUBTYPE_VIA_CAST = 203;
+public inheritanceSubtype SUBTYPE_VIA_RETURN = 204;
+
 
 
 
@@ -39,10 +41,12 @@ public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);
 
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
-public alias subtypeViaAssignmentDetail = tuple [loc subtypeDetailLoc, inheritanceSubtype inhSub];
+public alias subtypeASTDetail = tuple [loc subtypeDetailLoc, inheritanceSubtype inhSub];
+public alias subtypeM3Detail = tuple [loc methodLoc, inheritanceSubtype inhSub];
 
 
-public loc subtypeASTLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAssignment.log|;
+public loc subtypeASTLogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeAST.log|;
+public loc subtypeM3LogFile = |file://c:/Users/caytekin/InheritanceLogs/SubtypeM3.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 

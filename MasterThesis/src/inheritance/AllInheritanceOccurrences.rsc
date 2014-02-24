@@ -66,7 +66,7 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
+	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);

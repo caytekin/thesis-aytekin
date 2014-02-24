@@ -7,9 +7,13 @@ import Relation;
 import List;
 import ListRelation;
 import ValueIO;
+import Node;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
+import lang::java::m3::AST;
+import lang::java::jdt::m3::AST;
+import lang::java::m3::TypeSymbol;
 
 import inheritance::InheritanceDataTypes;
 
@@ -105,16 +109,22 @@ public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
 }
 
 
-
-public inheritanceKey getInheritanceKeyFromTwoTypes(list [loc] twoTypes, rel [loc, loc] inhRelations , M3 projectM3) {
-	rel [loc, loc] returnSet = { <from, to> | <from, to> <- inhRelations , 
-												(from == twoTypes[0] 	&&  to == twoTypes[1]) ||
-												(from == twoTypes[1] 	&& 	to == twoTypes[0]) };
-	if (size(returnSet) != 1) {
-		throw ("Size of list different from 1 for list: <twoTypes> in get inheritance key. Size of list is: <size(returnSet) >");
-	}								
-	return getOneFrom(returnSet);								
+TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
+	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	set [TypeSymbol] methodSymbolSet = {to | <from, to> <- projectM3@types, from == methodLoc};
+	if (size(methodSymbolSet) != 1) {
+		throw("The method <methodLoc> has not exactly one entry in @types annotation.");
+	};
+	TypeSymbol methodTypeSymbol = getOneFrom(methodSymbolSet); 
+	visit (methodTypeSymbol) {
+	// \method(loc decl, list[TypeSymbol] typeParameters, TypeSymbol returnType, list[TypeSymbol] parameters)
+		case \method(_, _, returnType,  _) : {
+			retSymbol = returnType;
+		}
+	} // visit
+	return retSymbol;
 }
+
 
 
 public void printSubtypeLog() {

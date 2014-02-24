@@ -97,10 +97,24 @@ private rel [inheritanceKey, loc] getVariableListWithSubtype(Type typeOfVar, lis
 
 
 
+public tuple [bool, inheritanceKey] getSubtypeViaReturnCase(Expression retExpr, loc methodLoc, M3 projectM3) {
+	bool isSubtypeViaReturn = false;
+	inheritanceKey iKey =<DEFAULT_LOC, DEFAULT_LOC>;
+	loc retExprJavaType = getClassOrInterfaceFromTypeSymbol(retExpr@typ); 
+	loc declRetJavaType	= getClassOrInterfaceFromTypeSymbol(getDeclaredReturnTypeOfMethod(methodLoc, projectM3));
+   	if ( (retExprJavaType != DEFAULT_LOC) && (declRetJavaType != DEFAULT_LOC) && (retExprJavaType != declRetJavaType) ) {
+   		isSubtypeViaReturn = true;
+   		iKey.child = retExprJavaType;
+   		iKey.parent = declRetJavaType;
+   	}
+   	return <isSubtypeViaReturn, iKey>;
+}
+
+
 
 private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromAST(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {};
-	lrel [inheritanceKey, subtypeViaAssignmentDetail] subtypeLog = []; 
+	lrel [inheritanceKey, subtypeASTDetail] subtypeLog = []; 
 	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
 	set [loc] allClassesInProject = getAllClassesAndInterfacesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
@@ -149,6 +163,15 @@ private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromAST(M3 projectM
 						}
 					} // if
 				} // case \cast
+				case returnStmt:\return(retExpr) : {
+					tuple [bool isSubtype, inheritanceKey iKey] result =  
+									getSubtypeViaReturnCase(retExpr, oneMethod, projectM3);
+					if ((result.isSubtype) && (result.iKey.parent in allClassesAndInterfacesInProject) ) {
+						resultRel += <result.iKey, SUBTYPE>;
+						subtypeLog += <result.iKey, <retExpr@src, SUBTYPE_VIA_RETURN>>;
+					}
+					;
+				}  // case \return(_)
         	} // visit()
 		};	// for each method in the class															
 	};	// for each class in the project

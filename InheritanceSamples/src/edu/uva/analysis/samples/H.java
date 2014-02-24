@@ -31,5 +31,7 @@ public class H {
 		P myP = (P)myC;
 	}
 	
-	
+	SubtypeChild iAlsoReturnAChild() {
+		return new SubtypeChild();
+	}
 }

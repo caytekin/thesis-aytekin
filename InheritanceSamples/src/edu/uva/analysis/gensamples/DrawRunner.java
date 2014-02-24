@@ -23,6 +23,10 @@ public class DrawRunner {
 		dRunner.iExpectAShape(aTriangle);
 	}
 	
+	Shape returnAShape() {
+		return new Rectangle();
+	}
+	
 	
 	public void iExpectAShape(Shape shapePar) {
 		
