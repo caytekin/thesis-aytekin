@@ -21,23 +21,37 @@ import inheritance::SubtypeInheritance;
 
 
 
-private void dealWithMethodCall(Expression methodDecl, M3 projectModel) {
-	println("Called method is: <methodDecl@decl>");
+private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
+	println("Called method is: <methodCallExpr@decl>");
+	println("Where in source is it called: <methodCallExpr@src>");
 	list [Expression] args= [];
-	text(methodDecl);
-	visit (methodDecl)  {
+	list [TypeSymbol] passedArgList = [], declaredArgList = [];
+	//text(methodCallExpr);
+	visit (methodCallExpr)  {
 		case \methodCall(_,_,myArgs:_) : {
-			println("I am here with 3 args");
+			//println("I am here with 3 args");
 			args = myArgs;
 		}
-		case \methodCall(_,_,_,_) : {
-			println("I am here with 4 args");
+		case \methodCall(_,_,_,myArgs:_) : {
+			//println("I am here with 4 args");
+			args = myArgs;
 		}
 	}
-	println("Arguments are: ");
-	iprintln(args);	
-	println("Argument type symbols are: ");
-	iprintln(args[0]@typ);
+	//println("Passed arguments are: ");
+	//iprintln(args);	
+	println("Passed argument type symbols are: ");
+	for ( int i <- [0..(size(args))]) passedArgList += args[i]@typ;
+	iprintln(passedArgList);
+	println("Declared argument type symbols are: ");
+	declaredArgList = getDeclaredParameterTypes (methodCallExpr@decl, projectModel);
+	iprintln(declaredArgList);
+	for (int i <- [0..size(args)]) {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedArgList[i], declaredArgList[i]);
+		if (result.isSubtypeRel) {
+			println("Yes! A subtype relation! At location: <methodCallExpr@src>");
+			println("	Between child: <result.iKey.child> and parent <result.iKey.parent>. ");
+		}
+	}
 }
 
 
@@ -202,7 +216,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 		case m2:\methodCall(_, _, _, _): {
         	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
 			println("m2: ");
-			text(m1);
+			//text(m2);
 			dealWithMethodCall(m2, projectModel);
    //     	println(m2);
    //     	println("receiver: <receiver>");

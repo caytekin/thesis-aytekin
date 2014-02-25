@@ -8,6 +8,7 @@ import List;
 import ListRelation;
 import ValueIO;
 import Node;
+import util::ValueUI;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -108,14 +109,42 @@ public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
     return classOrInterfaceLoc;
 }
 
+public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, TypeSymbol parentSymbol) {
+	bool isSubtypeRel = false;
+	inheritanceKey iKey = <DEFAULT_LOC, DEFAULT_LOC>;
+	iKey.parent = getClassOrInterfaceFromTypeSymbol(parentSymbol);
+	iKey.child = getClassOrInterfaceFromTypeSymbol(childSymbol);
+	if ((iKey.child != DEFAULT_LOC) && (iKey.parent != DEFAULT_LOC) && (iKey.child != iKey.parent)) {
+		isSubtypeRel = true;
+	}
+	return <isSubtypeRel, iKey>;
+}
 
-TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
-	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+
+TypeSymbol getTypeSymbolOfMethodDeclaration(loc methodLoc, M3 projectM3) {
 	set [TypeSymbol] methodSymbolSet = {to | <from, to> <- projectM3@types, from == methodLoc};
 	if (size(methodSymbolSet) != 1) {
 		throw("The method <methodLoc> has not exactly one entry in @types annotation.");
 	};
 	TypeSymbol methodTypeSymbol = getOneFrom(methodSymbolSet); 
+	return methodTypeSymbol;
+}
+
+
+public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3) {
+	list [TypeSymbol] retTypeList = [];
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfMethodDeclaration(methodLoc, projectM3);
+	visit (methodTypeSymbol) {
+		case \method(_, _, _, typeParameters:_) : {
+			retTypeList = typeParameters;
+		}
+	}
+	return retTypeList;
+}
+
+public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
+	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfMethodDeclaration(methodLoc, projectM3);
 	visit (methodTypeSymbol) {
 	// \method(loc decl, list[TypeSymbol] typeParameters, TypeSymbol returnType, list[TypeSymbol] parameters)
 		case \method(_, _, returnType,  _) : {
@@ -128,14 +157,9 @@ TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
 
 
 public void printSubtypeLog() {
-	//lrel [inheritanceKey, subtypeViaAssignmentASTLoc] subtypeASTLog 
-	value val = readTextValueFile(subtypeASTLogFile);
-	//rel [inheritanceKey iKey, loc subtypeDetailLoc, int inheritanceSubtype] logRelation = val;
+	value val = readTextValueFile(subtypeLogFile);
 	println("SUBTYPE LOG"); 
-	iprintln(sort(val));
-	//
-
-	
+	iprintln(sort(val));	
 }
 
 

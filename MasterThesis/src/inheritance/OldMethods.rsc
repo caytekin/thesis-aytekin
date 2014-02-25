@@ -44,3 +44,20 @@ private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromM3(M3 projectM3
 	//iprintToFile(subtypeM3LogFile, subtypeLog);
 	return resultRel;
 }
+
+private list [inheritanceKey, loc, inheritanceSubtype] getVariableListWithSubtype(Type typeOfVar, list [Expression] fragments) {
+ 	list [inheritanceKey, loc, inheritanceSubtype ] retList = [];
+  	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
+	tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
+	if (typeSymbolTuple.hasStatement) {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhsTypeSymbol, lhstypeSymbol); 
+		if (result.isSubtypeRel) {
+			for (anExpression <- fragments) {
+ 					retList += <result.iKey, anExpression@decl, SUBTYPE_ASSIGNMENT_VAR_DECL>;
+ 				}
+		}
+	}
+ 	return retList;
+}
+
+

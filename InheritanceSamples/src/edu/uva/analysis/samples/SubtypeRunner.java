@@ -5,7 +5,7 @@ import java.util.ResourceBundle;
 
 import javax.accessibility.AccessibleResourceBundle;
 
-import edu.uva.analysis.gensamples.MyArrayList;
+import edu.uva.analysis.gensamples.*;
 
 public class SubtypeRunner {
 	
@@ -162,10 +162,16 @@ public class SubtypeRunner {
 		// do parent's things
 	}
 	
+	void iExpectManyParents(SubtypeParent stParent, Shape aShape) {
+		
+	}
+	
 	void subtypeViaParameterPassing() {
 		SubtypeChild aChild = new SubtypeChild();
+		Rectangle aRectangle = new Rectangle();
 		iExpectAParent(aChild);
-//		iExpectAParent(new SubtypeChild());
+		this.iExpectManyParents(aChild, aRectangle);
+		iExpectAParent(new SubtypeChild());
 	}
 	
 	

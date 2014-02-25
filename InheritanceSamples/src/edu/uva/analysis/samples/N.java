@@ -17,6 +17,9 @@ public class N {
 		int j = 21;
 		int k = 43;
 		int l = 33;
+		int w, x = 1;
+		System.out.println(x);
+		
 	}
 	
 	

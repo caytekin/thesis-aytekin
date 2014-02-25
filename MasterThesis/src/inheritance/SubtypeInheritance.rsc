@@ -17,8 +17,6 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
-//public alias boolTypeSymbolTuple
-
 
 public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
 	TypeSymbol returnSymbol = DEFAULT_TYPE_SYMBOL; 
@@ -29,8 +27,6 @@ public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
  	}
  	return returnSymbol;
 }
-
-
 
 
 public tuple [bool, TypeSymbol] getTypeSymbolFromVariable(Expression varExpression) {
@@ -68,55 +64,112 @@ TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
 }
 
 
-
-
-
-
-private rel [inheritanceKey, loc] getVariableListWithSubtype(Type typeOfVar, list [Expression] fragments) {
- 	rel [inheritanceKey, loc] returnList = {};
- 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
- 	//println("Variables are : <{vars@decl| vars <- fragments}> ------------");
- 	if (lhsTypeSymbol != DEFAULT_TYPE_SYMBOL) {
- 		//println("lhsTypeSymbol is: <lhsTypeSymbol>");
- 		loc lhsJavaType = getClassOrInterfaceFromTypeSymbol(lhsTypeSymbol);
- 		tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
- 		//println("hasStatement is: <typeSymbolTuple.hasStatement>, rhsTypeSymbol is: <typeSymbolTuple.rhsTypeSymbol>");
- 		if ((typeSymbolTuple.hasStatement) && (typeSymbolTuple.rhsTypeSymbol != DEFAULT_TYPE_SYMBOL)) {
- 			loc rhsJavaType = getClassOrInterfaceFromTypeSymbol(typeSymbolTuple.rhsTypeSymbol);
- 			if (lhsJavaType != rhsJavaType)  {
- 				for (anExpression <- fragments) {
- 					returnList += <<rhsJavaType, lhsJavaType>, anExpression@decl>;
- 				}
- 			}
- 		}
- 	}
- 	return returnList;
+public list [TypeSymbol] getPassedSymbolList(Expression methExpr, M3 projectM3) {
+	list [Expression] args 		= [];
+	list [TypeSymbol] retList 	= [];
+	visit (methExpr)  {
+		case \methodCall(_,_,myArgs:_) : {
+			args = myArgs;
+		}
+		case \methodCall(_,_,_,myArgs:_) : {
+			args = myArgs;
+		}
+	}
+	for ( int i <- [0..(size(args))]) retList += args[i]@typ;
+	return retList;
 }
 
 
-
-
-
-public tuple [bool, inheritanceKey] getSubtypeViaReturnCase(Expression retExpr, loc methodLoc, M3 projectM3) {
-	bool isSubtypeViaReturn = false;
-	inheritanceKey iKey =<DEFAULT_LOC, DEFAULT_LOC>;
-	loc retExprJavaType = getClassOrInterfaceFromTypeSymbol(retExpr@typ); 
-	loc declRetJavaType	= getClassOrInterfaceFromTypeSymbol(getDeclaredReturnTypeOfMethod(methodLoc, projectM3));
-   	if ( (retExprJavaType != DEFAULT_LOC) && (declRetJavaType != DEFAULT_LOC) && (retExprJavaType != declRetJavaType) ) {
-   		isSubtypeViaReturn = true;
-   		iKey.child = retExprJavaType;
-   		iKey.parent = declRetJavaType;
-   	}
-   	return <isSubtypeViaReturn, iKey>;
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Expression asmtStmt) {
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	visit (asmtStmt ) {
+		case aStmt:\assignment(lhs, operator, rhs) : {  
+			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
+			if (result.isSubtypeRel) {
+				retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, asmtStmt@src>;
+			} // if																					   
+		}	// case	
+	} // visit
+	return retList;
 }
 
 
+public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Declaration vars) {
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	visit(vars) {
+		case \variables(typeOfVar, fragments) : {
+  			TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
+			tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
+			if (typeSymbolTuple.hasStatement) {
+				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(typeSymbolTuple.rhsTypeSymbol, lhsTypeSymbol); 
+				if (result.isSubtypeRel) {
+					for (anExpression <- fragments) {
+ 						retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
+ 					} // for
+				} // if
+			} // if
+		} // case
+	} // visit
+ 	return retList;
+}
 
-private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromAST(M3 projectM3) {
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt) {
+// The cast can be from child to parent, but also from parent to child
+// Also, sideways cast is possible. This will give some irregularities 
+// in the statistics, because we assume a <child, parent> tuple in CC, CI or II. 
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	visit (castStmt) {
+		case \cast(castType, castExpr) : {  
+			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(castExpr@typ, getTypeSymbolFromRascalType(castType));
+			if (result.isSubtypeRel) {
+				retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+				// TODO: Is it possible to log sideways cast and casting from child to parent 
+				// 		 with different inheritance subtype? Think about it...
+			} 
+		}
+	}
+	return retList;
+}
+
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc, M3 projectM3) {
+	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
+	visit (returnStmt) {
+		case \return(retExpr) : {
+			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
+																						getDeclaredReturnTypeOfMethod(methodLoc, projectM3));
+			if (result.isSubtypeRel) {
+				retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
+			} 
+		}  
+	}
+	return retList;
+}
+
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methCallExpr, M3 projectM3) {
+	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
+	if (isMethodInProject(methCallExpr@decl, projectM3)) { 
+		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methCallExpr, projectM3);
+		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methCallExpr@decl, projectM3);
+		for (int i <- [0..size(passedSymbolList)]) {
+			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], declaredSymbolList[i]);
+			if (result.isSubtypeRel) {
+				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methCallExpr@src>;
+			}
+		}
+	}
+	return retList;
+}
+
+
+public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {};
-	lrel [inheritanceKey, subtypeASTDetail] subtypeLog = []; 
+	lrel [inheritanceKey, inheritanceSubtype, loc] subtypeLog = [];
+	lrel [inheritanceKey, inheritanceSubtype, loc] allSubtypeCases = [];
 	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	set [loc] allClassesInProject = getAllClassesAndInterfacesInProject(projectM3);
+	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
 		set [loc] methodsInClass = {declared | <owner,declared> <- projectM3@containment, 
 																owner == oneClass, 
@@ -127,64 +180,37 @@ private rel [inheritanceKey, inheritanceType] getSubtypeCasesFromAST(M3 projectM
 			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
 			visit(methodAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
-		        	// 	\assignment(Expression lhs, str operator, Expression rhs)
-		        	loc lhsClass = getClassOrInterfaceFromTypeSymbol(lhs@typ);
-		        	loc rhsClass = getClassOrInterfaceFromTypeSymbol(rhs@typ);
-					if (lhsClass != rhsClass) {
-						if ( (lhsClass in allClassesAndInterfacesInProject) && (rhsClass in allClassesAndInterfacesInProject)) {
-							inheritanceKey iKey = <rhsClass, lhsClass>;
-							resultRel  += < iKey, SUBTYPE>;
-							subtypeLog += <iKey, <aStmt@src, SUBTYPE_ASSIGNMENT_STMT>>;
-						}
-					}		
-				} // case \assignment
+					allSubtypeCases += getSubtypeViaAssignment(aStmt);
+				}
 				case variables : \variables(typeOfVar, fragments) : {
-					rel [inheritanceKey, loc] variablesList = getVariableListWithSubtype(typeOfVar, fragments);
-					for (<inheritanceKey iKey, loc varLoc> <- variablesList) {
-						if ( (iKey.parent in allClassesAndInterfacesInProject) && (iKey.parent in allClassesAndInterfacesInProject) ) {
-							resultRel += <iKey, SUBTYPE>;
-							subtypeLog += <iKey, <varLoc, SUBTYPE_ASSIGNMENT_VAR_DECL>>;
-						}
-					}
-				;
-				} // case \variables
+					allSubtypeCases += getSubtypeViaVariables(variables);
+				} 
 				case castStmt:\cast(castType, castExpr) : {  
-					// The cast can be from child to parent, but also from parent to child
-					// Also, sideways cast is possible. This will give some irregularities 
-					// in the statistics, because we assume a <child, parent> tuple in CC, CI or II. 
-					TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(castType);
-					TypeSymbol rhsTypeSymbol = castExpr@typ;
-					if ((lhsTypeSymbol != DEFAULT_TYPE_SYMBOL) && (lhsTypeSymbol != rhsTypeSymbol)) { 
-						inheritanceKey iKey = <getClassOrInterfaceFromTypeSymbol(rhsTypeSymbol), 
-												getClassOrInterfaceFromTypeSymbol(lhsTypeSymbol)>;
-						if ( (iKey.child in allClassesAndInterfacesInProject) && (iKey.parent in allClassesAndInterfacesInProject) ) {
-							resultRel += <iKey, SUBTYPE>;
-							subtypeLog += <iKey, <castStmt@src, SUBTYPE_VIA_CAST>>;
-						}
-					} // if
+					allSubtypeCases += getSubtypeViaCast(castStmt);					
 				} // case \cast
 				case returnStmt:\return(retExpr) : {
-					tuple [bool isSubtype, inheritanceKey iKey] result =  
-									getSubtypeViaReturnCase(retExpr, oneMethod, projectM3);
-					if ((result.isSubtype) && (result.iKey.parent in allClassesAndInterfacesInProject) ) {
-						resultRel += <result.iKey, SUBTYPE>;
-						subtypeLog += <result.iKey, <retExpr@src, SUBTYPE_VIA_RETURN>>;
-					}
-					;
+					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, projectM3);
 				}  // case \return(_)
+				case  methExpr1:\methodCall(_,_, _) : {
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1,projectM3);
+				}
+				case methExpr2:\methodCall(_, _, _, _): {
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2,projectM3);					
+				} 
         	} // visit()
 		};	// for each method in the class															
 	};	// for each class in the project
-	iprintToFile(subtypeASTLogFile, subtypeLog);
+	for ( int i <- [0..size(allSubtypeCases)]) { 
+		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc detLoc] aCase = allSubtypeCases[i];
+		if (aCase.iKey.parent in allClassesAndInterfacesInProject ) {
+			resultRel += <aCase.iKey, SUBTYPE>;
+			subtypeLog += aCase;	
+		}
+	}
+	iprintToFile(subtypeLogFile,subtypeLog );
 	return resultRel;
 }
 
 
 
-
-public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
-	rel [inheritanceKey, inheritanceType] resultRel = {};
-	resultRel += getSubtypeCasesFromAST(projectM3);
-	return resultRel;
-}
 
