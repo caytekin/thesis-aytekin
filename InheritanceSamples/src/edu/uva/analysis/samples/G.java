@@ -2,6 +2,9 @@ package edu.uva.analysis.samples;
 
 // a grandchild class of P
 public class G extends C {
+	
+	void methodToOverride() {}
+	
 	void c() {
 		System.out.println("G implemnts c()...");
 		q();		// internal reuse

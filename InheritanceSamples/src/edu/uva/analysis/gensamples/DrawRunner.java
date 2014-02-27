@@ -31,4 +31,10 @@ public class DrawRunner {
 	public void iExpectAShape(Shape shapePar) {
 		
 	}
+	
+	public void triangleRunner() {
+		RightTriangle rT = new RightTriangle();
+		Canvas aCanvas = new Canvas();
+		rT.draw(aCanvas);
+	}
 }

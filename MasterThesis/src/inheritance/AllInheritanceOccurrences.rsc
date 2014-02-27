@@ -7,6 +7,7 @@ import Set;
 import Relation;
 import List;
 import ListRelation;
+import DateTime;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -72,11 +73,12 @@ public void runIt() {
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);
 	//allInheritanceCases += getInternalReuseCases(projectM3);
 	//println("Internal use cases are done...");
-	//allInheritanceCases += getExternalReuseCases(projectM3);	
-	//println("External use cases are done...");	
-	allInheritanceCases += getSubtypeCases(projectM3);	
+	println("Starting with external reuse cases at: <printTime(now())> ");
+	allInheritanceCases += getExternalReuseCases(projectM3);	
+	println("External use cases are done at <printTime(now())>...");	
+	//allInheritanceCases += getSubtypeCases(projectM3);	
 	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	printResults(allInheritanceCases);
-	printSubtypeLog();
+	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
 }
 

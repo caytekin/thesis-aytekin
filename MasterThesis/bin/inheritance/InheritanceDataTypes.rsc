@@ -25,6 +25,8 @@ public inheritanceSubtype SUBTYPE_VIA_RETURN = 204;
 public inheritanceSubtype SUBTYPE_VIA_PARAMETER = 205;
 
 
+public inheritanceSubtype EXTERNAL_REUSE_VIA_METHOD_CALL = 210;
+public inheritanceSubtype EXTERNAL_REUSE_VIA_FIELD_ACCESS = 211;
 
 
 

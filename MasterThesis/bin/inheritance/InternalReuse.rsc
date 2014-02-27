@@ -29,8 +29,8 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	//
 	// TODO: I should look (and test) if I take the constructors in to account.
 	// A constructor can also invoke parent methods (not only super())
-	rel [inheritanceKey, inheritanceType] resultRel = {<<|java+class:///|,|java+class:///|>, 999>};
-	lrel [inheritanceKey, internalReuseDetail] internalReuseLog = [<<|java+class:///|,|java+class:///|>,<|java+method:///|,|java+method:///|>>]; 
+	rel [inheritanceKey, inheritanceType] resultRel = {};
+	lrel [inheritanceKey, internalReuseDetail] internalReuseLog = []; 
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	set [loc] intReuseClasses = { child | <child, parent> <- allInheritanceRels, isClass(child), isClass(parent)};
 	for (oneClass <- intReuseClasses) {

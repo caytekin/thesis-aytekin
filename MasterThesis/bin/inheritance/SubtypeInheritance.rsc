@@ -150,7 +150,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methCallExpr, M3 projectM3) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
-	if (isMethodInProject(methCallExpr@decl, projectM3)) { 
+	if (isLocDefinedInProject(methCallExpr@decl, projectM3)) { 
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methCallExpr, projectM3);
 		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methCallExpr@decl, projectM3);
 		for (int i <- [0..size(passedSymbolList)]) {

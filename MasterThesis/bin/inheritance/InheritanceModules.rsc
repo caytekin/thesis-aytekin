@@ -19,11 +19,11 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 
 
-loc getDefiningClassOfMethod(loc aMethod, M3 projectM3) {
-	set [loc] resultSet = {dClass | <dClass, dMethod> <- projectM3@containment, 
-    																dMethod == aMethod};
+public loc getDefiningClassOfALoc(loc aLoc, M3 projectM3) {
+	set [loc] resultSet = {dClass | <dClass, dLocation> <- projectM3@containment, 
+    																dLocation == aLoc};
 	if (size(resultSet) != 1) {
-		throw "Number of defining classes for method <aMethod> is not one. Classes: <resultSet>";
+		throw "Number of defining classes for location <aLoc> is not one. Classes: <resultSet>";
 	}
 	else {
 		return getOneFrom(resultSet);
@@ -31,8 +31,8 @@ loc getDefiningClassOfMethod(loc aMethod, M3 projectM3) {
 }
 
 
-public bool isMethodInProject(loc methodPar, M3 projectM3) {
-	return ! isEmpty({<aMethod> | <aClass, aMethod> <- projectM3@containment, aMethod == methodPar});
+public bool isLocDefinedInProject(loc locPar, M3 projectM3) {
+	return ! isEmpty({<aLoc> | <aLoc, aProject> <- projectM3@declarations, aLoc == locPar});
 }
 
 
@@ -120,20 +120,20 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 	return <isSubtypeRel, iKey>;
 }
 
-
-TypeSymbol getTypeSymbolOfMethodDeclaration(loc methodLoc, M3 projectM3) {
-	set [TypeSymbol] methodSymbolSet = {to | <from, to> <- projectM3@types, from == methodLoc};
-	if (size(methodSymbolSet) != 1) {
-		throw("The method <methodLoc> has not exactly one entry in @types annotation.");
+// This method returns the type symbol of a method or field definition
+TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, M3 projectM3) {
+	set [TypeSymbol] locSymbolSet = {to | <from, to> <- projectM3@types, from == definedLoc};
+	if (size(locSymbolSet) != 1) {
+		throw("The location <definedLoc> has not exactly one entry in @types annotation.");
 	};
-	TypeSymbol methodTypeSymbol = getOneFrom(methodSymbolSet); 
-	return methodTypeSymbol;
+	TypeSymbol locTypeSymbol = getOneFrom(locSymbolSet); 
+	return locTypeSymbol;
 }
 
 
 public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3) {
 	list [TypeSymbol] retTypeList = [];
-	TypeSymbol methodTypeSymbol = getTypeSymbolOfMethodDeclaration(methodLoc, projectM3);
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
 	visit (methodTypeSymbol) {
 		case \method(_, _, _, typeParameters:_) : {
 			retTypeList = typeParameters;
@@ -144,7 +144,7 @@ public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3)
 
 public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
-	TypeSymbol methodTypeSymbol = getTypeSymbolOfMethodDeclaration(methodLoc, projectM3);
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
 	visit (methodTypeSymbol) {
 	// \method(loc decl, list[TypeSymbol] typeParameters, TypeSymbol returnType, list[TypeSymbol] parameters)
 		case \method(_, _, returnType,  _) : {
@@ -154,12 +154,11 @@ public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
 	return retSymbol;
 }
 
-
-
-public void printSubtypeLog() {
-	value val = readTextValueFile(subtypeLogFile);
-	println("SUBTYPE LOG"); 
+public void printLog(loc logFile, str header) {
+	value val = readTextValueFile(logFile);
+	println(header); 
 	iprintln(sort(val));	
 }
+
 
 

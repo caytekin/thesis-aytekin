@@ -9,6 +9,10 @@ public class C extends P {
 	
 	void methodToOverride() {}
 	
+	void q() {
+	
+	}
+	
 	void c() {
 		q();		 // internal reuse
 	}

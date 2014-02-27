@@ -22,6 +22,20 @@ public class N {
 		
 	}
 	
+	void extReuse2222() {
+		this.theFieldOfN = "I am being updated";
+		theFieldOfN = "I am being updated again.";
+		C aCGlow = new C();
+		int k = aCGlow.intFieldParent;	// external reuse - field
+		aCGlow.intFieldParent = 0;
+//		aCGlow.intFieldParent++;	// external reuse - field
+//		aCGlow.intFieldChild++;		// no external reuse
+	}
+	
+	
+	
+	
+	
 	
 	void extReuse() {
 		this.theFieldOfN = "I am being updated";

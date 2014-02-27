@@ -7,6 +7,7 @@ import Map;
 import ListRelation;
 import Node;
 import ValueIO;
+import DateTime;
 
 import lang::java::m3::Core;
 import lang::java::m3::AST;
@@ -55,8 +56,63 @@ private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 }
 
 
+public set [loc] getClassesWhichOverrideAMethod(loc aMethod, M3 projectM3) {
+	set [loc] retSet = {};
+	set [loc] overridingMethods = {descMeth | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth == aMethod};
+	for (overridingMethod <- overridingMethods) {
+		retSet += getDefiningClassOfALoc(overridingMethod, projectM3);
+	}
+	return retSet;
+}
+
+
+public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, M3 projectM3) {
+	bool retBool = false;
+	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, projectM3);
+	if (descClass in classesThatOverrideTheMethod ) {
+		retBool = true;
+	}
+	return retBool;
+}
+
+
+private void findDownCalls(M3 projectM3) {
+	// TODO: Think about how to deal with constructors...
+	println("Starting with down calls: <printTime(now())> ");
+	int i = 0;
+	set [loc] allMethodsInProject = {definedMethod | <definedMethod, project> <- projectM3@declarations, isMethod(definedMethod)};
+	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides && ascMeth in allMethodsInProject};
+	for (<descMeth, ascMeth> <- allOverriddenMethods) {
+		loc ascClass = getDefiningClassOfALoc(ascMeth, projectM3);
+		loc descClass = getDefiningClassOfALoc(descMeth, projectM3);
+		set [loc] methodsInAscClass = {declared | <owner,declared> <- projectM3@containment, owner == ascClass, isMethod(declared) };
+		for (issuerMethod <- methodsInAscClass) {
+			methodAST = getMethodASTEclipse(issuerMethod, model = projectM3);	
+			visit(methodAST) {
+				case mCall:\methodCall(_,_,_) : {
+				// \methodCall(bool isSuper, str name, list[Expression] arguments
+					//println("<issuerMethod> issues a call to method: <mCall@decl>");
+					if ((mCall@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, projectM3)) {
+						println("-----------------------------------------------------------------------------");
+						println("A downcall candidate!!! <issuerMethod> issues a call to method: <mCall@decl>");
+						println("Parent- ascendant class is: <ascClass>, child - descendent class is: <descClass>"); 
+						i++;
+					}
+				 }
+			} // visit
+		}				 
+	}
+	//iprintln(allOverriddenMethods);
+	println("Finished down calls: <printTime(now())> ");
+	println("Number of down call candidates: <i> ");
+	
+}
+
+
+
+
 private M3 getM3Model() {
-	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 inheritanceM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	//print ("Extends relation (from loc, to loc): "); iprintln(inheritanceM3@extends);
 	//print ("Implements relation (from loc, to loc): "); iprintln(inheritanceM3@implements);
 	//print ("Method overrides: "); iprintln(inheritanceM3@methodOverrides);
@@ -71,12 +127,12 @@ private M3 getM3Model() {
 																		//from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow| ||
 																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow| ||
 																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow|  });
-	//print ("Containment: "); iprintln({<dClass, dMethod> | <dClass, dMethod> <- inheritanceM3@containment,
-	//															dMethod == |java+method:///edu/uva/analysis/samples/P/returnOne()|}); 
+	//print ("Containment: "); iprintln({<dClass, dField> | <dClass, dField> <- inheritanceM3@containment,
+	//															dField == |java+field:///edu/uva/analysis/samples/P/intFieldParent|}); 
 	//print ("Field access: "); iprintln(inheritanceM3@fieldAccess );
 	//print("Declaration: "); iprintln(sort({<decl, prjct> | <decl, prjct> <- inheritanceM3@declarations}));
-	print ("Types: "); iprintln(sort({<from, to> | <from, to> <- inheritanceM3@types,
-														from == |java+method:///edu/uva/analysis/samples/SubtypeRunner/aSubtypeViaReturnType()|}));
+	//print ("Types: "); iprintln(sort({<from, to> | <from, to> <- inheritanceM3@types,
+	//													from == |java+method:///edu/uva/analysis/samples/SubtypeRunner/aSubtypeViaReturnType()|}));
 	//println("******************************************************************************");
 	//print("Type dependency: "); 
 	rel [loc, loc] subtypeAssignmentTypeDep = { <from, to> | <from, to> <- inheritanceM3@typeDependency,
@@ -104,6 +160,8 @@ private M3 getM3Model() {
 	//iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/trial1.log|, inheritanceM3@typeDependency);
 	//println("All type definitions for variables with two classes:");
 	//iprintln(varsAndClasses);	
+	//println("Overrides:");
+	//iprintln(inheritanceM3@methodOverrides);
 	return inheritanceM3;
 }
 
@@ -124,6 +182,26 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	// println("Method AST is: <methodAST>");
 	 //text(methodAST);
 	visit(methodAST) {
+		case fAccess1:\fieldAccess(isSuper, expression, name) : {
+			//println("Field access 1 ----------------------");
+			//iprintln(expression);
+		;}
+    	case fAccess2:\fieldAccess(bool isSuper, str name) : {
+   // 		println("Field access 2 ----------------------");
+			//iprintln(fAccess2);
+    	;}
+    	case quaName:\qualifiedName(qualifier, expression) : {
+    		//println("Qualified name. Qualifier: ----------------------");
+    		//iprintln(qualifier);
+    		//println("Expression: ");
+    		//iprintln(expression);
+    		//println("Type symbol of qualifier is: <qualifier@typ>");
+    		//println("Class of the qualifier is: <getClassOrInterfaceFromTypeSymbol(qualifier@typ)>");
+    		//println("Is the expression a java field: <isField(expression@decl)>");
+    		//if (isField(expression@decl)) {
+    		//	println("The field: <expression@decl> is defined in class: <getDefiningClassOfALoc(expression@decl, projectModel)>");
+    		//} 
+    	;}
 		//case dStmt : \declarationStatement(declr) : {
 		// // \variables(Type \type, list[Expression] \fragments)
 		//	print("Declaration statement:");
@@ -208,16 +286,16 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 		case m1:\methodCall(_,_, _) : {
 		//case 1: case 3: case 5: {
 			 // \methodCall(bool isSuper, str name, list[Expression] arguments)
-			println("m1: ");
+			//println("m1: ");
 			//text(m1);
-			dealWithMethodCall(m1, projectModel);
+			//dealWithMethodCall(m1, projectModel);
 			;
 		}
 		case m2:\methodCall(_, _, _, _): {
         	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
-			println("m2: ");
+			//println("m2: ");
 			//text(m2);
-			dealWithMethodCall(m2, projectModel);
+			//dealWithMethodCall(m2, projectModel);
    //     	println(m2);
    //     	println("receiver: <receiver>");
    //     	println("m2 Annotations: <getAnnotations(m2)>");
@@ -271,14 +349,15 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
         ;
         }
         case returnStmt : \return(retExpr) : {
-        	println("Return statement. Return expression is:");
-        	text(retExpr);
-        	println("Type symbol of the return expression is: <retExpr@typ> ");
-        	println("Type of the return expression is : <getClassOrInterfaceFromTypeSymbol(retExpr@typ)>");
-        	println("Source code location of return expression is: <retExpr@src>");
-        	TypeSymbol declaredReturnType = getDeclaredReturnTypeOfMethod(methodName, projectModel);
-        	println("Declared return type symbol is: <declaredReturnType>");
-        	println("Declared return type is: <getClassOrInterfaceFromTypeSymbol(declaredReturnType)>");
+        	//println("Return statement. Return expression is:");
+        	//text(retExpr);
+        	//println("Type symbol of the return expression is: <retExpr@typ> ");
+        	//println("Type of the return expression is : <getClassOrInterfaceFromTypeSymbol(retExpr@typ)>");
+        	//println("Source code location of return expression is: <retExpr@src>");
+        	//TypeSymbol declaredReturnType = getDeclaredReturnTypeOfMethod(methodName, projectModel);
+        	//println("Declared return type symbol is: <declaredReturnType>");
+        	//println("Declared return type is: <getClassOrInterfaceFromTypeSymbol(declaredReturnType)>");
+			;
         }
             
 	} // visit
@@ -292,8 +371,8 @@ public void runInitialWork() {
 	M3 m3Model = getM3Model();
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaParameterPassing()|);
+	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse2222()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
-	
+	findDownCalls(m3Model);
 }
