@@ -19,6 +19,19 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 
 
+public list [loc] getAscendantsInOrder(loc childClass, M3 projectM3){
+	set [loc] immediateParentSet = {parent | <child, parent> <- projectM3@extends, child == childClass, 
+																				isClass(child), isClass(childClass)};
+	if (isEmpty(immediateParentSet)) {
+		return [];
+	}
+	if (size(immediateParentSet) > 1) {
+		throw ("getAscendantsInOrder, <childClass> has more than one parent in @extends annotation.");
+	}
+	return [getOneFrom(immediateParentSet)] + getAscendantsInOrder(getOneFrom(immediateParentSet), projectM3);
+}
+
+
 public loc getDefiningClassOfALoc(loc aLoc, M3 projectM3) {
 	set [loc] resultSet = {dClass | <dClass, dLocation> <- projectM3@containment, 
     																dLocation == aLoc};

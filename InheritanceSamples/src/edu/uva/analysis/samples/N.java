@@ -49,7 +49,7 @@ public class N {
 		aCGlow.intFieldParent++;	// external reuse - field
 		aCGlow.intFieldChild++;		// no external reuse
 		G aGGlow = new G();
-		aGGlow.p();		// external reuse
+		aGGlow.p();		// external reuse and downcall
 //		P aP = new P();
 //		aP.p(); 		// NOT an external reuse
 		int j = 43;

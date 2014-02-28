@@ -21,6 +21,18 @@ import inheritance::InheritanceModules;
 import inheritance::SubtypeInheritance;
 
 
+public void runInitialWork() {
+	M3 m3Model = getM3Model();
+	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
+	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
+	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse2222()|);
+	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
+	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
+	iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/G|, m3Model));
+	iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/GrandChild|, m3Model));	
+	iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/Parent|, m3Model));		
+	//findDownCalls(m3Model);
+}
 
 private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 	println("Called method is: <methodCallExpr@decl>");
@@ -76,12 +88,95 @@ public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, M3 pr
 }
 
 
-private void findDownCalls(M3 projectM3) {
+
+public set [loc] getDescendantsOfAClass(loc aClass, rel [loc,loc] allInheritanceRels) {
+	return {child | <child, parent> <- allInheritanceRels, parent == aClass};
+}
+
+
+
+public bool isDowncall(loc invokedMethod, loc classOfReceiver, rel [loc, loc, loc, loc] downcallCandidates, 
+																rel [loc, loc] allInheritanceRels){
+	bool retBool = false;
+	loc ascIssuerMethod= DEFAULT_LOC, descDowncallMethod = DEFAULT_LOC;
+	rel [loc, loc, loc, loc] downcallSet = {<ascClass, descClass, ascIssrMeth, descDowncMeth> | <ascClass, descClass, ascIssuerMethod, descDowncalledMethod> <- downcallCandidates, 
+																invokedMethod == ascIssuerMethod,
+																classOfReceiver == descClass ||
+																classOfReceiver in getDescendantsOfAClass(descClass, allInheritanceRels)
+																};
+	if (size(downcallSet) >= 1) {
+		tuple [loc ascClass, loc descClass, loc ascIssMeth, loc descDowncMeth] downcallCase = getOneFrom(downcallSet);
+		ascIssuerMethod = downcallCase.ascIssMeth;
+		if (size(downcallSet) == 1) {
+			descDowncallMethod = downcallCase.descDowncMeth;
+		}
+		else {
+			list [loc] ascendantsInOrder = getAscendantsInOrder(classOfReceiver);
+			for ( aNode <- ascendantsInOrder) {
+				set [loc] anotherDowncallSet = [descDowncMeth | <ascClass, descClass, ascIssuerMethod, descDowncalledMethod> <- downcallSet, 
+																descClass == aNode];
+				if (size(anotherDowncallSet) == 1) {
+					descDowncallMethod = getOneFrom(anotherDowncallSet);
+					break;
+				}
+				else {
+					if (size(anotherDowncallSet) > 1) {
+						throw "Size of Another downcallset is greater than one. anotherDowncallSet : <anotherDowncallSet>";
+					}
+				}
+			}		
+		}
+		println("Issuer method: <ascIssuerMethod>, downcalled method:<descDowncalledMethod>");
+		retBool = true;
+	}
+	return retBool;
+}
+
+
+
+public void findDownCalls(M3 projectM3) {
+	rel [loc ascendingClass, loc descendingClass, loc ascIssuerMethod, loc descDowncalledMethod] downcallCandidates = {};
+	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
+	downcallCandidates = getDowncallCandidates(projectM3);
+	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
+	for (oneClass <- allClassesInProject ) {
+		set [loc] methodsInClass = {declared | <owner,declared> <- projectM3@containment, 
+																owner == oneClass, 
+																isMethod(declared) }; 
+		// TODO:take also initializers in to account  
+		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
+		for (oneMethod <- methodsInClass) {
+			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
+			visit(methodAST) {
+				case mCall1:\methodCall(_, receiver:_, _, _): {
+				// \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments)
+					loc invokedMethod = mCall1@decl;
+					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
+					if (isDowncall(invokedMethod, classOfReceiver, downcallCandidates, allInheritanceRels)) {
+						println("An actual m1 downcall at location: <mCall1@src>");
+					}	
+				}
+				case mCall2:\methodCall(_,_,_) : {
+					loc invokedMethod = mCall2@decl;
+					loc classOfReceiver = oneClass;
+					if (isDowncall(invokedMethod, classOfReceiver, downcallCandidates, allInheritanceRels)) {
+						println("An actual m2 downcall at location: <mCall2@src>");
+					}
+					
+				;}
+			}
+		}		
+	}	
+}
+
+
+private rel [loc, loc, loc, loc] getDowncallCandidates(M3 projectM3) {
 	// TODO: Think about how to deal with constructors...
+	rel [loc ascendingClass, loc descendingClass, loc ascIssureMethod, loc descDowncalledMethod] downcallCandidates = {};
 	println("Starting with down calls: <printTime(now())> ");
 	int i = 0;
 	set [loc] allMethodsInProject = {definedMethod | <definedMethod, project> <- projectM3@declarations, isMethod(definedMethod)};
-	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides && ascMeth in allMethodsInProject};
+	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
 	for (<descMeth, ascMeth> <- allOverriddenMethods) {
 		loc ascClass = getDefiningClassOfALoc(ascMeth, projectM3);
 		loc descClass = getDefiningClassOfALoc(descMeth, projectM3);
@@ -94,9 +189,9 @@ private void findDownCalls(M3 projectM3) {
 					//println("<issuerMethod> issues a call to method: <mCall@decl>");
 					if ((mCall@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, projectM3)) {
 						println("-----------------------------------------------------------------------------");
-						println("A downcall candidate!!! <issuerMethod> issues a call to method: <mCall@decl>");
-						println("Parent- ascendant class is: <ascClass>, child - descendent class is: <descClass>"); 
-						i++;
+						println("<ascClass>, <descClass>, <issuerMethod>, <descMeth>");
+						downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
+						i = i + 1;
 					}
 				 }
 			} // visit
@@ -104,15 +199,15 @@ private void findDownCalls(M3 projectM3) {
 	}
 	//iprintln(allOverriddenMethods);
 	println("Finished down calls: <printTime(now())> ");
-	println("Number of down call candidates: <i> ");
-	
+	println("Number of down call candidates: <size(downcallCandidates)>");
+	return downcallCandidates;	
 }
 
 
 
 
 private M3 getM3Model() {
-	M3 inheritanceM3 = createM3FromEclipseProject(|project://SmallSQL|);
+	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
 	//print ("Extends relation (from loc, to loc): "); iprintln(inheritanceM3@extends);
 	//print ("Implements relation (from loc, to loc): "); iprintln(inheritanceM3@implements);
 	//print ("Method overrides: "); iprintln(inheritanceM3@methodOverrides);
@@ -367,12 +462,3 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 
 
 
-public void runInitialWork() {
-	M3 m3Model = getM3Model();
-	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|);
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse2222()|);
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
-	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
-	findDownCalls(m3Model);
-}

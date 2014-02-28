@@ -5,9 +5,10 @@ public class G extends C {
 	
 	void methodToOverride() {}
 	
+	void q() {}
+	
 	void c() {
 		System.out.println("G implemnts c()...");
-		q();		// internal reuse
 	}
 	
 	void e() {
@@ -16,5 +17,8 @@ public class G extends C {
 		aC.q();		// internal reuse or external reuse?
 	}
 	
+	void xxx() {
+		p();		// downcall.
+	}
 	
 }
