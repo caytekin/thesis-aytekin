@@ -41,7 +41,6 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 }
 
 
-
 public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	visit (qName) {
@@ -58,8 +57,6 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 	}
 	return retList;
 }
-
-
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {

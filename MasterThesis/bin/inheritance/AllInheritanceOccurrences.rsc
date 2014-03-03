@@ -17,6 +17,8 @@ import inheritance::InheritanceModules;
 import inheritance::InternalReuse;
 import inheritance::ExternalReuse;
 import inheritance::SubtypeInheritance;
+import inheritance::DowncallCases;
+
 
 
 
@@ -48,6 +50,7 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	println("Number of internal reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERNAL_REUSE})>"); 
 	println("Number of external reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE})>"); 
 	println("Number of subtype edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE})>"); 
+	println("Number of downcall edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL})>"); 
 	
 	
 	print("Internal reuse edges: ");	
@@ -59,26 +62,33 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	print("Subtype edges: ");	
 	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE}));
 	
+	print("Downcall edges: ");	
+	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL}));
+	
 	
 }
-
 
 
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);
 	//allInheritanceCases += getInternalReuseCases(projectM3);
 	//println("Internal use cases are done...");
-	println("Starting with external reuse cases at: <printTime(now())> ");
-	allInheritanceCases += getExternalReuseCases(projectM3);	
-	println("External use cases are done at <printTime(now())>...");	
+	//println("Starting with external reuse cases at: <printTime(now())> ");
+	//allInheritanceCases += getExternalReuseCases(projectM3);	
+	//println("External use cases are done at <printTime(now())>...");	
 	//allInheritanceCases += getSubtypeCases(projectM3);	
+	
+	println("Starting with downcall cases at: <printTime(now())> ");
+	allInheritanceCases += getDowncallOccurrences(projectM3);	
+	println("Downcall cases are done at <printTime(now())>...");	
+		
 	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	printResults(allInheritanceCases);
-	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
+	printLog(downcallLogFile, "DOWNCALL LOG");
 }
 

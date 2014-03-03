@@ -1,6 +1,6 @@
 package edu.uva.analysis.samples;
 
-public class Super1 {
+public class Super1 extends ConstantChildClass {
 
 	Super1() {
 		

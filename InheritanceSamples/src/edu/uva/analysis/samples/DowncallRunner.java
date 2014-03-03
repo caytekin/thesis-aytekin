@@ -9,14 +9,20 @@ public class DowncallRunner {
 
 		aParent.p();		// not a downcall
 		
-		aChild.p();			// downcall
+		aChild.p();			// downcall, tested, working
 		
-		aGrandChild.p();	// downcall
+		aGrandChild.p();	// downcall, tested, working
 		
-		aGrandGrandChild.p();	// downcall
-		
+		aGrandGrandChild.p();	// downcall, tested, working
+	}
 	
+	void runWithThis() {
+		DowncallChild dChild = new DowncallChild();
+		dChild.p();		// downcall, tested, working
+	}
 	
-	
+	public static void main (String[] args) {
+		DowncallChild dChild = new DowncallChild();
+		dChild.p();				// downcall, tested, working.
 	}
 }

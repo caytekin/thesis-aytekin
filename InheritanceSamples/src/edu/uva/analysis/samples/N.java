@@ -41,7 +41,7 @@ public class N {
 		this.theFieldOfN = "I am being updated";
 		theFieldOfN = "I am being updated again.";
 		C aCGlow = new C();
-		aCGlow.p();		// external reuse 
+		aCGlow.p();		// external reuse and downcall, tested, working
 		aCGlow.returnTwo(2);	// external reuse
 		this.callMeWithInt(2);
 		int k = aCGlow.intFieldParent;	// external reuse - field
@@ -49,7 +49,7 @@ public class N {
 		aCGlow.intFieldParent++;	// external reuse - field
 		aCGlow.intFieldChild++;		// no external reuse
 		G aGGlow = new G();
-		aGGlow.p();		// external reuse and downcall
+		aGGlow.p();		// external reuse and downcall, tested, working
 //		P aP = new P();
 //		aP.p(); 		// NOT an external reuse
 		int j = 43;
@@ -106,6 +106,6 @@ public class N {
 		C aC = new C();
 		aM.m(aC);				// subtype, M# expects type P, we pass type C
 		D aD = new D();
-		aD.p();					// downcall when executing D#p
+		aD.p();					// downcall when executing D#p, tested, working
 	}
 }

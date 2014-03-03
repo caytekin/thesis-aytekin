@@ -46,8 +46,10 @@ public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias subtypeDetail = tuple [ inheritanceSubtype inhSub, loc subtypeDetailLoc];
+public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];
 
 
+public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
 public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;

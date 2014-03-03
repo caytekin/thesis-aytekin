@@ -2,8 +2,6 @@ package edu.uva.analysis.samples;
 
 
 
-
-
 public abstract class InterfaceRunner {
 	abstract Object getObject() throws Exception;
 

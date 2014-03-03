@@ -18,7 +18,7 @@ public class G extends C {
 	}
 	
 	void xxx() {
-		p();		// downcall.
+		p();		// downcall, tested, working
 	}
 	
 }

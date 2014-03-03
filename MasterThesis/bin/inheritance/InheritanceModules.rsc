@@ -19,6 +19,31 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 
 
+public set [loc] getClassesWhichOverrideAMethod(loc aMethod, M3 projectM3) {
+	set [loc] retSet = {};
+	set [loc] overridingMethods = {descMeth | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth == aMethod};
+	for (overridingMethod <- overridingMethods) {
+		retSet += getDefiningClassOfALoc(overridingMethod, projectM3);
+	}
+	return retSet;
+}
+
+
+public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, M3 projectM3) {
+	bool retBool = false;
+	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, projectM3);
+	if (descClass in classesThatOverrideTheMethod ) {
+		retBool = true;
+	}
+	return retBool;
+}
+
+
+public set [loc] getDescendantsOfAClass(loc aClass, rel [loc,loc] allInheritanceRels) {
+	return {child | <child, parent> <- allInheritanceRels, parent == aClass};
+}
+
+
 public list [loc] getAscendantsInOrder(loc childClass, M3 projectM3){
 	set [loc] immediateParentSet = {parent | <child, parent> <- projectM3@extends, child == childClass, 
 																				isClass(child), isClass(childClass)};
@@ -49,14 +74,11 @@ public bool isLocDefinedInProject(loc locPar, M3 projectM3) {
 }
 
 
-
 public rel [loc, loc] getNonFrameworkInheritanceRels(rel [loc, loc] inheritanceRels, M3 projectM3) {
 	set [loc] allTypesInM3 = {decl | <decl, prjct> <- projectM3@declarations, 
 														isClass(decl) || isInterface(decl)};
 	return {<child, parent> | <child, parent> <- inheritanceRels, parent in allTypesInM3 };
 }
-
-
 
 
 public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
@@ -68,16 +90,17 @@ public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
 	return allInheritanceRel+;
 }
 
+
 //returns all the classes defined in the project.
 public set [loc] getAllClassesInProject(M3 projectM3) {
 	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) };
 }
 
+
 //returns all the classes and interfaces defined in the project.
 public set [loc]  getAllClassesAndInterfacesInProject(M3 projectM3) {
 	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) || isInterface(decl) };
 }
-
 
 
 public bool inheritanceRelationExists(loc class1, loc class2, M3 projectM3) {
@@ -87,6 +110,7 @@ public bool inheritanceRelationExists(loc class1, loc class2, M3 projectM3) {
 													(class1 == parent && class2 == parent) }; 
 	return !isEmpty(relationSet);
 }
+
 
 
 public loc getClassFromTypeSymbol(TypeSymbol typeSymbol) {
@@ -111,8 +135,6 @@ public loc getInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
 }
 
 
-
-
 public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
 	loc classOrInterfaceLoc = DEFAULT_LOC;
 	classOrInterfaceLoc = getClassFromTypeSymbol(typeSymbol);
@@ -121,6 +143,7 @@ public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
     };
     return classOrInterfaceLoc;
 }
+
 
 public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, TypeSymbol parentSymbol) {
 	bool isSubtypeRel = false;
@@ -132,6 +155,7 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 	}
 	return <isSubtypeRel, iKey>;
 }
+
 
 // This method returns the type symbol of a method or field definition
 TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, M3 projectM3) {
@@ -155,6 +179,7 @@ public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3)
 	return retTypeList;
 }
 
+
 public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
 	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
@@ -166,6 +191,7 @@ public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
 	} // visit
 	return retSymbol;
 }
+
 
 public void printLog(loc logFile, str header) {
 	value val = readTextValueFile(logFile);
