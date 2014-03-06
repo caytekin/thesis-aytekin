@@ -28,58 +28,67 @@ import inheritance::OtherInheritanceCases;
 
 
 
-private rel [inheritanceKey, inheritanceType] getCC_CI_II_FR_Relations (rel [loc child, loc parent] inheritRelation) {
-	rel [inheritanceKey, inheritanceType] CC_CI_II_FR_Relations = {<<|java+class:///|,|java+class:///|>, 999>};
-	rel [loc, loc] allClassClass = {<child, parent> | <child, parent> <- inheritRelation, isClass(child), isClass(parent)};	
-	for (<child, parent> <- allClassClass ) { CC_CI_II_FR_Relations += <<child, parent>, CLASS_CLASS>;	};
-	rel [loc, loc] allClassInterface = {<child, parent> | <child, parent> <- inheritRelation, isClass(child), isInterface(parent)};
-	for (<child, parent> <- allClassInterface ) { CC_CI_II_FR_Relations += <<child,parent>, CLASS_INTERFACE>; };
-	rel [loc, loc] allInterfaceInterface = {<child, parent> | <child, parent> <- inheritRelation, isInterface(child), isInterface(parent)};
-	for (<child, parent> <- allInterfaceInterface ) { CC_CI_II_FR_Relations += <<child,parent>, INTERFACE_INTERFACE>; };
-	return CC_CI_II_FR_Relations;
-	// TODO : Also insert framework inheritance relations
+
+
+private rel [inheritanceKey, inheritanceType] getCC_CI_II_NonFR_Relations (rel [loc child, loc parent] inheritRelation, M3 projectM3) {
+	rel [inheritanceKey, inheritanceType] CC_CI_II_NonFR_Relations = {};
+	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
+	set [inheritanceKey] allInheritanceRels = getInheritanceRelations(projectM3);
+	CC_CI_II_NonFR_Relations += {<<child, parent>, CLASS_CLASS> | <child, parent> <- inheritRelation, isClass(child), isClass(parent)};
+	CC_CI_II_NonFR_Relations += {<<child, parent>, CLASS_INTERFACE> | <child, parent> <- inheritRelation, isClass(child), isInterface(parent)};
+	CC_CI_II_NonFR_Relations += {<<child, parent>, INTERFACE_INTERFACE> | <child, parent> <- inheritRelation, isInterface(child), isInterface(parent)};
+	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_CC> | <child, parent> <- inheritRelation, isClass(child), isClass(parent), parent in allClassesAndInterfacesInProject};
+	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_CI> | <child, parent> <- inheritRelation, isClass(child), isInterface(parent), parent in allClassesAndInterfacesInProject};
+	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_II> | <child, parent> <- inheritRelation, isInterface(child), isInterface(parent), parent in allClassesAndInterfacesInProject};
+	return CC_CI_II_NonFR_Relations;
+}
+
+
+private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritanceType] inheritanceResults) {
+	map [inheritanceType, num] resultMap = ();
+	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+		int totalOccurrences = size({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType });
+		resultMap += (anInheritanceType :  totalOccurrences);
+	}
+	return resultMap;
+}
+
+
+private void printFrameworkCases(rel [inheritanceKey, inheritanceType] inheritanceResults) {
+	int totalCC_CI_II_edges = size({<iKey, iType> | <iKey, iType> <- inheritanceResults, iType in [CLASS_CLASS, CLASS_INTERFACE, INTERFACE_INTERFACE]});
+	int totalNonFramework_CC_CI_II_edges = size({<iKey, iType> | <iKey, iType> <- inheritanceResults, iType in [NONFRAMEWORK_CC, NONFRAMEWORK_CI, NONFRAMEWORK_II]});
+	println("NUMBER OF FRAMEWORK CASES: <totalCC_CI_II_edges - totalNonFramework_CC_CI_II_edges> ");
 }
 
 
 
+private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResults, map[inheritanceType, num] totals ) {
+
+	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+		println("NUMBER OF <getNameOfInheritanceType(anInheritanceType)> CASES: <totals[anInheritanceType]>");
+	}
+	
+	printFrameworkCases(inheritanceResults);
+
+	println("LIST OF DIFFERENT INHERITANCE RELATIONS:");
+	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+		print("<getNameOfInheritanceType(anInheritanceType)> CASES:");
+		iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == anInheritanceType}));
+	}
+}
 
 
-
-private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResults	) {
-	println("Number of CC edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CLASS_CLASS})>"); 
-	println("Number of CI edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CLASS_INTERFACE})>"); 
-	println("Number of II edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERFACE_INTERFACE})>"); 
-	println("Number of internal reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERNAL_REUSE})>"); 
-	println("Number of external reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE})>"); 
-	println("Number of subtype edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE})>"); 
-	println("Number of downcall edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL})>"); 
-	println("Number of constant edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CONSTANT})>"); 
-	println("Number of marker edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == MARKER})>"); 
-	println("Number of super edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUPER})>"); 
-	
-	
-	print("Internal reuse edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == INTERNAL_REUSE}));
-	
-	print("External reuse edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE}));
-	
-	print("Subtype edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE}));
-	
-	print("Downcall edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL}));
-
-	print("Constant edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CONSTANT}));
-
-	print("Marker edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == MARKER}));
-
-	print("Super edges: ");	
-	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUPER}));
-	
-	
+private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceResults, map[inheritanceType, num] totals ){
+	iprintln(<totals>);
+	println("DOWNCALL PROPORTION: <(totals[DOWNCALL])/(totals[NONFRAMEWORK_CC])>");
+	println("SUBTYPE PROPORTION: <totals[SUBTYPE]/( totals[NONFRAMEWORK_CC] + totals[NONFRAMEWORK_CI] + totals[NONFRAMEWORK_II])>");
+	set [inheritanceKey] subtypeCases = {iKey | <iKey, iType> <- inheritanceResults, iType == SUBTYPE};
+	set [inheritanceKey] externalNotSubtype = {iKey | <iKey, iType> <- inheritanceResults, iType == EXTERNAL_REUSE, iKey notin subtypeCases };
+	set [inheritanceKey] externalOrSubtype = subtypeCases + externalNotSubtype;
+	set [inheritanceKey] internalOnly = {iKey | <iKey, iType> <- inheritanceResults, iType == INTERNAL_REUSE, iKey notin externalOrSubtype};
+	println("PROPORTION OF EDGES THAT ARE EXTERNAL REUSE BUT NOT SUBTYPE: <size(externalNotSubtype)/totals[NONFRAMEWORK_CC]>");
+	println("PROPORTION OF EDGES THAT ARE INTERNAL REUSE ONLY: <size(internalOnly)/totals[NONFRAMEWORK_CC]>");	
+	// TODO: Do not forget to handle divide by zero.
 }
 
 
@@ -89,25 +98,34 @@ public void runIt() {
 	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-	allInheritanceCases = getCC_CI_II_FR_Relations (allInheritanceRelations);
-	//allInheritanceCases += getInternalReuseCases(projectM3);
-	//println("Internal use cases are done...");
-	//println("Starting with external reuse cases at: <printTime(now())> ");
-	//allInheritanceCases += getExternalReuseCases(projectM3);	
-	//println("External use cases are done at <printTime(now())>...");	
-	//allInheritanceCases += getSubtypeCases(projectM3);	
+	allInheritanceCases = getCC_CI_II_NonFR_Relations (allInheritanceRelations, projectM3);
+
+	println("Starting with internal reuse cases at: <printTime(now())> ");
+	allInheritanceCases += getInternalReuseCases(projectM3);
+	println("Internal use cases are done...");
 	
-	//println("Starting with downcall cases at: <printTime(now())> ");
-	//allInheritanceCases += getDowncallOccurrences(projectM3);	
-	//println("Downcall cases are done at <printTime(now())>...");	
+	println("Starting with external reuse cases at: <printTime(now())> ");
+	allInheritanceCases += getExternalReuseCases(projectM3);	
+	println("External use cases are done at <printTime(now())>...");	
+	
+	
+	println("Starting with subtype cases at: <printTime(now())> ");
+	allInheritanceCases += getSubtypeCases(projectM3);	
+	println("Subtype cases are done at <printTime(now())>...");	
+	
+	
+	println("Starting with downcall cases at: <printTime(now())> ");
+	allInheritanceCases += getDowncallOccurrences(projectM3);	
+	println("Downcall cases are done at <printTime(now())>...");	
 
 	println("Starting with other cases at: <printTime(now())> ");
 	allInheritanceCases += getOtherInheritanceCases(projectM3);	
 	println("Other cases are done at <printTime(now())>...");	
 
-		
-	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
-	printResults(allInheritanceCases);
-	//printLog(downcallLogFile, "DOWNCALL LOG");
+	map [inheritanceType, num] totals = countResults(allInheritanceCases);
+	printResults(allInheritanceCases, totals);
+	
+	printProportions(allInheritanceCases, totals);
+	//printLog(superLogFile, "SUPER LOG");
 }
 

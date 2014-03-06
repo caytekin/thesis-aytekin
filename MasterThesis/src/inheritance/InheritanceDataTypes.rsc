@@ -7,15 +7,19 @@ public inheritanceType INTERNAL_REUSE = 0;
 public inheritanceType EXTERNAL_REUSE = 1;
 public inheritanceType SUBTYPE = 2;
 public inheritanceType DOWNCALL = 3;
-public inheritanceType FRAMEWORK = 4;
-public inheritanceType CONSTANT = 5;
-public inheritanceType MARKER = 6;
-public inheritanceType SUPER = 7;
-public inheritanceType GENERIC = 8;
+public inheritanceType CONSTANT = 4;
+public inheritanceType MARKER = 5;
+public inheritanceType SUPER = 6;
+public inheritanceType GENERIC = 7;
 
-public inheritanceType CLASS_CLASS = 100;
-public inheritanceType CLASS_INTERFACE = 101;
-public inheritanceType INTERFACE_INTERFACE = 102;
+public inheritanceType CLASS_CLASS = 8;
+public inheritanceType CLASS_INTERFACE = 9;
+public inheritanceType INTERFACE_INTERFACE = 10;
+
+public inheritanceType NONFRAMEWORK_CC = 11;
+public inheritanceType NONFRAMEWORK_CI = 12;
+public inheritanceType NONFRAMEWORK_II = 13;
+
 
 
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
@@ -47,12 +51,14 @@ public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias subtypeDetail = tuple [ inheritanceSubtype inhSub, loc subtypeDetailLoc];
 public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];
+public alias superCallLoc = loc;
 
 
 public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
 public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
+public loc superLogFile = |file://c:/Users/caytekin/InheritanceLogs/Super.log|;
 
 
 

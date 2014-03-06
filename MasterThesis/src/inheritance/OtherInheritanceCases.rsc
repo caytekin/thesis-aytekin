@@ -133,42 +133,42 @@ public loc getImmediateParentOfAClass(loc childClass, projectM3) {
 }
 
 
-public rel [inheritanceKey, inheritanceType] findSuperRels(M3 projectM3) {
-// TODO: Introduce logging to note individual cases.
+public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	rel [inheritanceKey,inheritanceType] retRel = {};
+	lrel [inheritanceKey, superCallLoc] superLog = [];
 	for (aClass <- allClassesInProject) {
 		set [loc] constructors = {_constructor | <_owner, _constructor> <- projectM3@containment,
 																	_owner == aClass,
-																	_constructor.scheme == "java+constructor" };
-		// TODO, hereIam !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!															
+																	_constructor.scheme == "java+constructor" };										
 		for (aConstructor <- constructors) {
 			Declaration constructorAST = getMethodASTEclipse(aConstructor, model = projectM3);
-			bool superCall = false;
+			bool superCall = false; loc locOfSuperCall = DEFAULT_LOC;
 			visit(constructorAST) {
 				case s1:\constructorCall(isSuper:_,_,_) : {
-					if (isSuper) {superCall = true; };
+					if (isSuper) {superCall = true; locOfSuperCall = s1@src;}
 				}
 				case s2:\constructorCall(isSuper:_,_) : {
-					if (isSuper) {superCall = true;; }; 
+					if (isSuper) {superCall = true; locOfSuperCall = s2@src;} 
 				}
 			}
 			if (superCall) {
 				loc parentClass = getImmediateParentOfAClass(aClass, projectM3);
 				retRel += <<aClass, parentClass>, SUPER>;
+				superLog += <<aClass, parentClass>, locOfSuperCall>;
 			}
 		}
 	}
+	iprintToFile(superLogFile,superLog);
 	return retRel;	
 }
 
 
-
 public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM3) {
 	rel [inheritanceKey,inheritanceType] retRel = {};
-	//retRel += findConstantLocs(getConstantCandidates(projectM3), projectM3);
-	//retRel += findMarkerInterfaces(getMarkerCandidates(projectM3), projectM3);	
-	retRel += findSuperRels(projectM3);
+	retRel += findConstantLocs(getConstantCandidates(projectM3), projectM3);
+	retRel += findMarkerInterfaces(getMarkerCandidates(projectM3), projectM3);	
+	retRel += findSuperRelations(projectM3);
 	return retRel;
 }
 

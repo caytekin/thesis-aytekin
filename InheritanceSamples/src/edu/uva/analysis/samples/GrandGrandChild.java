@@ -3,15 +3,15 @@ package edu.uva.analysis.samples;
 public class GrandGrandChild extends GrandChild implements ConstantInterface {
 	
 	public GrandGrandChild () {
-		super();
+		super();		// tested, working, identified as super
 	}
 	
 	public GrandGrandChild(int i) {
-		super(i);
+		super(i);		// tested, working, identified as super
 	}
 	
 	public GrandGrandChild(double d) {
-		super((int)d);
+		super((int)d);			// tested, working, identified as super
 		super.justANormalMethod();
 	}
 

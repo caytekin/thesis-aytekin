@@ -19,6 +19,30 @@ import lang::java::m3::TypeSymbol;
 import inheritance::InheritanceDataTypes;
 
 
+public str getNameOfInheritanceType(inheritanceType iType) {
+		switch(iType) {
+		case INTERNAL_REUSE  	: {return "INTERNAL REUSE";}
+		case EXTERNAL_REUSE  	: {return "EXTERNAL REUSE";}
+ 		case SUBTYPE  			: {return "SUBTYPE";}
+ 		case DOWNCALL  			: {return "DOWNCALL";}
+ 		case CONSTANT			: {return "CONSTANT";}
+ 		case MARKER				: {return "MARKER";}
+ 		case SUPER				: {return "SUPER";}
+ 		case GENERIC		    : {return "GENERIC";}
+ 
+ 		case CLASS_CLASS		: {return "CLASS CLASS";}
+ 		case CLASS_INTERFACE	: {return "CLASS INTERFACE";}
+		case INTERFACE_INTERFACE	: {return "INTERFACE INTERFACE";}
+
+		case NONFRAMEWORK_CC	: {return "NON FRAMEWORK CLASS CLASS";}
+		case NONFRAMEWORK_CI	: {return "NON FRAMEWORK CLASS INTERFACE";}
+		case NONFRAMEWORK_II	: {return "NON FRAMEWORK INTERFACE INTERFACE";}
+ 	}
+}
+
+
+
+
 public set [loc] getClassesWhichOverrideAMethod(loc aMethod, M3 projectM3) {
 	set [loc] retSet = {};
 	set [loc] overridingMethods = {descMeth | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth == aMethod};
