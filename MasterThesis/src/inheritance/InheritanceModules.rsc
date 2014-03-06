@@ -97,6 +97,11 @@ public set [loc] getAllClassesInProject(M3 projectM3) {
 }
 
 
+public set [loc] getAllInterfacesInProject(M3 projectM3) {
+	return {decl | <decl, prjct> <- projectM3@declarations, isInterface(decl) };
+}
+
+
 //returns all the classes and interfaces defined in the project.
 public set [loc]  getAllClassesAndInterfacesInProject(M3 projectM3) {
 	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) || isInterface(decl) };

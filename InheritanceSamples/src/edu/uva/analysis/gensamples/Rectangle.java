@@ -1,6 +1,6 @@
 package edu.uva.analysis.gensamples;
 
-public class Rectangle extends Shape {
+public class Rectangle extends Shape implements MyRotatable {
 	private int x, y, width, height;
     
 	public void draw(Canvas c) {

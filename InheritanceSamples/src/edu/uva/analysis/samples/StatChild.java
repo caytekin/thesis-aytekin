@@ -1,6 +1,6 @@
 package edu.uva.analysis.samples;
 
-public class StatChild extends StatParent {
+public class StatChild extends StatParent implements Findable {
 	
 	double statChildDbl = 0.0;
 	

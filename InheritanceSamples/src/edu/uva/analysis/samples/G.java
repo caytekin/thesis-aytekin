@@ -1,7 +1,7 @@
 package edu.uva.analysis.samples;
 
 // a grandchild class of P
-public class G extends C {
+public class G extends C implements Findable {
 	
 	void methodToOverride() {}
 	

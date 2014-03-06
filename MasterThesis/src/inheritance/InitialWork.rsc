@@ -22,46 +22,16 @@ import inheritance::SubtypeInheritance;
 import inheritance::DowncallCases;
 
 
-public bool areAllFieldsConstants(set [loc] fieldsInLoc, M3 projectM3) {
-	bool retBool = false;
-	lrel [loc, Modifier] myModifiers = {<from, to> | <from, to> <-inheritanceM3@modifiers,
-																		from in fieldsInLoc};		
-	map[loc definition, set[Modifier] modifier] modifiersPerField = index(myModifiers);
-
-	// TODO: I am here.......-------->>>>>>>  3-3-2014, 332014
-	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	
-}
-
-
-public bool containsConstantFieldsOnly(loc aLoc, M3 projectM3) {
-	// we just want fields in the location
-	bool retBool = false;
-	set [loc] fieldsInLoc = {aField | <classOrInterface, aField>  <- projectM3@containment, 
-													isField(aField),
-													(classOrInterface == aLoc)};
-	set [loc] everythingInLoc = {anItem | <classOrInterface, anItem> <- projectM3@containment,
-													(classOrInterface == aLoc)};
-	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, projectM3)) {
-		
-		retBool = true;
-	}
-	return retBool;													
-}  
-
-
-public void getConstants(M3 projectM3) {
-	if (containsConstantFieldsOnly(aLocation, projectM3)) {
-	;}
-	
-}
-
-
 
 public void runInitialWork() {
 	M3 m3Model = getM3Model();
+	getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/GrandGrandChild/GrandGrandChild(double)|);	
+	//println("Staring with constants at: <now()>");
+	//println("Inheritance relations with constant attribute are: ");
+	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
+	//println("Finished with constants at: <now()>");
+	
 	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/DowncallParent/p()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse2222()|);
 	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
 	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
@@ -111,7 +81,9 @@ private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 
 
 private M3 getM3Model() {
+	println("Starting with M3 creation at <now()>");
 	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	println("Created M3 at <now()>");	
 	//print ("Extends relation (from loc, to loc): "); iprintln(inheritanceM3@extends);
 	//print ("Implements relation (from loc, to loc): "); iprintln(inheritanceM3@implements);
 	//print ("Method overrides: "); iprintln(inheritanceM3@methodOverrides);
@@ -139,15 +111,15 @@ private M3 getM3Model() {
 	//															isClass(to) || isInterface(to) 
 	//										  };
 
-	println("M3 Field Modifiers");
-	println("--------------------------------------------------------------------------");
-	lrel [loc, Modifier] myModifiers = sort({<from, to> | <from, to> <-inheritanceM3@modifiers,
-																		isField(from)});
-	iprintln(myModifiers);																		
-	println("M3 Field Modifiers put in a map:");
-	map[loc definition, set[Modifier] modifier] modifiersPerField = index(myModifiers);
-	println("--------------------------------------------------------------------------");
-	iprintln(modifiersPerField);	
+	//println("M3 Field Modifiers");
+	//println("--------------------------------------------------------------------------");
+	//lrel [loc, Modifier] myModifiers = sort({<from, to> | <from, to> <-inheritanceM3@modifiers,
+	//																	isField(from)});
+	//iprintln(myModifiers);																		
+	//println("M3 Field Modifiers put in a map:");
+	//map[loc definition, set[Modifier] modifier] modifiersPerField = index(myModifiers);
+	//println("--------------------------------------------------------------------------");
+	//iprintln(modifiersPerField);	
 	//println(sort(subtypeAssignmentTypeDep));
 							//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
 								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
@@ -189,7 +161,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	 //text(methodAST);
+	text(methodAST);
 	visit(methodAST) {
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
 			//println("Field access 1 ----------------------");

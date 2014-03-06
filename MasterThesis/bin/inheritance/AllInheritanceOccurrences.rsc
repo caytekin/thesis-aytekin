@@ -18,6 +18,8 @@ import inheritance::InternalReuse;
 import inheritance::ExternalReuse;
 import inheritance::SubtypeInheritance;
 import inheritance::DowncallCases;
+import inheritance::OtherInheritanceCases;
+
 
 
 
@@ -51,6 +53,9 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	println("Number of external reuse edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == EXTERNAL_REUSE})>"); 
 	println("Number of subtype edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUBTYPE})>"); 
 	println("Number of downcall edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL})>"); 
+	println("Number of constant edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CONSTANT})>"); 
+	println("Number of marker edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == MARKER})>"); 
+	println("Number of super edges:  <size({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUPER})>"); 
 	
 	
 	print("Internal reuse edges: ");	
@@ -64,6 +69,15 @@ private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResul
 	
 	print("Downcall edges: ");	
 	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == DOWNCALL}));
+
+	print("Constant edges: ");	
+	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == CONSTANT}));
+
+	print("Marker edges: ");	
+	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == MARKER}));
+
+	print("Super edges: ");	
+	iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == SUPER}));
 	
 	
 }
@@ -83,12 +97,17 @@ public void runIt() {
 	//println("External use cases are done at <printTime(now())>...");	
 	//allInheritanceCases += getSubtypeCases(projectM3);	
 	
-	println("Starting with downcall cases at: <printTime(now())> ");
-	allInheritanceCases += getDowncallOccurrences(projectM3);	
-	println("Downcall cases are done at <printTime(now())>...");	
+	//println("Starting with downcall cases at: <printTime(now())> ");
+	//allInheritanceCases += getDowncallOccurrences(projectM3);	
+	//println("Downcall cases are done at <printTime(now())>...");	
+
+	println("Starting with other cases at: <printTime(now())> ");
+	allInheritanceCases += getOtherInheritanceCases(projectM3);	
+	println("Other cases are done at <printTime(now())>...");	
+
 		
 	getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	printResults(allInheritanceCases);
-	printLog(downcallLogFile, "DOWNCALL LOG");
+	//printLog(downcallLogFile, "DOWNCALL LOG");
 }
 

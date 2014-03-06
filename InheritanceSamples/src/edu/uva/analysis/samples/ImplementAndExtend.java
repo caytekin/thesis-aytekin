@@ -1,6 +1,6 @@
 package edu.uva.analysis.samples;
 
-public class ImplementAndExtend extends P implements I {
+public class ImplementAndExtend extends P implements I, ConstantInterface {
 
 	@Override
 	public void i1() {
