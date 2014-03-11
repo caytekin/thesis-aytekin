@@ -25,7 +25,7 @@ import inheritance::DowncallCases;
 
 public void runInitialWork() {
 	M3 m3Model = getM3Model();
-	getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/GrandGrandChild/GrandGrandChild(double)|);	
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/runShortGenerics()|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -53,10 +53,11 @@ private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 			args = myArgs;
 		}
 		case m2:\methodCall(_,receiver:_,_,myArgs:_) : {
-			println("I am here with 4 args");
-			println("Is receiver this: <isReceiverThis(receiver)>");
-			text(m2);
-			args = myArgs;
+			//println("I am here with 4 args");
+			//println("Is receiver this: <isReceiverThis(receiver)>");
+			//text(m2);
+			//args = myArgs;
+			;
 		}
 	}
 	////println("Passed arguments are: ");
@@ -84,6 +85,8 @@ private M3 getM3Model() {
 	println("Starting with M3 creation at <now()>");
 	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
 	println("Created M3 at <now()>");	
+	int totalClasses = size ( {<aType> | <aType,_> <- inheritanceM3@declarations, isClass(aType) || isInterface(aType) } );
+	println("Total number of classes and interfaces in M3 are: <totalClasses>");
 	//print ("Extends relation (from loc, to loc): "); iprintln(inheritanceM3@extends);
 	//print ("Implements relation (from loc, to loc): "); iprintln(inheritanceM3@implements);
 	//print ("Method overrides: "); iprintln(inheritanceM3@methodOverrides);

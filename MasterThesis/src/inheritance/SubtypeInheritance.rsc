@@ -52,13 +52,20 @@ TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
 	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
  	visit (rascalType) {
  		 // I'm only interested in the simpleType and arrayType at the moment
- 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() ?
+ 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() 
+ 		case pType :\parameterizedType(simpleTypeOfParamType) : {
+ 			//println("Parameterized type !!!!!!!!!!!!: ");
+ 			//iprintln(simpleTypeOfParamType);
+ 			//iprintln("The type symbol from parametrized type: <getTypeSymbolFromSimpleType(simpleTypeOfParamType)>");
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfParamType);
+ 		}
  		case sType: \simpleType(typeExpr) : {
- 			retTypeSymbol =  getTypeSymbolFromSimpleType(sType);
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(sType);
  		}
  		case aType :\arrayType(simpleTypeOfArray) : {
  			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
  		}
+ 
  	}
  	return retTypeSymbol;	
 }
@@ -99,6 +106,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(De
 	visit(vars) {
 		case \variables(typeOfVar, fragments) : {
   			TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
+  			//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
 			tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
 			if (typeSymbolTuple.hasStatement) {
 				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(typeSymbolTuple.rhsTypeSymbol, lhsTypeSymbol); 
@@ -137,8 +145,10 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
 	visit (returnStmt) {
 		case \return(retExpr) : {
+			//println("Declared type of method is: <getDeclaredReturnTypeSymbolOfMethod(methodLoc, projectM3)>");
+			//println("Type of return expression is: <retExpr@typ> in source <retExpr@src>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
-																						getDeclaredReturnTypeOfMethod(methodLoc, projectM3));
+																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, projectM3));
 			if (result.isSubtypeRel) {
 				retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
 			} 

@@ -34,8 +34,8 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	set [loc] intReuseClasses = { child | <child, parent> <- allInheritanceRels, isClass(child), isClass(parent)};
 	for (oneClass <- intReuseClasses) {
-		set [loc] ancestors = { parent | <child, parent> <- allInheritanceRels, child == oneClass};
-		set [loc] ancestorFieldsMethods = {declared | <owner,declared> <- projectM3@containment, owner in ancestors, isField(declared) || isMethod(declared)};
+		set [loc] ancestorClasses = { parent | <child, parent> <- allInheritanceRels, child == oneClass, isClass(parent)};
+		set [loc] ancestorFieldsMethods = {declared | <owner,declared> <- projectM3@containment, owner in ancestorClasses, isField(declared) || isMethod(declared)};
 		set [loc] declaredFieldsMethods = {declared | <owner,declared> <- projectM3@containment, 
 																		owner == oneClass, 
 																		isField(declared) 	|| 

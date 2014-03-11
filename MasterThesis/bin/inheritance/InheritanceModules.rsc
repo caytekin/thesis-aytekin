@@ -166,10 +166,14 @@ public loc getInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
 
 public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
 	loc classOrInterfaceLoc = DEFAULT_LOC;
-	classOrInterfaceLoc = getClassFromTypeSymbol(typeSymbol);
-	if ( classOrInterfaceLoc == DEFAULT_LOC) {
-		classOrInterfaceLoc= getInterfaceFromTypeSymbol(typeSymbol);
-    };
+	visit (typeSymbol) {
+		case c:\class(cLoc,_) : {
+    		classOrInterfaceLoc = cLoc;  			
+		}
+    	case i:\interface(iLoc,_) : {
+    		classOrInterfaceLoc = iLoc;  	
+    	}
+    }
     return classOrInterfaceLoc;
 }
 
@@ -209,7 +213,7 @@ public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3)
 }
 
 
-public TypeSymbol getDeclaredReturnTypeOfMethod(loc methodLoc, M3 projectM3) {
+public TypeSymbol getDeclaredReturnTypeSymbolOfMethod(loc methodLoc, M3 projectM3) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
 	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
 	visit (methodTypeSymbol) {
