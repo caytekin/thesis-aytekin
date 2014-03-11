@@ -17,11 +17,15 @@ public class GenericRunner {
 	}
 	
 
-	
+	public void multipleGenericsExample() {
+		GenSample4<MyCloneAndRotatable> myCloneAndRotatable; 
+		myCloneAndRotatable = new GenSampleSub4<MyCloneAndRotatable> ();
+	}
 	
 	void runShortGenerics() {
 		List<? extends Shape> myCircleListShort = new ArrayList<Circle> ();		
 		List<? super Rectangle> myShapeListShort = new ArrayList<Shape> (); 	
+		
 	}
 	
 	// after type erasure List and ArrayList		

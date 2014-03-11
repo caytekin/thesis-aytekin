@@ -1,6 +1,6 @@
 package edu.uva.analysis.gensamples;
 
-public class GenSample4 <T> {
+public class GenSample4 <T extends Cloneable & MyRotatable> {
 // <T extends Cloneable & Comparable <T>> {	// after type erasure T becomes Cloneable
 	
 	T anInstance4;
