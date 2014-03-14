@@ -21,11 +21,123 @@ import inheritance::InheritanceModules;
 import inheritance::SubtypeInheritance;
 import inheritance::DowncallCases;
 
+data CTree = 	leaf(int n)
+					| red (CTree left, CTree right)
+					| black (CTree left, CTree right);
+
+
+public void patternMatch() {
+	int i = 8;
+	if ( i:= 8) {println("The first i is 8.");}
+	if ( y:i := 8) {println("i is <y>");}
+	if (/<x:[a-z]+>/ := "1abc3" ) {println("x is: <x>");}  
+	
+	list [int] myList = [1, 2, 3, 4, 5];
+	if ( [l1*, 3, l2*] := myList ) {println("A list match...<l1>, <l2>");}
+	if ([e1, e2, 3, l3*] := myList ) {println("Second list match...<e2>");}
+	
+	set [int] mySet = {6, 7, 8, 9, 0};
+	if ({6, aSet*} := mySet) {println("aSet is: <sort(aSet)>");}
+	
+	list [int] ambiMatch = [1,2];
+	if ( [l1*, l2*] := ambiMatch ) { println("l1 is: <l1>, l2 is: <l2>"); }
+	
+}
+
+
+public void treeExample() {
+	CTree rb = red(	black(
+							leaf(1), red (
+											leaf(2), leaf(3)
+										 ) 
+						 ),
+					black(	
+							leaf(4), leaf(5)
+						 )
+				  );
+//	text(rb);
+	//for(/leaf(n) <- rb) { println("Deep matching <n>");}		// prints all leaves
+	//for(leaf(n) <- rb) { println("Shallow matching <n>");}		// prints nothing
+
+	//for(red(_,_) := rb) {intln("Shallow red(_,_)... with := ");} // prints once, the root match
+	//for(red(_,_) <- rb) {println("Shallow red(_,_)... with \<- ");} // prints nothing
+
+
+	//for(/red(_,_) := rb) {println("Deep red(_,_)... with := ");} // prints all red nodes
+	//for(/red(_,_) <- rb) {println("Deep red(_,_)... with \<- ");} // prints only the first red node
+	//	
+	// For pattern matching with for, use :=, but not <- ...., <- is confusing...
+	
+	
+	//switch (rb) {
+	//	case leaf(_) : {println("Switch - This is a leaf."); }
+	//	case black(_,_) : {println("Switch This is black..."); }
+	//	case red (_,_) : {println("Switch Red...");}
+	//}			
+	
+	top-down visit (rb) {
+		case \red(r,l) : {println("Top down Visit- This is leaf: <r><l> "); }
+	}
+
+	top-down-break visit (rb) {
+		case black(r,l) : {println("Top down break Visit- This is leaf:<r><l> "); }
+	}
+
+	bottom-up visit (rb) {
+		case leaf(n) : {println("Bottom up visit- This is leaf: <n>"); }
+	}
+
+	
+	bottom-up-break visit (rb) {
+		case leaf(n) : {println("Bottom up break Visit- This is leaf: <n>"); }
+	}
+	
+	
+	
+	visit (rb) {
+		case leaf(n) : {println("Default Visit- This is leaf: <n>"); 	}
+	}
+	
+}
+
+
+public void mapExample() {
+	rel [loc, int] myLocSet = {<|java+field:///|, 1>, <|java+method:///edu/uva/analysis/samples/N/extReuse()|, 1>};
+	map [loc, int] myLocMap = toMapUnique(myLocSet);
+}
+
+public void matchWithAST() {
+	M3 projectM3 = getM3Model();
+	Declaration methodAST = getMethodASTEclipse(|java+method:///edu/uva/analysis/samples/N/extReuse()|, model = projectM3);
+	i = 0;
+	     // \declarationExpression(Declaration decl)
+	visit (methodAST) {
+		//case  dExpr:\declarationExpression(decl) : {
+		//	println("Declaration expression...");
+		//;}
+		//case asgnmnt:\assignment(lhs, operator, rhs) : {
+		//	println("Assignment...");		
+		//;}
+		//case st2:simpleType(_) : {
+		//	println("Simple type 2...");
+		//}
+		case c:class(_, _) : {
+			println("Class deep...");
+		}
+		case st:\simpleType(_) : {
+			println("Simple type deep...");
+		}		
+	}
+	for (asgnmnt:/assignment(lhs, operator, rhs) <- methodAST) {
+		i = i+1;
+		println("Assignment expression <i> is: <asgnmnt>,  lhs: <lhs>, operator: <operator>, rhs: <rhs>");
+	}
+}
 
 
 public void runInitialWork() {
 	M3 m3Model = getM3Model();
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/runShortGenerics()|);
+	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/multipleGenericsExample()|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -183,7 +295,6 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
     		//println("Class of the qualifier is: <getClassOrInterfaceFromTypeSymbol(qualifier@typ)>");
     		//println("Is the expression a java field: <isField(expression@decl)>");
     		//if (isField(expression@decl)) {
-    		//	println("The field: <expression@decl> is defined in class: <getDefiningClassOfALoc(expression@decl, projectModel)>");
     		//} 
     	;}
 		//case dStmt : \declarationStatement(declr) : {

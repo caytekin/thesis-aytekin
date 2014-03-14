@@ -33,32 +33,38 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	lrel [inheritanceKey, internalReuseDetail] internalReuseLog = []; 
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	set [loc] intReuseClasses = { child | <child, parent> <- allInheritanceRels, isClass(child), isClass(parent)};
+	map [loc, set [loc]] containmentMap 		= toMap({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared)});
+	map [loc, set [loc]] containmentMapWithInit = toMap({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared) || declared.scheme == "java+initializer"});
+	map [loc, set [loc]] invertedContainmentMap = toMap(invert({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared) || declared.scheme == "java+initializer"}));
+	map [loc, set [loc]] invocationMap 			= toMap({ <caller, invoked> | <caller, invoked> <- projectM3@methodInvocation});
+	map [loc, set [loc]] fieldAccessMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isMethod(accessor) || accessor.scheme == "java+initializer"});
+	// map [loc, set[loc]] methInvocationMap = toMap(projectM3@methodInvocation);
 	for (oneClass <- intReuseClasses) {
+		// println("One class is: <oneClass>");
 		set [loc] ancestorClasses = { parent | <child, parent> <- allInheritanceRels, child == oneClass, isClass(parent)};
-		set [loc] ancestorFieldsMethods = {declared | <owner,declared> <- projectM3@containment, owner in ancestorClasses, isField(declared) || isMethod(declared)};
-		set [loc] declaredFieldsMethods = {declared | <owner,declared> <- projectM3@containment, 
-																		owner == oneClass, 
-																		isField(declared) 	|| 
-																		isMethod(declared) 	|| 
-																		declared.scheme == "java+initializer" };
-		set [loc] declaredMethods = { declMeth | declMeth <- declaredFieldsMethods, 
-																		isMethod(declMeth) || 
-																		declMeth.scheme == "java+initializer" };
+		set [loc] ancestorFieldsMethods = {};
+		for (anAncestorClass <- ancestorClasses) {
+			ancestorFieldsMethods += anAncestorClass in containmentMap ? containmentMap[anAncestorClass] : {}; 
+		}		
+		
+		set [loc] declaredFieldsMethods = oneClass in containmentMapWithInit ? containmentMapWithInit[oneClass] : {} ; 
+		
+		set [loc] declaredMethods = { declMeth | declMeth <- declaredFieldsMethods, isMethod(declMeth) || declMeth.scheme == "java+initializer" };
+										
 		for (oneMethod <- declaredMethods) {
-			set [loc] internalReuseMethodInvocation = { invoked | <caller, invoked> <- projectM3@methodInvocation, 
-																			caller == oneMethod,  
-																			invoked notin declaredFieldsMethods, 
+			set [loc] allInvokedMethods	= oneMethod in invocationMap ? invocationMap[oneMethod] : {};
+			
+			set [loc] internalReuseMethodInvocation = { invoked | invoked <- allInvokedMethods, invoked notin declaredFieldsMethods, 
 																			invoked in ancestorFieldsMethods, 
 																			invoked.scheme != "java+constructor" };	
-			set [loc] internalReuseFieldAccess = { accessed | <accessor, accessed> <- projectM3@fieldAccess, 
-																			accessor == oneMethod,  
-																			accessed notin declaredFieldsMethods, 
-																			accessed in ancestorFieldsMethods };	
+			set [loc] allAccessedFields = oneMethod in fieldAccessMap ? fieldAccessMap[oneMethod] : {} ;																
+																			
+			set [loc] internalReuseFieldAccess = { accessed | accessed <- allAccessedFields,  accessed notin declaredFieldsMethods, 
+																							  accessed in ancestorFieldsMethods };
+																							  	
 			set [loc] internalReuseLoc = internalReuseMethodInvocation + internalReuseFieldAccess;																		
 			for (reusedLoc <- internalReuseLoc) {
-				set [loc]  classOfLoc = {aClass | <aClass, cLoc> <- projectM3@containment, 
-																				isClass(aClass), 
-																				cLoc == reusedLoc};
+				set [loc]  classOfLoc = reusedLoc in invertedContainmentMap ? invertedContainmentMap[reusedLoc] : {}; 
 				if (size(classOfLoc) != 1) { throw "A method or a field  can be defined in one class only! <reusedLoc>"; }; 
 				loc parentClass = getOneFrom(classOfLoc);
 				inheritanceKey iKey = <oneClass, parentClass>;

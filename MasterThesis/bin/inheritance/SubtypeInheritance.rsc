@@ -54,9 +54,6 @@ TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
  		 // I'm only interested in the simpleType and arrayType at the moment
  		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() 
  		case pType :\parameterizedType(simpleTypeOfParamType) : {
- 			//println("Parameterized type !!!!!!!!!!!!: ");
- 			//iprintln(simpleTypeOfParamType);
- 			//iprintln("The type symbol from parametrized type: <getTypeSymbolFromSimpleType(simpleTypeOfParamType)>");
  			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfParamType);
  		}
  		case sType: \simpleType(typeExpr) : {
@@ -71,7 +68,7 @@ TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
 }
 
 
-public list [TypeSymbol] getPassedSymbolList(Expression methExpr, M3 projectM3) {
+public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 	list [Expression] args 		= [];
 	list [TypeSymbol] retList 	= [];
 	visit (methExpr)  {
@@ -141,14 +138,14 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc, M3 projectM3) {
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
 	visit (returnStmt) {
 		case \return(retExpr) : {
 			//println("Declared type of method is: <getDeclaredReturnTypeSymbolOfMethod(methodLoc, projectM3)>");
 			//println("Type of return expression is: <retExpr@typ> in source <retExpr@src>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
-																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, projectM3));
+																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, typesMap));
 			if (result.isSubtypeRel) {
 				retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
 			} 
@@ -158,11 +155,11 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methCallExpr, M3 projectM3) {
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methCallExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
-	if (isLocDefinedInProject(methCallExpr@decl, projectM3)) { 
-		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methCallExpr, projectM3);
-		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methCallExpr@decl, projectM3);
+	if (isLocDefinedInProject(methCallExpr@decl, declarationsMap)) { 
+		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methCallExpr);
+		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methCallExpr@decl, typesMap);
 		for (int i <- [0..size(passedSymbolList)]) {
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], declaredSymbolList[i]);
 			if (result.isSubtypeRel) {
@@ -178,12 +175,14 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	lrel [inheritanceKey, inheritanceSubtype, loc] subtypeLog = [];
 	lrel [inheritanceKey, inheritanceSubtype, loc] allSubtypeCases = [];
-	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
+	set [loc] 				allClassesAndInterfacesInProject 	= getAllClassesAndInterfacesInProject(projectM3);
+	set [loc] 				allClassesInProject 				= getAllClassesInProject(projectM3);
+	map [loc, set [loc]] 	declarationsMap 					= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	map [loc, set [loc]] 	methodsOfClasses   					= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
+	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
 	for (oneClass <- allClassesInProject ) {
-		set [loc] methodsInClass = {declared | <owner,declared> <- projectM3@containment, 
-																owner == oneClass, 
-																isMethod(declared) }; 
+		set [loc] methodsInClass = oneClass in methodsOfClasses ? methodsOfClasses[oneClass] : {}; 
+																 
 		// TODO:take also initializers in to account  
 		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
 		for (oneMethod <- methodsInClass) {
@@ -199,13 +198,13 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeViaCast(castStmt);					
 				} // case \cast
 				case returnStmt:\return(retExpr) : {
-					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, projectM3);
+					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, typesMap );
 				}  // case \return(_)
 				case  methExpr1:\methodCall(_,_, _) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1,projectM3);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap);
 				}
 				case methExpr2:\methodCall(_, _, _, _): {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2,projectM3);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap);					
 				} 
         	} // visit()
 		};	// for each method in the class															

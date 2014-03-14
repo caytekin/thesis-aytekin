@@ -54,6 +54,8 @@ public class N {
 //		aP.p(); 		// NOT an external reuse
 		int j = 43;
 		int lmk = 32;
+		int kmkml;
+		kmkml = 99;
 		G mySecondG = new G();
 		callMeWithInt(mySecondG.returnZero()); 	// external reuse, mySecondG.returnZero()
 		G myThirdG = new G();

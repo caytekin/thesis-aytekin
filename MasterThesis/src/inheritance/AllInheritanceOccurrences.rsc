@@ -95,14 +95,14 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
 	println("Created M3....");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_NonFR_Relations (allInheritanceRelations, projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
-	println("Internal use cases are done...");
+	println("Internal use cases are done...<printTime(now())>");
 	
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	

@@ -43,19 +43,19 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 
 
 
-public set [loc] getClassesWhichOverrideAMethod(loc aMethod, M3 projectM3) {
+public set [loc] getClassesWhichOverrideAMethod(loc aMethod, map [loc, set[loc]] invertedContainment, M3 projectM3) {
 	set [loc] retSet = {};
 	set [loc] overridingMethods = {descMeth | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth == aMethod};
 	for (overridingMethod <- overridingMethods) {
-		retSet += getDefiningClassOfALoc(overridingMethod, projectM3);
+		retSet += getDefiningClassOfALoc(overridingMethod, invertedContainment);
 	}
 	return retSet;
 }
 
 
-public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, M3 projectM3) {
+public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, map[loc, set[loc]] invertedContainment,  M3 projectM3) {
 	bool retBool = false;
-	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, projectM3);
+	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, invertedContainment, projectM3);
 	if (descClass in classesThatOverrideTheMethod ) {
 		retBool = true;
 	}
@@ -68,22 +68,34 @@ public set [loc] getDescendantsOfAClass(loc aClass, rel [loc,loc] allInheritance
 }
 
 
-public list [loc] getAscendantsInOrder(loc childClass, M3 projectM3){
-	set [loc] immediateParentSet = {parent | <child, parent> <- projectM3@extends, child == childClass, 
-																				isClass(child), isClass(childClass)};
+public list [loc] getAscendantsInOrder(loc childClass, map [loc, set[loc]] extendsMap) {
+	set [loc] immediateParentSet = childClass in extendsMap ? extendsMap[childClass] : {};
 	if (isEmpty(immediateParentSet)) {
 		return [];
 	}
 	if (size(immediateParentSet) > 1) {
 		throw ("getAscendantsInOrder, <childClass> has more than one parent in @extends annotation.");
 	}
-	return [getOneFrom(immediateParentSet)] + getAscendantsInOrder(getOneFrom(immediateParentSet), projectM3);
+	return [getOneFrom(immediateParentSet)] + getAscendantsInOrder(getOneFrom(immediateParentSet), extendsMap);
 }
 
 
-public loc getDefiningClassOfALoc(loc aLoc, M3 projectM3) {
-	set [loc] resultSet = {dClass | <dClass, dLocation> <- projectM3@containment, 
-    																dLocation == aLoc};
+public loc getDefiningClassOrInterfaceOfALoc(loc aLoc, map [loc, set[loc]] invertedClassAndInterfaceContainment) {
+	set [loc] resultSet = aLoc in invertedClassAndInterfaceContainment ? invertedClassAndInterfaceContainment[aLoc] : {};
+	if (size(resultSet) != 1) {
+		throw "Number of defining classes or interfaces for location <aLoc> is not one. Classes: <resultSet>";
+	}
+	else {
+		return getOneFrom(resultSet);
+	}
+}
+
+
+
+
+
+public loc getDefiningClassOfALoc(loc aLoc, map [loc, set[loc]] invertedContainment) {
+	set [loc] resultSet = aLoc in invertedContainment ? invertedContainment[aLoc] : {};
 	if (size(resultSet) != 1) {
 		throw "Number of defining classes for location <aLoc> is not one. Classes: <resultSet>";
 	}
@@ -93,8 +105,9 @@ public loc getDefiningClassOfALoc(loc aLoc, M3 projectM3) {
 }
 
 
-public bool isLocDefinedInProject(loc locPar, M3 projectM3) {
-	return ! isEmpty({<aLoc> | <aLoc, aProject> <- projectM3@declarations, aLoc == locPar});
+public bool isLocDefinedInProject(loc locPar, map [loc, set[loc]] declarationsMap ) {
+	bool retBool = (locPar in declarationsMap) ?  true : false;
+	return retBool;
 }
 
 
@@ -132,8 +145,7 @@ public set [loc]  getAllClassesAndInterfacesInProject(M3 projectM3) {
 }
 
 
-public bool inheritanceRelationExists(loc class1, loc class2, M3 projectM3) {
-	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
+public bool inheritanceRelationExists(loc class1, loc class2, rel [loc, loc] allInheritanceRelations) {
 	set [loc] relationSet = {child	| <child, parent> <- allInheritanceRelations, 
 													(class1 == child && class2 == parent) ||
 													(class1 == parent && class2 == parent) }; 
@@ -191,8 +203,8 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 
 
 // This method returns the type symbol of a method or field definition
-TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, M3 projectM3) {
-	set [TypeSymbol] locSymbolSet = {to | <from, to> <- projectM3@types, from == definedLoc};
+TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbol]] typesMap ) {
+	set [TypeSymbol] locSymbolSet = definedLoc in typesMap ? typesMap[definedLoc] : {}; 
 	if (size(locSymbolSet) != 1) {
 		throw("The location <definedLoc> has not exactly one entry in @types annotation.");
 	};
@@ -201,9 +213,9 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, M3 projectM3) {
 }
 
 
-public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3) {
+public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, map [loc, set[TypeSymbol]] typesMap ) {
 	list [TypeSymbol] retTypeList = [];
-	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, typesMap);
 	visit (methodTypeSymbol) {
 		case \method(_, _, _, typeParameters:_) : {
 			retTypeList = typeParameters;
@@ -213,9 +225,9 @@ public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, M3 projectM3)
 }
 
 
-public TypeSymbol getDeclaredReturnTypeSymbolOfMethod(loc methodLoc, M3 projectM3) {
+public TypeSymbol getDeclaredReturnTypeSymbolOfMethod(loc methodLoc, map [loc, set[TypeSymbol]] typesMap ) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
-	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, projectM3);
+	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, typesMap);
 	visit (methodTypeSymbol) {
 	// \method(loc decl, list[TypeSymbol] typeParameters, TypeSymbol returnType, list[TypeSymbol] parameters)
 		case \method(_, _, returnType,  _) : {

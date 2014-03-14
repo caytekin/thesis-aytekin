@@ -120,9 +120,9 @@ public rel [inheritanceKey, inheritanceType] findMarkerInterfaces(set [loc] mark
 }
 
 
-public loc getImmediateParentOfAClass(loc childClass, projectM3) {
+public loc getImmediateParentOfAClass(loc childClass, map [loc, set[loc]] extendsMap) {
 	loc retClass = DEFAULT_LOC;
-	set [loc] parentSet = {_parent | <_child, _parent> <- projectM3@extends, _child == childClass, isClass(_child), isClass(_parent)};
+	set [loc] parentSet = childClass in extendsMap ? extendsMap[childClass] : {};
 	if (size(parentSet) == 1) {
 		retClass = getOneFrom(parentSet);
 	}
@@ -134,13 +134,13 @@ public loc getImmediateParentOfAClass(loc childClass, projectM3) {
 
 
 public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
-	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
+	set [loc] 				allClassesInProject 		= getAllClassesInProject(projectM3);
+	map [loc, set [loc]] 	constructorContainmentMap 	= toMap({<_owner, _constructor> | <_owner, _constructor> <- projectM3@containment, _constructor.scheme == "java+constructor" });
+	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends });
 	rel [inheritanceKey,inheritanceType] retRel = {};
 	lrel [inheritanceKey, superCallLoc] superLog = [];
 	for (aClass <- allClassesInProject) {
-		set [loc] constructors = {_constructor | <_owner, _constructor> <- projectM3@containment,
-																	_owner == aClass,
-																	_constructor.scheme == "java+constructor" };										
+		set [loc] constructors = aClass in constructorContainmentMap ? constructorContainmentMap[aClass] : {} ; 
 		for (aConstructor <- constructors) {
 			Declaration constructorAST = getMethodASTEclipse(aConstructor, model = projectM3);
 			bool superCall = false; loc locOfSuperCall = DEFAULT_LOC;
@@ -153,7 +153,7 @@ public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
 				}
 			}
 			if (superCall) {
-				loc parentClass = getImmediateParentOfAClass(aClass, projectM3);
+				loc parentClass = getImmediateParentOfAClass(aClass, extendsMap);
 				retRel += <<aClass, parentClass>, SUPER>;
 				superLog += <<aClass, parentClass>, locOfSuperCall>;
 			}
