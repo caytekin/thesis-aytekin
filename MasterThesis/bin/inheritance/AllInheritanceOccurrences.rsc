@@ -95,8 +95,9 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	M3 projectM3 = createM3FromEclipseProject(|project://SmallSQL|);
-	println("Created M3....");
+	loc projectLoc = |project://InheritanceSamples|;
+	M3 projectM3 = createM3FromEclipseProject(projectLoc);
+	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	allInheritanceCases = getCC_CI_II_NonFR_Relations (allInheritanceRelations, projectM3);
 

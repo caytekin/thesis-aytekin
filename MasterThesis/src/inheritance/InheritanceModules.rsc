@@ -41,6 +41,14 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 }
 
 
+public map [loc, set[loc]] getInvertedClassAndInterfaceContainment(M3 projectM3) {
+	map [loc, set [loc]] retMap = ();
+	rel [loc, loc] containmentRel = {<dClass, dLoc> | <dClass, dLoc> <- projectM3@containment, isClass(dClass) || isInterface(dClass) || dClass.scheme == "java+anonymousClass" };
+	if (!isEmpty(containmentRel)) {
+		retMap = toMap(invert(containmentRel));
+	}
+	return retMap;
+}
 
 
 public set [loc] getClassesWhichOverrideAMethod(loc aMethod, map [loc, set[loc]] invertedContainment, M3 projectM3) {
@@ -83,7 +91,7 @@ public list [loc] getAscendantsInOrder(loc childClass, map [loc, set[loc]] exten
 public loc getDefiningClassOrInterfaceOfALoc(loc aLoc, map [loc, set[loc]] invertedClassAndInterfaceContainment) {
 	set [loc] resultSet = aLoc in invertedClassAndInterfaceContainment ? invertedClassAndInterfaceContainment[aLoc] : {};
 	if (size(resultSet) != 1) {
-		throw "Number of defining classes or interfaces for location <aLoc> is not one. Classes: <resultSet>";
+		throw "Number of defining classes or interfaces for location <aLoc> is not one, but <size(resultSet)>. Classes: <resultSet>";
 	}
 	else {
 		return getOneFrom(resultSet);

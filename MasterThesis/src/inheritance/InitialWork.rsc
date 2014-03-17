@@ -26,6 +26,8 @@ data CTree = 	leaf(int n)
 					| black (CTree left, CTree right);
 
 
+
+
 public void patternMatch() {
 	int i = 8;
 	if ( i:= 8) {println("The first i is 8.");}
@@ -107,7 +109,7 @@ public void mapExample() {
 }
 
 public void matchWithAST() {
-	M3 projectM3 = getM3Model();
+	M3 projectM3 = getM3Model(|project://Inheritancesamples|);
 	Declaration methodAST = getMethodASTEclipse(|java+method:///edu/uva/analysis/samples/N/extReuse()|, model = projectM3);
 	i = 0;
 	     // \declarationExpression(Declaration decl)
@@ -136,8 +138,11 @@ public void matchWithAST() {
 
 
 public void runInitialWork() {
-	M3 m3Model = getM3Model();
-	getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/multipleGenericsExample()|);
+	M3 m3Model = getM3Model(|project://jrat_0.6|);
+	rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
+	println("Method containment: ");
+	iprintln(sort(methodContainment));
+	// getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/multipleGenericsExample()|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -193,9 +198,9 @@ private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 
 
 
-private M3 getM3Model() {
+private M3 getM3Model(loc projectLoc) {
 	println("Starting with M3 creation at <now()>");
-	M3 inheritanceM3 = createM3FromEclipseProject(|project://InheritanceSamples|);
+	M3 inheritanceM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3 at <now()>");	
 	int totalClasses = size ( {<aType> | <aType,_> <- inheritanceM3@declarations, isClass(aType) || isInterface(aType) } );
 	println("Total number of classes and interfaces in M3 are: <totalClasses>");

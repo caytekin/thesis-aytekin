@@ -18,13 +18,10 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
 
-public bool areAllFieldsConstants(set [loc] fieldsInLoc, M3 projectM3) {
+public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]] allFieldModifiers) {
 	bool retBool = false;
-	lrel [loc, Modifier] myModifiers = sort({<from, to> | <from, to> <- projectM3@modifiers,
-																		from in fieldsInLoc});
-	map[loc , set[Modifier] ] modifiersPerField = index(myModifiers);
-	for ( modifierEntry <- modifiersPerField) {
-		set [Modifier] modifiers = modifiersPerField[modifierEntry];
+	for ( aField <- fieldsInLoc) {
+		set [Modifier] modifiers = aField in allFieldModifiers ? allFieldModifiers[aField] : {} ;
 		bool isFinal = false, isStatic = false;		
 		for (aModifier <- modifiers) {
 			switch (aModifier) {
@@ -44,27 +41,23 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, M3 projectM3) {
 }
 
 
-public bool containsOnlyConstantFields(loc aLoc, M3 projectM3) {
+public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInterfaceContainment, map[loc, set[Modifier]] allFieldModifiers) {
 	// we just want fields in the location
 	bool retBool = false;
-	set [loc] fieldsInLoc = {aField | <classOrInterface, aField>  <- projectM3@containment, 
-													isField(aField),
-													(classOrInterface == aLoc)};
-	set [loc] everythingInLoc = {anItem | <classOrInterface, anItem> <- projectM3@containment,
-													(classOrInterface == aLoc)};
-	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, projectM3)) {
-		
+	set [loc] everythingInLoc = aLoc in classAndInterfaceContainment ? classAndInterfaceContainment[aLoc] : {} ;
+	set [loc] fieldsInLoc = {_aField | _aField  <- everythingInLoc, isField(_aField)};
+	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, allFieldModifiers)) {
 		retBool = true;
 	}
 	return retBool;													
 }  
 
 
-public set [loc] getConstantCandidates(M3 projectM3) {
+public set [loc] getConstantCandidates(map[loc, set [loc]] classAndInterfaceContainment, map[loc, set[Modifier]] allFieldModifiers, M3 projectM3) {
 	set [loc] retSet = {};
 	list [loc] allClassesAndInterfaces = sort(getAllClassesAndInterfacesInProject(projectM3));
 	for (aLoc <- allClassesAndInterfaces ) {
-		if (containsOnlyConstantFields(aLoc, projectM3)) {
+		if (containsOnlyConstantFields(aLoc, classAndInterfaceContainment, allFieldModifiers)) {
 			retSet += aLoc;
 		}
 	}
@@ -72,7 +65,7 @@ public set [loc] getConstantCandidates(M3 projectM3) {
 }
 
 
-public bool areAllParentsInCandidateList(allParentsOfLoc, candidateLocs) {
+public bool areAllParentsInCandidateList(set [loc] allParentsOfLoc, set [loc] candidateLocs) {
 	bool retBool = false;
 	if (!isEmpty(allParentsOfLoc) && !isEmpty(candidateLocs) &&  (allParentsOfLoc <= candidateLocs) ) {
 		retBool = true;
@@ -94,15 +87,11 @@ public rel [inheritanceKey,inheritanceType] findConstantLocs(set [loc] candidate
 }
 
 
-
-public set [loc] getMarkerCandidates(M3 projectM3) {
+public set [loc] getMarkerCandidates(map[loc, set[loc]] interfaceContainment, M3 projectM3) {
 	set [loc] retSet = {};
-	list [loc] allInterfaces = sort(getAllInterfacesInProject(projectM3));
-	for (anInterface <- allInterfaces ) {
-		if (isEmpty({_anItem | <_anInterface, _anItem> <- projectM3@containment, (_anInterface == anInterface)})) {
-			retSet += anInterface;
-		}
-	}
+	set [loc] allInterfaces = getAllInterfacesInProject(projectM3);
+	set [loc] nonMarkerInterfaces = domain(interfaceContainment);
+	retSet = allInterfaces - nonMarkerInterfaces;	
 	return retSet;
 }
 	
@@ -166,8 +155,11 @@ public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
 
 public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM3) {
 	rel [inheritanceKey,inheritanceType] retRel = {};
-	retRel += findConstantLocs(getConstantCandidates(projectM3), projectM3);
-	retRel += findMarkerInterfaces(getMarkerCandidates(projectM3), projectM3);	
+	map [loc, set[loc]] interfaceContainment = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface)});	
+	map [loc, set[loc]] classAndInterfaceContainment = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface) });
+	map[loc, set[Modifier]] allFieldModifiers = toMap({<_aField, _aModifier> | <_aField, _aModifier>  <- projectM3@modifiers, isField(_aField)});
+	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContainment, allFieldModifiers, projectM3), projectM3);
+	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainment, projectM3), projectM3);	
 	retRel += findSuperRelations(projectM3);
 	return retRel;
 }

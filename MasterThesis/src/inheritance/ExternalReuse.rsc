@@ -19,7 +19,7 @@ import inheritance::InheritanceModules;
 
 
 public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMethodCall(Expression mCall, loc  classOfMethodCall, 
-																						map [loc, set[loc]] invertedContainment,  map[loc, set[loc]] declarationsMap,
+																						map [loc, set[loc]] invertedClassContainment,  map[loc, set[loc]] declarationsMap,
 																						rel [loc, loc] allInheritanceRelations) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	visit (mCall) {
@@ -28,12 +28,12 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 			loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
 			// I am only interested in the classes and not interfaces, enums, etc.
 			// I am not interested in this() and also variables of classOfMethodCall
-			if ((invokedMethod in invertedContainment) && (classOfReceiver != classOfMethodCall) 
+			if ((invokedMethod in invertedClassContainment) && (classOfReceiver != classOfMethodCall) 
 									&& isLocDefinedInProject(invokedMethod, declarationsMap) 
 								 	&& ! inheritanceRelationExists(classOfMethodCall, classOfReceiver, allInheritanceRelations)) {
 				// for external reuse, the invokedMethod should not be declared in the 
 				// class classOfReceiver
-				loc methodDefiningClass = getDefiningClassOfALoc(invokedMethod, invertedContainment);
+				loc methodDefiningClass = getDefiningClassOfALoc(invokedMethod, invertedClassContainment);
 				if ( isClass(classOfReceiver) && (methodDefiningClass != classOfReceiver)) {
 						retList += <<classOfReceiver, methodDefiningClass>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
 				}
@@ -44,7 +44,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, map [loc, set[loc]] invertedContainment, 
+public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, map [loc, set[loc]] invClassAndInterfaceContainment,
 																											map[loc, set[loc]] declarationsMap) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	visit (qName) {
@@ -52,7 +52,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 			loc accessedField = expression@decl;
 			if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap)) {  
 				loc classOfQualifier = getClassOrInterfaceFromTypeSymbol(qualifier@typ);
-				loc classOfExpression = getDefiningClassOfALoc(accessedField, invertedContainment);
+				loc classOfExpression = getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
 				if (classOfQualifier != classOfExpression) {
 					retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_VIA_FIELD_ACCESS, expression@src, accessedField>;
 				}
@@ -69,10 +69,11 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] allExternalReuseCases = [];
 	set	[loc] 				allClassesInProject 		= {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) };
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
-	map [loc, set [loc]] 	invertedContainment 		= toMap(invert({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner)}));
+	map [loc, set [loc]] 	invertedClassContainment 	= toMap(invert({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner)}));
+	map [loc, set [loc]] 	invClassAndInterfaceContainment 	= getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);;
-	//println("Containment locs for java class GenSample1 is: <invertedContainment[|java+class:///edu/uva/analysis/gensamples/GenSample1|]>");
+	//println("Containment locs for java class GenSample1 is: <invertedClassContainment[|java+class:///edu/uva/analysis/gensamples/GenSample1|]>");
 	for (oneClass <- allClassesInProject) {
 		set [loc] methodsInClass = oneClass in containmentMapForMethods ? containmentMapForMethods[oneClass] : {};  
 		// TODO:take also initializers in to account  
@@ -81,10 +82,10 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
 			visit(methodAST) {
 				case m2:\methodCall(_, receiver:_, _, _): {
-					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedContainment, declarationsMap, allInheritanceRelations);
+					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedClassContainment, declarationsMap, allInheritanceRelations);
         		} // case methodCall()
         		case qName:\qualifiedName(_, _) : {
-        			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, invertedContainment, declarationsMap);
+        			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, invClassAndInterfaceContainment, declarationsMap);
         		;
         		}
         	} // visit()
