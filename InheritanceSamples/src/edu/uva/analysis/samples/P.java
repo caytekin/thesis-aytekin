@@ -5,6 +5,11 @@ public class P {
 	public int intFieldParent = 0;
 	String strFieldParent = "";
 	
+	
+	void thisChangingType() {
+		
+	}
+	
 	void methodToOverride() {}
 	
 	int returnCollectionZero() { return 0;} 

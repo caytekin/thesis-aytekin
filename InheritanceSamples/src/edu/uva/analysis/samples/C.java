@@ -9,6 +9,11 @@ public class C extends P {
 	
 	void methodToOverride() {}
 	
+	void canIReachA() {
+		
+	}
+	
+	
 	void q() {
 	
 	}

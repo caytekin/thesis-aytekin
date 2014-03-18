@@ -138,11 +138,13 @@ public void matchWithAST() {
 
 
 public void runInitialWork() {
-	M3 m3Model = getM3Model(|project://jrat_0.6|);
-	rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
-	println("Method containment: ");
-	iprintln(sort(methodContainment));
-	// getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/GenericRunner/multipleGenericsExample()|);
+	M3 m3Model = getM3Model(|project://InheritanceSamples|);
+	rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
+	println(methodContainment);
+	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
+	//println("Method containment: ");
+	//iprintln(sort(methodContainment));
+	 getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/GenericSample/runGenericSample()|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -281,7 +283,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	text(methodAST);
+	//text(methodAST);
 	visit(methodAST) {
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
 			//println("Field access 1 ----------------------");

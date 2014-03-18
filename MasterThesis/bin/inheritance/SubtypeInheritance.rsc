@@ -172,9 +172,9 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 
 
 public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
-	rel [inheritanceKey, inheritanceType] resultRel = {};
-	lrel [inheritanceKey, inheritanceSubtype, loc] subtypeLog = [];
-	lrel [inheritanceKey, inheritanceSubtype, loc] allSubtypeCases = [];
+	 rel [inheritanceKey, inheritanceType] 			resultRel 	= {};
+	lrel [inheritanceKey, inheritanceSubtype, loc] 	subtypeLog 	= [];
+	lrel [inheritanceKey, inheritanceSubtype, loc] 	allSubtypeCases = [];
 	set [loc] 				allClassesAndInterfacesInProject 	= getAllClassesAndInterfacesInProject(projectM3);
 	set [loc] 				allClassesInProject 				= getAllClassesInProject(projectM3);
 	map [loc, set [loc]] 	declarationsMap 					= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
