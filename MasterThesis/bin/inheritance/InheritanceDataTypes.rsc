@@ -52,6 +52,9 @@ public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias subtypeDetail = tuple [ inheritanceSubtype inhSub, loc subtypeDetailLoc];
 public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];
 public alias superCallLoc = loc;
+public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourceOfCandCall];
+public alias thisChangingTypeOccurrence = tuple [loc sourceRef, loc invokedmethod];
+
 
 
 public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
@@ -59,6 +62,8 @@ public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.lo
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 public loc superLogFile = |file://c:/Users/caytekin/InheritanceLogs/Super.log|;
+public loc thisChangingTypeCandFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeCand.log|;
+public loc thisChangingTypeOccurFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeOccur.log|;
 
 
 

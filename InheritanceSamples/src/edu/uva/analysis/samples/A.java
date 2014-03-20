@@ -7,8 +7,16 @@ public class A {
 	}
 	
 	
+	A (String aString) {
+		
+	}
+	
 	A(ThisChangingTypeParent theParent) {
 		System.out.println("this is " + theParent);
+	}
+	
+	void iTakeArgThis(ThisChangingTypeParent aParent) {
+		
 	}
 	
 	public static void main(String[] args) {

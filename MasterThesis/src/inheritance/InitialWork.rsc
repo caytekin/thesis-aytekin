@@ -137,14 +137,36 @@ public void matchWithAST() {
 }
 
 
+void listNewObjectCalls(M3 projectM3) {
+	set [loc] allMethods = {_aMethod | <_, _aMethod> <- projectM3@containment, isMethod(_aMethod)};
+	for (aMethod <- allMethods ) {
+		methodAST = getMethodASTEclipse(aMethod, model = projectM3);	
+		visit (methodAST) {
+			case newObject2:\newObject(_,_) : {
+				println("2222 at: <newObject2@src>");
+			;}
+			case newObject3:\newObject(_,_,_) : {
+				println("New object 3333 at: <newObject3@src>");
+			;}
+			case newObject4:\newObject(_,_,_,_) : {
+				println("New object 4444 at: <newObject4@src>");			
+			;}			
+		}
+	;}
+}
+
+
+
+
 public void runInitialWork() {
 	M3 m3Model = getM3Model(|project://InheritanceSamples|);
-	rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
-	println(methodContainment);
+	//listNewObjectCalls(m3Model);
+	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
+	//println(methodContainment);
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
 	//println("Method containment: ");
 	//iprintln(sort(methodContainment));
-	 getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/GenericSample/runGenericSample()|);
+	 getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/anotherMethod()|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -283,7 +305,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	//text(methodAST);
+	text(methodAST);
 	visit(methodAST) {
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
 			//println("Field access 1 ----------------------");
@@ -385,7 +407,13 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 				;
 		}
 		
-		case m1:\methodCall(_,_, _) : {
+		case m1:\methodCall(_,_, args) : {
+			for (/this() := args) {
+				println("m1: A this match at <m1@src>");
+			}
+			for (anArg <- args) {
+				if (this() := anArg) {println("m1: SURFACE A this match at <m1@src>");;}
+			}		
 		//case 1: case 3: case 5: {
 			 // \methodCall(bool isSuper, str name, list[Expression] arguments)
 			//println("m1: ");
@@ -393,7 +421,16 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			//dealWithMethodCall(m1, projectModel);
 			;
 		}
-		case m2:\methodCall(_, _, _, _): {
+		case m2:\methodCall(_, _, _, args): {
+			for (/this() := args) {
+				println("m2: A this match at <m2@src>");
+			}		
+			for (anArg <- args) {
+				if (this() := anArg) {println("m2: SURFACE A this match at <m2@src>");;}
+			}
+			//for (this() := args) {
+			//	println("m2: SURFACE A this match at <m2@src>");
+			//}			
         	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
 			//println("m2: ");
 			//text(m2);
