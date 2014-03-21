@@ -8,6 +8,11 @@ public class ThisChangingTypeParent {
 		System.out.println("The initializer of the parent");
 	}
 	
+	ThisChangingTypeParent() {
+		
+	}
+	
+	
 	ThisChangingTypeParent (ThisChangingTypeParent p) {
 		p.aString = "Constructor call";
 	}
@@ -30,7 +35,13 @@ public class ThisChangingTypeParent {
 	
 	
 	void ternaryMethod() {
-		int i = true ? 1 : 0;
+		P aP = (0<=1) ? new C() : new G();
+		P aSecondP = new C();
+	}
+	
+	void subtypeViaConstructorCall() {
+		ThisChangingTypeChild aChild = new ThisChangingTypeChild(); 
+		A myA = new A(aChild);
 	}
 	
 	void anotherMethod () {

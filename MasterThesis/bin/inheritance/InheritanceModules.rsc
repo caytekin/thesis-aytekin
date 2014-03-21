@@ -210,7 +210,7 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 }
 
 
-// This method returns the type symbol of a method or field definition
+// This method returns the type symbol of a method, constructor or field definition
 TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbol]] typesMap ) {
 	set [TypeSymbol] locSymbolSet = definedLoc in typesMap ? typesMap[definedLoc] : {}; 
 	if (size(locSymbolSet) != 1) {
@@ -226,6 +226,9 @@ public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, map [loc, set
 	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, typesMap);
 	visit (methodTypeSymbol) {
 		case \method(_, _, _, typeParameters:_) : {
+			retTypeList = typeParameters;
+		}
+		case \constructor(_, typeParameters:_) : {
 			retTypeList = typeParameters;
 		}
 	}

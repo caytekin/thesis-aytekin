@@ -29,25 +29,6 @@ public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
 }
 
 
-public tuple [bool, TypeSymbol] getTypeSymbolFromVariable(Expression varExpression) {
-	bool expressionHasStatement = false;
-	TypeSymbol returnSymbol = DEFAULT_TYPE_SYMBOL;
-	//println("getTypeSymbolForVariable is called with <varExpression>");
-	visit (varExpression) {
-		case nullVar : \variable(_,_, null()) : { 
-			// a null initialization should not be counted as subtype
-		; }
-		case myVar: \variable(_,_,stmt) : {
-			returnSymbol = stmt@typ;
-			expressionHasStatement = true;
-		}
-	} 
-	tuple [bool, TypeSymbol] returnTuple;
-	returnTuple = <expressionHasStatement, returnSymbol>;
-	return returnTuple;
-}
-
-
 TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
 	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
  	visit (rascalType) {
@@ -78,41 +59,86 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 		case \methodCall(_,_,_,myArgs:_) : {
 			args = myArgs;
 		}
+		case newObject2:\newObject(_, myArgs:_) : {
+			args = myArgs;		
+		}
+		case newObject3:\newObject(_, myArgs:_, _) : {
+			args = myArgs;		
+		}
 	}
 	for ( int i <- [0..(size(args))]) retList += args[i]@typ;
 	return retList;
 }
 
 
+private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef) {
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
+	if (result.isSubtypeRel) {
+		retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef>;
+	} // if
+	return retList;
+}
+
+
+
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Expression asmtStmt) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
-	visit (asmtStmt ) {
+	bool isConditional = false;
+	visit (asmtStmt) {
 		case aStmt:\assignment(lhs, operator, rhs) : {  
-			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
-			if (result.isSubtypeRel) {
-				retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, asmtStmt@src>;
-			} // if																					   
+			visit (aStmt) {
+				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
+					isConditional = true;
+					retList += getSubtypeResultViaAssignment(lhs, thenBranch, conditionalS@src);
+					retList += getSubtypeResultViaAssignment(lhs, elseBranch, conditionalS@src);				
+				} 
+			}
+			if (!isConditional) {
+				retList += getSubtypeResultViaAssignment(lhs, rhs, aStmt@src);
+			}																					   
 		}	// case	
 	} // visit
 	return retList;
 }
 
 
+private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments) {
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
+	if (result.isSubtypeRel) {
+		for (anExpression <- fragments) {
+			retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
+		}
+	}
+	return retList;
+}
+
+
 public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Declaration vars) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	bool isConditional = false;
 	visit(vars) {
 		case \variables(typeOfVar, fragments) : {
   			TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
   			//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
-			tuple [bool hasStatement, TypeSymbol rhsTypeSymbol] typeSymbolTuple = getTypeSymbolFromVariable(fragments[size(fragments) - 1]);
-			if (typeSymbolTuple.hasStatement) {
-				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(typeSymbolTuple.rhsTypeSymbol, lhsTypeSymbol); 
-				if (result.isSubtypeRel) {
-					for (anExpression <- fragments) {
- 						retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
- 					} // for
-				} // if
-			} // if
+  			visit (fragments[size(fragments) - 1]) {
+  				case nullVar : \variable(_,_, null()) : { 
+					// a null initialization should not be counted as subtype
+				;}
+				case myVar: \variable(_,_,stmt) : {
+					visit (stmt) {
+						case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
+							isConditional = true;
+							retList += getSubtypeResultViaVariable(lhsTypeSymbol , thenBranch, fragments);
+							retList += getSubtypeResultViaVariable(lhsTypeSymbol , elseBranch, fragments);				
+						}
+					} 
+					if (!isConditional) {
+						retList += getSubtypeResultViaVariable(lhsTypeSymbol , stmt, fragments);
+					}	
+				} // case myVar
+  			}  // visit fragments
 		} // case
 	} // visit
  	return retList;
@@ -142,8 +168,6 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
 	visit (returnStmt) {
 		case \return(retExpr) : {
-			//println("Declared type of method is: <getDeclaredReturnTypeSymbolOfMethod(methodLoc, projectM3)>");
-			//println("Type of return expression is: <retExpr@typ> in source <retExpr@src>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
 																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, typesMap));
 			if (result.isSubtypeRel) {
@@ -155,15 +179,21 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methCallExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
-	if (isLocDefinedInProject(methCallExpr@decl, declarationsMap)) { 
-		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methCallExpr);
-		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methCallExpr@decl, typesMap);
+	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
+		if (methOrConstExpr@decl.scheme == "java+constructor") {println("Constructor is : <methOrConstExpr@decl>") ;}
+		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
+		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methOrConstExpr@decl, typesMap);
+		if (methOrConstExpr@decl == |java+constructor:///edu/uva/analysis/samples/A/A(edu.uva.analysis.samples.ThisChangingTypeParent)|) {
+			println("Passed symbol list: "); iprintln(<passedSymbolList>);
+			println("Declared symbol list: "); iprintln(<declaredSymbolList>);
+		}
 		for (int i <- [0..size(passedSymbolList)]) {
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], declaredSymbolList[i]);
 			if (result.isSubtypeRel) {
-				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methCallExpr@src>;
+				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
 			}
 		}
 	}
@@ -191,7 +221,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
 					allSubtypeCases += getSubtypeViaAssignment(aStmt);
 				}
-				case variables : \variables(typeOfVar, fragments) : {
+				case variables:\variables(typeOfVar, fragments) : {
 					allSubtypeCases += getSubtypeViaVariables(variables);
 				} 
 				case castStmt:\cast(castType, castExpr) : {  
@@ -206,6 +236,14 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case methExpr2:\methodCall(_, _, _, _): {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap);					
 				} 
+				case newObject2:\newObject(_, _) : {
+					println("A new object 2 call...");
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap);
+				}
+				case newObject3:\newObject(_, _, _) : {
+					println("A new object 3 call...");				
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap);
+				}				
         	} // visit()
 		};	// for each method in the class															
 	};	// for each class in the project

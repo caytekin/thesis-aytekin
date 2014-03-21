@@ -157,6 +157,10 @@ void listNewObjectCalls(M3 projectM3) {
 
 
 
+private void getInfoForClass(M3 projectM3, loc classLoc) {
+	println("Project for this M3 is: <projectM3.id>");
+}
+
 
 public void runInitialWork() {
 	M3 m3Model = getM3Model(|project://InheritanceSamples|);
@@ -166,7 +170,8 @@ public void runInitialWork() {
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
 	//println("Method containment: ");
 	//iprintln(sort(methodContainment));
-	 getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/anotherMethod()|);
+	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
+	getInfoForClass(m3Model, |java+class:///edu/uva/analysis/samples/ThisChangingTypeParent|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -307,6 +312,13 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	// println("Method AST is: <methodAST>");
 	text(methodAST);
 	visit(methodAST) {
+		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {
+			println("Logical expression: <logicalExpr>");
+			println("Type of the then branch : <thenBranch@typ>");
+			println("Type of the else branch : <elseBranch@typ>");
+			println("----------------------------------------------");
+		}
+		// \conditional(Expression expression, Expression thenBranch, Expression elseBranch)
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
 			//println("Field access 1 ----------------------");
 			//iprintln(expression);
@@ -369,6 +381,10 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			;
 		}
 		case a:\assignment(lhs, operator, rhs) : {  
+			//println("***************************************");
+			//println("Assignment statement: ");
+			//println("rhs: <rhs>");
+			//tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
    //     	// 	\assignment(Expression lhs, str operator, Expression rhs)
    //     	println("--------------------------------------------------------------------");
 			//println("assignment: ");  
@@ -408,12 +424,12 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 		}
 		
 		case m1:\methodCall(_,_, args) : {
-			for (/this() := args) {
-				println("m1: A this match at <m1@src>");
-			}
-			for (anArg <- args) {
-				if (this() := anArg) {println("m1: SURFACE A this match at <m1@src>");;}
-			}		
+			//for (/this() := args) {
+			//	println("m1: A this match at <m1@src>");
+			//}
+			//for (anArg <- args) {
+			//	if (this() := anArg) {println("m1: SURFACE A this match at <m1@src>");;}
+			//}		
 		//case 1: case 3: case 5: {
 			 // \methodCall(bool isSuper, str name, list[Expression] arguments)
 			//println("m1: ");
@@ -422,19 +438,19 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			;
 		}
 		case m2:\methodCall(_, _, _, args): {
-			for (/this() := args) {
-				println("m2: A this match at <m2@src>");
-			}		
-			for (anArg <- args) {
-				if (this() := anArg) {println("m2: SURFACE A this match at <m2@src>");;}
-			}
+			//for (/this() := args) {
+			//	println("m2: A this match at <m2@src>");
+			//}		
+			//for (anArg <- args) {
+			//	if (this() := anArg) {println("m2: SURFACE A this match at <m2@src>");;}
+			//}
 			//for (this() := args) {
 			//	println("m2: SURFACE A this match at <m2@src>");
 			//}			
         	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
 			//println("m2: ");
 			//text(m2);
-			dealWithMethodCall(m2, projectModel);
+			//dealWithMethodCall(m2, projectModel);
    //     	println(m2);
    //     	println("receiver: <receiver>");
    //     	println("m2 Annotations: <getAnnotations(m2)>");
