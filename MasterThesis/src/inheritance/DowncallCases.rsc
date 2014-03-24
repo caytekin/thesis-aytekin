@@ -86,17 +86,18 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	rel [loc, loc] 			allInheritanceRels 			= getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
+	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
+	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	rel [loc ascendingClass, loc descendingClass, loc ascIssuerMethod, loc descDowncalledMethod] downcallCandidates = getDowncallCandidates(invertedClassAndInterfaceContainment , projectM3);
 	lrel [inheritanceKey, downcallDetail] downcallLog = [];
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		set [loc] methodsInClass = oneClass in  containmentMapForMethods ? containmentMapForMethods[oneClass] : {};
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
 		// TODO:take also initializers in to account  
 		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
-		for (oneMethod <- methodsInClass) {
-			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
-			visit(methodAST) {
+		for (oneAST <- ASTsOfOneClass) {
+			visit(oneAST) {
 				case mCall1:\methodCall(_, receiver:_, _, _): {
 					loc invokedMethod = mCall1@decl;
 					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);

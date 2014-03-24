@@ -1,6 +1,23 @@
 package edu.uva.analysis.samples;
 
 public class ThisChangingTypeParent {
+	
+	
+	public class MyInner {
+		MyInner() {
+			
+		}
+		
+		MyInner (String myStr) {
+			
+		}
+		
+		MyInner (String myStr, Class classDef) {
+			
+		}
+	}
+	
+	
 	protected String aString = "I AM THE PARENT";
 	protected A anA = new A(this);
 	
@@ -40,8 +57,17 @@ public class ThisChangingTypeParent {
 	}
 	
 	void subtypeViaConstructorCall() {
+		Class myClass = this.getClass();
 		ThisChangingTypeChild aChild = new ThisChangingTypeChild(); 
 		A myA = new A(aChild);
+		P myP = new P();
+		this.new MyInner();
+		this.new MyInner("This is another string...", myClass );		
+		ThisChangingTypeParent aParent = new ThisChangingTypeParent();
+		aParent.new MyInner("This is a string...");
+		new MyInner("This is the third string", myClass);
+		aParent.new MyInner("This is another string...", myClass );
+		
 	}
 	
 	void anotherMethod () {

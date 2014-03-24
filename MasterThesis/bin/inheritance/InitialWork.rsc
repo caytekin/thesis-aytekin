@@ -162,16 +162,22 @@ private void getInfoForClass(M3 projectM3, loc classLoc) {
 }
 
 
+
+
+
 public void runInitialWork() {
-	M3 m3Model = getM3Model(|project://InheritanceSamples|);
+	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
+	//map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
+	//map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
+	//iprintln(getASTsOfAClass(|java+class:///edu/uva/analysis/samples/N|, invertedUnitContainment , declarationsMap));
 	//listNewObjectCalls(m3Model);
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
 	//println(methodContainment);
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
 	//println("Method containment: ");
 	//iprintln(sort(methodContainment));
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
-	getInfoForClass(m3Model, |java+class:///edu/uva/analysis/samples/ThisChangingTypeParent|);
+	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
+	//getInfoForClass(m3Model, |java+class:///edu/uva/analysis/samples/ThisChangingTypeParent|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
 	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
@@ -310,14 +316,26 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	text(methodAST);
 	visit(methodAST) {
-		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {
-			println("Logical expression: <logicalExpr>");
-			println("Type of the then branch : <thenBranch@typ>");
-			println("Type of the else branch : <elseBranch@typ>");
-			println("----------------------------------------------");
+		case newObject1:\newObject(Type \type, list[Expression] args) : {
+			println("New object 1: <newObject1@src>, args : <args>");
 		}
+		case newObject2:\newObject(Type \type, list[Expression] args, Declaration class) : {
+			println("New object 2: <newObject2@src>, args : <args>");		
+		}
+		case newObject3:\newObject(Expression expr, Type \type, list[Expression] args) : {
+			println("New object 3: <newObject3@src>, args : <args>");
+		}
+		case newObject4:\newObject(Expression expr, Type \type, list[Expression] args, Declaration class) : {
+			println("New object 4: <newObject4@src>, args : <args>");
+		}
+		
+		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {
+			//println("Logical expression: <logicalExpr>");
+			//println("Type of the then branch : <thenBranch@typ>");
+			//println("Type of the else branch : <elseBranch@typ>");
+			//println("----------------------------------------------");
+		;}
 		// \conditional(Expression expression, Expression thenBranch, Expression elseBranch)
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
 			//println("Field access 1 ----------------------");

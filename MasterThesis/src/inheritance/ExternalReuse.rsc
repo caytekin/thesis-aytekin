@@ -72,25 +72,24 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	map [loc, set [loc]] 	invertedClassContainment 	= toMap(invert({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner)}));
 	map [loc, set [loc]] 	invClassAndInterfaceContainment 	= getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
-	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);;
+	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
+	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	//println("Containment locs for java class GenSample1 is: <invertedClassContainment[|java+class:///edu/uva/analysis/gensamples/GenSample1|]>");
 	for (oneClass <- allClassesInProject) {
-		set [loc] methodsInClass = oneClass in containmentMapForMethods ? containmentMapForMethods[oneClass] : {};  
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
 		// TODO:take also initializers in to account  
 		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
-		for (oneMethod <- methodsInClass) {
-			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
-			visit(methodAST) {
+		for (oneAST <- ASTsOfOneClass) {
+			visit(oneAST) {
 				case m2:\methodCall(_, receiver:_, _, _): {
 					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedClassContainment, declarationsMap, allInheritanceRelations);
         		} // case methodCall()
         		case qName:\qualifiedName(_, _) : {
         			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, invClassAndInterfaceContainment, declarationsMap);
-        		;
         		}
         	} // visit()
-		};	// for each method in the class															
-	};	// for each class in the project
+		}	// for each method in the class															
+	}	// for each class in the project
 	for ( int i <- [0..size(allExternalReuseCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;

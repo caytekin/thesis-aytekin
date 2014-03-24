@@ -183,13 +183,8 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
 	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
-		if (methOrConstExpr@decl.scheme == "java+constructor") {println("Constructor is : <methOrConstExpr@decl>") ;}
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
 		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methOrConstExpr@decl, typesMap);
-		if (methOrConstExpr@decl == |java+constructor:///edu/uva/analysis/samples/A/A(edu.uva.analysis.samples.ThisChangingTypeParent)|) {
-			println("Passed symbol list: "); iprintln(<passedSymbolList>);
-			println("Declared symbol list: "); iprintln(<declaredSymbolList>);
-		}
 		for (int i <- [0..size(passedSymbolList)]) {
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], declaredSymbolList[i]);
 			if (result.isSubtypeRel) {
@@ -202,7 +197,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 
 
 public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
-	 rel [inheritanceKey, inheritanceType] 			resultRel 	= {};
+	rel [inheritanceKey, inheritanceType] 			resultRel 	= {};
 	lrel [inheritanceKey, inheritanceSubtype, loc] 	subtypeLog 	= [];
 	lrel [inheritanceKey, inheritanceSubtype, loc] 	allSubtypeCases = [];
 	set [loc] 				allClassesAndInterfacesInProject 	= getAllClassesAndInterfacesInProject(projectM3);
@@ -210,14 +205,11 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set [loc]] 	declarationsMap 					= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	map [loc, set [loc]] 	methodsOfClasses   					= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
+	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		set [loc] methodsInClass = oneClass in methodsOfClasses ? methodsOfClasses[oneClass] : {}; 
-																 
-		// TODO:take also initializers in to account  
-		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
-		for (oneMethod <- methodsInClass) {
-			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
-			visit(methodAST) {
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
+		for (oneAST <- ASTsOfOneClass) {
+			visit(oneAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
 					allSubtypeCases += getSubtypeViaAssignment(aStmt);
 				}
@@ -227,9 +219,6 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case castStmt:\cast(castType, castExpr) : {  
 					allSubtypeCases += getSubtypeViaCast(castStmt);					
 				} // case \cast
-				case returnStmt:\return(retExpr) : {
-					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, typesMap );
-				}  // case \return(_)
 				case  methExpr1:\methodCall(_,_, _) : {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap);
 				}
@@ -237,16 +226,26 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap);					
 				} 
 				case newObject2:\newObject(_, _) : {
-					println("A new object 2 call...");
 					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap);
 				}
 				case newObject3:\newObject(_, _, _) : {
-					println("A new object 3 call...");				
 					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap);
 				}				
         	} // visit()
-		};	// for each method in the class															
-	};	// for each class in the project
+		}
+	
+		set [loc] methodsInClass = oneClass in methodsOfClasses ? methodsOfClasses[oneClass] : {}; 
+		// TODO:take also initializers in to account  
+		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
+		for (oneMethod <- methodsInClass) {
+			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
+			visit(methodAST) {
+				case returnStmt:\return(retExpr) : {
+					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, typesMap );
+				}  // case \return(_)
+        	} // visit()
+		}	// for each method in the class															
+	}	// for each class in the project
 	for ( int i <- [0..size(allSubtypeCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc detLoc] aCase = allSubtypeCases[i];
 		if (aCase.iKey.parent in allClassesAndInterfacesInProject ) {

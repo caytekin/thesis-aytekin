@@ -41,6 +41,57 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 }
 
 
+public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {
+	map [loc, set [loc]] retMap = ();
+	rel [loc, loc] containmentRel = {<_compUnit, _classOrInt> | <_compUnit, _classOrInt> <- projectM3@containment, isCompilationUnit(_compUnit)};
+	if (!isEmpty(containmentRel)) {
+		retMap = toMap(invert(containmentRel));
+	}
+	return retMap;
+}
+
+
+private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[loc]] invertedUnitContainment) {
+	set [loc] retLocSet = aClassOrInt in invertedUnitContainment ? invertedUnitContainment[aClassOrInt] : {};
+	if (size(retLocSet) != 1) {
+		throw ("In getCompilationUnitOfClass(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+	}
+	return getOneFrom(retLocSet);
+}
+
+
+private loc getFileOfCompilationUnit(loc aUnit, map[loc, set[loc]] declarationsMap) {
+	set [loc] fileSet = aUnit in declarationsMap ? declarationsMap[aUnit] : {};
+	if (size(fileSet) != 1) {
+		throw ("In getFileOfCompilationUnit(), the number of elements containing unit <aUnit> is <size(fileSet)>. Set is <fileSet>");
+	}
+	return getOneFrom(fileSet);
+}
+
+
+public list [Declaration] getASTsOfAClass(loc aClass, map [loc, set[loc]] invertedUnitContainment , 
+													   map [loc, set[loc]] declarationsMap) {
+	list [Declaration]  astsOfAClass = [];
+	loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment );
+	loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
+	Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
+	visit (compUnitAST) {
+		case classDefn:\class(_,_,_,bodies) : {
+			if (classDefn@decl == aClass) {
+				astsOfAClass += bodies;
+			}
+		}
+		case classDefn:\class(bodies) : {
+			if (classDefn@decl == aClass) {
+				astsOfAClass += bodies;
+			}
+		}		
+	}
+	return astsOfAClass;
+}
+
+
+
 public map [loc, set[loc]] getInvertedClassAndInterfaceContainment(M3 projectM3) {
 	map [loc, set [loc]] retMap = ();
 	rel [loc, loc] containmentRel = {<dClass, dLoc> | <dClass, dLoc> <- projectM3@containment, isClass(dClass) || isInterface(dClass) || dClass.scheme == "java+anonymousClass" };
