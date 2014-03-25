@@ -76,7 +76,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	//println("Containment locs for java class GenSample1 is: <invertedClassContainment[|java+class:///edu/uva/analysis/gensamples/GenSample1|]>");
 	for (oneClass <- allClassesInProject) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		// TODO:take also initializers in to account  
 		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
 		for (oneAST <- ASTsOfOneClass) {

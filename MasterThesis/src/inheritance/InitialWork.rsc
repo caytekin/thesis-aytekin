@@ -167,9 +167,19 @@ private void getInfoForClass(M3 projectM3, loc classLoc) {
 
 public void runInitialWork() {
 	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
-	//map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
-	//map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
-	//iprintln(getASTsOfAClass(|java+class:///edu/uva/analysis/samples/N|, invertedUnitContainment , declarationsMap));
+	//iprintln(projectM3@containment);
+	iprintln(projectM3@types);
+	loc classLoc = |java+class:///edu/uva/analysis/samples/Var1ArgsRunner|;
+	//println("Classes or interfaces containing: <classLoc>");
+	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc, isClass(_owner) || isInterface(_owner)});
+	//println("Classes or interfaces containing: <classLoc.parent>");
+	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc.parent, isClass(_owner) || isInterface(_owner)});	
+	map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
+	map [loc, set[loc]] invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	//println("Inverted containment entry for <classLoc> is: <invertedClassAndInterfaceContainment[classLoc]>");	
+	map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
+	//println("The parent of the class <classLoc> is: <classLoc.parent>. The grand parent of the class is <classLoc.parent.parent>");
+	 //iprintln(getASTsOfAClass(classLoc, invertedClassAndInterfaceContainment, invertedUnitContainment , declarationsMap));
 	//listNewObjectCalls(m3Model);
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
 	//println(methodContainment);
@@ -318,17 +328,13 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	// println("Method AST is: <methodAST>");
 	visit(methodAST) {
 		case newObject1:\newObject(Type \type, list[Expression] args) : {
-			println("New object 1: <newObject1@src>, args : <args>");
-		}
+		;}
 		case newObject2:\newObject(Type \type, list[Expression] args, Declaration class) : {
-			println("New object 2: <newObject2@src>, args : <args>");		
-		}
+		;}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] args) : {
-			println("New object 3: <newObject3@src>, args : <args>");
-		}
+		;}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] args, Declaration class) : {
-			println("New object 4: <newObject4@src>, args : <args>");
-		}
+		;}
 		
 		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {
 			//println("Logical expression: <logicalExpr>");

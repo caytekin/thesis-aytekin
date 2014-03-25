@@ -93,7 +93,7 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		// TODO:take also initializers in to account  
 		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
 		for (oneAST <- ASTsOfOneClass) {

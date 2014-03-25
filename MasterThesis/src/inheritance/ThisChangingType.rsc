@@ -33,15 +33,6 @@ private set [loc] getThisReferencesInMethod(loc ascClass, loc descClass, loc aMe
 	set [loc] retSet = {};
 	methodAST = getMethodASTEclipse(aMethodOfAscClass, model = projectM3);
 	visit (methodAST) {
-		case newObject3:\newObject(_, list [Expression] _args, _) : {
-			retSet += surfaceMatch(newObject3, _args); 
-		}
-		case newObject2:\newObject(_, list[Expression] _args) : {
-			retSet += surfaceMatch(newObject2, _args); 
-		}		
-		case methExpr1:\methodCall(_,_,_args) : {
-			retSet += surfaceMatch(methExpr1, _args); 
-		}
 		case methExpr2:\methodCall(_,_,_,_args) : {
 			retSet += surfaceMatch(methExpr2, _args); 
 		}
@@ -59,6 +50,21 @@ private set [loc] getThisReferencesInMethod(loc ascClass, loc descClass, loc aMe
 				}
 			}
 		} 
+		case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
+			retSet += surfaceMatch(newObject1, expArgs); 
+		}
+		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
+			retSet += surfaceMatch(newObject2, expArgs); 
+		}
+		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
+			retSet += surfaceMatch(newObject3, expArgs); 
+		}
+		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
+			retSet += surfaceMatch(newObject4, expArgs); 
+		}
+		case methExpr1:\methodCall(_,_,_args) : {
+			retSet += surfaceMatch(methExpr1, _args); 
+		}
 	}
 	return retSet;
 }
@@ -134,7 +140,7 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 
 
 public rel [inheritanceKey, inheritanceType] getThisChangingTypeOccurrences() {
-	loc aProject = |project://jrat_0.6|;
+	loc aProject = |project://InheritanceSamples|;
 	println("Creating M3...");
 	M3 projectM3 = createM3FromEclipseProject(aProject);
 	println("Created M3.");

@@ -59,11 +59,17 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 		case \methodCall(_,_,_,myArgs:_) : {
 			args = myArgs;
 		}
-		case newObject2:\newObject(_, myArgs:_) : {
-			args = myArgs;		
+		case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
+			args = expArgs;
 		}
-		case newObject3:\newObject(_, myArgs:_, _) : {
-			args = myArgs;		
+		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
+			args = expArgs;
+		}
+		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
+			args = expArgs;		
+		}
+		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
+			args = expArgs;
 		}
 	}
 	for ( int i <- [0..(size(args))]) retList += args[i]@typ;
@@ -179,14 +185,67 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 }
 
 
+private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
+	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	if (array(TypeSymbol component, int dimension) := varargSymbol ) {
+		retSymbol = component;
+	}
+	else {
+		throw ("In getTypesymbolOfVararg, the vararg is not of type array : <varargSymbol>");
+	}
+	return retSymbol;
+}
+
+
+private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol) {
+	bool retBool = false;
+	if ( array(TypeSymbol component, int dimension) := declaredSymbol ) {
+		if (component == passedSymbol) {
+			retBool = true;
+		}
+	}
+	return retBool;
+}
+
+
+
+private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] passedSymbolList, list [TypeSymbol] declaredSymbolList ) {
+	list [TypeSymbol] retList = [];
+	if ( size(passedSymbolList) == size(declaredSymbolList) ) {
+		retList = declaredSymbolList;
+		if ( size(passedSymbolList) > 0 ) {
+			if ( last(passedSymbolList) != last(declaredSymbolList) ) {
+				if (isVararg(last(passedSymbolList), last(declaredSymbolList))) {
+					retList[size(retList)-1] = getTypeSymbolOfVararg(last(declaredSymbolList)); 
+				}
+ 			} 
+		}
+	}
+	else {
+		if (size(passedSymbolList) < size(declaredSymbolList) ) {
+			retList = prefix(declaredSymbolList);
+		}
+		else {
+			if (size(passedSymbolList) > size(declaredSymbolList)) {
+				retList = prefix(declaredSymbolList);
+				int numOfElementsToAdd = size(passedSymbolList) - size(declaredSymbolList);
+				TypeSymbol typeSymbolToAdd = getTypeSymbolOfVararg(declaredSymbolList[size(declaredSymbolList) - 1] );
+				for (int i <- [0..numOfElementsToAdd+1]) { retList +=  typeSymbolToAdd ; }
+			}
+		}
+	}
+	return retList;
+}
+
 
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
 	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
-		list [TypeSymbol] declaredSymbolList 	= getDeclaredParameterTypes(methOrConstExpr@decl, typesMap);
+		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr@decl, typesMap);
+		list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
 		for (int i <- [0..size(passedSymbolList)]) {
-			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], declaredSymbolList[i]);
+			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
 			if (result.isSubtypeRel) {
 				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
 			}
@@ -206,8 +265,9 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set [loc]] 	methodsOfClasses   					= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
+	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
@@ -225,12 +285,18 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case methExpr2:\methodCall(_, _, _, _): {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap);					
 				} 
-				case newObject2:\newObject(_, _) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap);
+				case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap);
 				}
-				case newObject3:\newObject(_, _, _) : {
+				case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap);					
+				}
+				case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap);
-				}				
+				}
+				case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap);
+				}
         	} // visit()
 		}
 	

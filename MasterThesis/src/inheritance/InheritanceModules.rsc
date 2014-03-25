@@ -54,7 +54,7 @@ public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {
 private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[loc]] invertedUnitContainment) {
 	set [loc] retLocSet = aClassOrInt in invertedUnitContainment ? invertedUnitContainment[aClassOrInt] : {};
 	if (size(retLocSet) != 1) {
-		throw ("In getCompilationUnitOfClass(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+		throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
 	}
 	return getOneFrom(retLocSet);
 }
@@ -69,23 +69,34 @@ private loc getFileOfCompilationUnit(loc aUnit, map[loc, set[loc]] declarationsM
 }
 
 
-public list [Declaration] getASTsOfAClass(loc aClass, map [loc, set[loc]] invertedUnitContainment , 
-													   map [loc, set[loc]] declarationsMap) {
+public bool isInnerClass(loc aClass, map [loc, set[loc]] invertedClassAndInterfaceContainment) {
+	bool retBool = aClass in invertedClassAndInterfaceContainment ? true : false;
+	return retBool;
+}
+
+
+
+public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassAndInterfaceContainment,
+														map [loc, set[loc]] invertedUnitContainment , 
+													   	map [loc, set[loc]] declarationsMap) {
 	list [Declaration]  astsOfAClass = [];
-	loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment );
-	loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
-	Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
-	visit (compUnitAST) {
-		case classDefn:\class(_,_,_,bodies) : {
-			if (classDefn@decl == aClass) {
-				astsOfAClass += bodies;
+	// Inner classes are NOT included here, they are already included in the outer classes AST
+	if ( !isInnerClass(aClass, invertedClassAndInterfaceContainment) ) {
+		loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment );
+		loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
+		Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
+		visit (compUnitAST) {
+			case classDefn:\class(_,_,_,bodies) : {
+				if (classDefn@decl == aClass) {
+					astsOfAClass += bodies;
+				}
 			}
+			case classDefn:\class(bodies) : {
+				if (classDefn@decl == aClass) {
+					astsOfAClass += bodies;
+				}
+			}		
 		}
-		case classDefn:\class(bodies) : {
-			if (classDefn@decl == aClass) {
-				astsOfAClass += bodies;
-			}
-		}		
 	}
 	return astsOfAClass;
 }
@@ -271,6 +282,18 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 	return locTypeSymbol;
 }
 
+
+//public bool isVarargInDeclaration(loc aMethodLoc, map [loc, set[TypeSymbol]] typesMap) {
+//	bool retBool = false;
+//	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(aMethodLoc, typesMap);
+//	visit (methodTypeSymbol) {
+//		case \vararg(_,_) : {
+//			retBool = true;
+//		}
+//	}
+//	return retBool;
+//}
+//
 
 public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, map [loc, set[TypeSymbol]] typesMap ) {
 	list [TypeSymbol] retTypeList = [];
