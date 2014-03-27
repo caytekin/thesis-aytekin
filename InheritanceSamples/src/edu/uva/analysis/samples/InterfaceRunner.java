@@ -17,4 +17,9 @@ public abstract class InterfaceRunner {
 		edu.uva.analysis.gensamples.Rectangle myRectangle = new edu.uva.analysis.gensamples.Rectangle();
 	}
 
+	void invokeAMethod() {
+		I2 anI2= new ImplI2();
+		anI2.i2();
+	}
+	
 }

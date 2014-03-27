@@ -11,14 +11,31 @@ public inheritanceType CONSTANT = 4;
 public inheritanceType MARKER = 5;
 public inheritanceType SUPER = 6;
 public inheritanceType GENERIC = 7;
+public inheritanceType CATEGORY = 8;
 
-public inheritanceType CLASS_CLASS = 8;
-public inheritanceType CLASS_INTERFACE = 9;
-public inheritanceType INTERFACE_INTERFACE = 10;
+public inheritanceType CLASS_CLASS = 9;
+public inheritanceType CLASS_INTERFACE = 10;
+public inheritanceType INTERFACE_INTERFACE = 11;
 
-public inheritanceType NONFRAMEWORK_CC = 11;
-public inheritanceType NONFRAMEWORK_CI = 12;
-public inheritanceType NONFRAMEWORK_II = 13;
+public inheritanceType NONFRAMEWORK_CC = 12;
+public inheritanceType NONFRAMEWORK_CI = 13;
+public inheritanceType NONFRAMEWORK_II = 14;
+
+
+public metricsType nExplicitCC			= 1001;
+public metricsType nCCused				= 1002;
+public metricsType nCCDC				= 1003;
+public metricsType nCCSubtype 			= 1004;
+public metricsType nCCExreuseNoSubtype 	= 1005;
+public metricsType nCCUsedOnlyInRe		= 1006;
+public metricsType nCCUnexplSuper		= 1007;
+public metricsType nCCUnExplCategory	= 1008;
+public metricsType nCCUnknown			= 1009;
+
+
+
+
+
 
 
 
@@ -42,6 +59,7 @@ public alias inheritanceSubtype = int;
 
 public alias inheritanceKey = tuple [loc child, loc parent];
 public alias inheritanceType = int;
+public alias metricsType = int;
 
 public loc DEFAULT_LOC = |java+project:///|;
 public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);

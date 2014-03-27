@@ -62,19 +62,56 @@ private void printFrameworkCases(rel [inheritanceKey, inheritanceType] inheritan
 
 
 
-private void printResults(rel [inheritanceKey, inheritanceType] inheritanceResults, map[inheritanceType, num] totals ) {
 
+private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritanceType] inheritanceResults, M3 projectM3) {
+	map [metricsType, num] CCResultsMap = ();
+	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends, isClass(_child), isClass(_parent)};
+	rel [inheritanceKey, inheritanceType] sysInheritanceRels = {<_child, _parent> | <_child, _parent> <- inheritanceResults, _child in extendsRel, _parent in extendsRel};
+
+
+	CCResultsMap += (nExplicitCC: size(sysInheritanceRels));			
+	CCresultsMap += (nCCUsed: size({<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE} }));
+	CCResultsMap += (nCCDC : size({<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType == DOWNCALL}));
+
+	rel [inheritanceKey] subtypeRels = {<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType == SUBTYPE};
+	rel [inheritanceKey] exreuseNoSubtypeRels = {<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType == EXTERNAL_REUSE} - subtypeRels;
+	rel [inheritanceKey] usedOnlyInReRels = {<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType == INTERNAL_REUSE} - exreuseNoSubtypeRels ; 
+			
+	CCResultsMap += (nCCSubtype : size(subtypeRels));	
+	CCResultsMap += (nCCExreuseNoSubtype : size(exreuseNoSubtypeRels) );	
+	CCResultsMap += (nCCUsedOnlyInRe : size(usedOnlyInReRels));
+			
+	rel [inheritanceKey] allButSuper = {<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC} };
+	CCResultsMap += (nCCUnexplSuper: size({<_child, _parent> | <<_child, _parent>, iType> <-sysInheritanceRels, iType == DOWNCALL} - allButSuper));
+	// TODO: Tomorrow I am going to go on from here... --------------------------->>>>>>>>>>>>>>>>>>>>>>
+
+//nCCUnexplSuper		
+//nCCUnExplCategory	
+//nCCUnknown			
+	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+		int totalOccurrences = size({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType, <child, parent> in extendsRel});
+		CCResultsMap += (anInheritanceType :  totalOccurrences);
+	}
+	return CCResultsMap;
+}
+
+
+private void printCCResults(map[inheritanceType, num] CCTotals, M3 projectM3) {
+	println("RESULTS FOR CC EDGES:");
+	println("------------------------------------------------");	
+	set [loc] allSystemClasses = {_class | <_class, _src> <- projectM3@declarations, isClass(_class)};
+	println("NUMBER OF EXPLICIT USER DEFINED CC CASES: <size({<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemClasses})>");
+	num usedCCedges = CCTotals[INTERNAL_REUSE] + CCTotals[EXTERNAL_REUSE] + CCTotals[SUBTYPE]; 
+	println("NUMBER OF USED CC EDGES: <usedCCedges>");
+	printResults(CCTotals);
+}
+
+
+private void printResults(map[inheritanceType, num] totals ) {
 	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
 		println("NUMBER OF <getNameOfInheritanceType(anInheritanceType)> CASES: <totals[anInheritanceType]>");
 	}
-	
-	printFrameworkCases(inheritanceResults);
-
-	println("LIST OF DIFFERENT INHERITANCE RELATIONS:");
-	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
-		print("<getNameOfInheritanceType(anInheritanceType)> CASES:");
-		iprintln(sort({inhItem | <inhItem, inhType> <- inheritanceResults, inhType == anInheritanceType}));
-	}
+	println(" ");
 }
 
 
@@ -95,7 +132,7 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases;	
 	println("Creating M3....");
-	loc projectLoc = |project://InheritanceSamples|;
+	loc projectLoc = |project://jrat_0.6|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -123,10 +160,14 @@ public void runIt() {
 	allInheritanceCases += getOtherInheritanceCases(projectM3);	
 	println("Other cases are done at <printTime(now())>...");	
 
-	map [inheritanceType, num] totals = countResults(allInheritanceCases);
-	printResults(allInheritanceCases, totals);
+	map [inheritanceType, num] CCTotals = calculateCCResults(allInheritanceCases, projectM3);
+	printCCResults(CCTotals, projectM3);
 	
-	printProportions(allInheritanceCases, totals);
-	printLog(subtypeLogFile, "SUBTYPE LOG");
+	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends, isClass(_child), isClass(_parent)};
+	println("CONSTANTS: ");
+	iprintln( {< <child, parent>, iType> | <<child, parent>, iType> <- allInheritanceCases, iType == CONSTANT, <child, parent> in extendsRel }); 
+	
+	//printProportions(allInheritanceCases, totals);
+	//printLog(subtypeLogFile, "SUBTYPE LOG");
 }
 
