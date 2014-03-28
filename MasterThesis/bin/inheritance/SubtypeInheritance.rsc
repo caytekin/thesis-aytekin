@@ -267,6 +267,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	for (oneClass <- allClassesInProject ) {
+		// TODO : Do not forget to think about encahnced for loop, there can also be a subtype there.
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
@@ -301,8 +302,6 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 		}
 	
 		set [loc] methodsInClass = oneClass in methodsOfClasses ? methodsOfClasses[oneClass] : {}; 
-		// TODO:take also initializers in to account  
-		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
 		for (oneMethod <- methodsInClass) {
 			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
 			visit(methodAST) {

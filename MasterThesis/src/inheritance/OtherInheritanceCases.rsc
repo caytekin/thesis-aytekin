@@ -153,6 +153,61 @@ public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
 }
 
 
+
+private set [loc] getAllDirectDescendants(loc parent, map [loc, set [loc]] invertedDescMap) {
+	set [loc] allDirectDescendants = parent in invertedDescMap ? invertedDescMap[parent] : {};
+	return allDirectDescendants;
+}
+
+
+private bool isCategory(inheritanceKey anExtendsCandidate,  set [inheritanceKey] subtypeSet, map [loc, set[loc]] invertedDescMap) {
+	bool isExtendsCategory = false;
+	list [loc] allSiblings = toList(getAllDirectDescendants( anExtendsCandidate.parent, invertedDescMap)); 
+	int i = 0;
+	while ( (!isExtendsCategory)  && (i < (size(allSiblings)) ) ) {
+		aSibling = allSiblings[i];
+		inheritanceKey siblingKey = <aSibling, anExtendsCandidate.parent>;
+		if (siblingKey in subtypeSet ) { isExtendsCategory = true; }
+		i += 1;
+	}
+	return isExtendsCategory;
+}
+
+
+
+public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKey, inheritanceType] allInheritanceCases, M3 projectM3) {
+	rel [inheritanceKey, inheritanceType] retRel = {};
+	map [loc, set[loc]] invertedExtendsMap =  getInvertedExtendsMap(projectM3);
+	map [loc, set[loc]] invertedImplementsMap =  getInvertedImplementsMap(projectM3);
+	
+	set [loc] allSystemClasses = getAllClassesInProject(projectM3);
+	set [loc] allSystemInterfaces = getAllInterfacesInProject(projectM3);
+	set [inheritanceKey] allExplicitSystemCC = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemClasses};
+	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
+	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemInterfaces};
+
+	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, SUPER, GENERIC} };	
+	set [inheritanceKey] subtypeSet = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE };
+	
+	set [inheritanceKey] CCCategoryCandidates = allExplicitSystemCC - allUsedInheritanceRels;
+	set [inheritanceKey] CICategoryCandidates = allExplicitSystemCI - allUsedInheritanceRels;
+	set [inheritanceKey] IICategoryCandidates = allExplicitSystemII - allUsedInheritanceRels;
+	
+	for (anExtendsCandidate <- (CCCategoryCandidates + IICategoryCandidates) ) {
+		if (isCategory(anExtendsCandidate,  subtypeSet, invertedExtendsMap ) ) {
+			retRel += {<anExtendsCandidate, CATEGORY>};
+		} 
+	}
+	for (anImplementsCandidate <- CICategoryCandidates) {
+		if (isCategory(anImplementsCandidate,  subtypeSet, invertedImplementsMap) ) {
+			retRel += {<anImplementsCandidate, CATEGORY>};
+		} 
+	}
+	
+	return retRel;
+}
+
+
 public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM3) {
 	rel [inheritanceKey,inheritanceType] retRel = {};
 	map [loc, set[loc]] interfaceContainment = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface)});	

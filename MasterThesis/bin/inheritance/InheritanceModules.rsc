@@ -29,6 +29,8 @@ public str getNameOfInheritanceType(inheritanceType iType) {
  		case MARKER				: {return "MARKER";}
  		case SUPER				: {return "SUPER";}
  		case GENERIC		    : {return "GENERIC";}
+ 		case GENERIC		    : {return "CATEGORY";}
+ 
  
  		case CLASS_CLASS		: {return "CLASS CLASS";}
  		case CLASS_INTERFACE	: {return "CLASS INTERFACE";}
@@ -39,6 +41,47 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 		case NONFRAMEWORK_II	: {return "NON FRAMEWORK INTERFACE INTERFACE";}
  	}
 }
+
+
+public str getNameOfInheritanceMetric(metricsType iMetric) {
+		switch(iMetric) {
+		
+		case nExplicitCC			: {return "nExplicitCC			";}
+		case nCCUsed				: {return "nCCUsed				";}
+		case nCCDC					: {return "nCCDC				";}
+		case nCCSubtype 		 	: {return "nCCSubtype			";}
+		case nCCExreuseNoSubtype 	: {return "nCCExreuseNoSubtype	";}
+		case nCCUsedOnlyInRe	 	: {return "nCCUsedOnlyInRe		";}
+		case nCCUnexplSuper		 	: {return "nCCUnexplSuper		";}
+		case nCCUnExplCategory		: {return "nCCUnExplCategory	";}
+		case nCCUnexplSuper			: {return "nCCUnexplSuper		";}
+		case nCCUnknown				: {return "nCCUnknown			";}
+ 	}
+}
+
+
+public map [loc, set[loc]] getInvertedDescMap(rel [loc, loc] m3Annotation) {
+	map [loc, set [loc]] retMap = ();
+	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- m3Annotation};
+	if (!isEmpty(extendsRel)) {
+		retMap = toMap(invert(extendsRel));
+	}
+	return retMap;
+}
+
+
+
+public map [loc, set[loc]] getInvertedExtendsMap(M3 projectM3) {
+	return getInvertedDescMap(projectM3@extends);
+}
+
+
+public map [loc, set[loc]] getInvertedImplementsMap(M3 projectM3) {
+	return getInvertedDescMap(projectM3@implements);
+}
+
+
+
 
 
 public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {

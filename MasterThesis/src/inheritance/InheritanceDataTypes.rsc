@@ -23,7 +23,7 @@ public inheritanceType NONFRAMEWORK_II = 14;
 
 
 public metricsType nExplicitCC			= 1001;
-public metricsType nCCused				= 1002;
+public metricsType nCCUsed				= 1002;
 public metricsType nCCDC				= 1003;
 public metricsType nCCSubtype 			= 1004;
 public metricsType nCCExreuseNoSubtype 	= 1005;
