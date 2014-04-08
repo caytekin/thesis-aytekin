@@ -69,8 +69,8 @@ public class GenericRunner {
 	}
 	
 	void tryGenSample1() {
-		GenSample1<Object> objectSample1 = new GenSample1<Object> ();
-		GenSample1<Integer> integerSample1 = new GenSample1<Integer> ();
+		GenSample1<Object> objectSample1 = new GenSample1<Object> (new Object());
+		GenSample1<Integer> integerSample1 = new GenSample1<Integer> (new Integer(5));
 		Integer myInt = integerSample1.getT();
 		Number myNum = integerSample1.getT();	
 

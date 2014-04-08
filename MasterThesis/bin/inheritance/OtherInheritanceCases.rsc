@@ -12,6 +12,7 @@ import ValueIO;
 import lang::java::m3::Core;
 import lang::java::m3::AST;
 import lang::java::jdt::m3::Core;
+import lang::java::jdt::m3::AST;
 import lang::java::m3::TypeSymbol;
 
 import inheritance::InheritanceDataTypes;
@@ -153,6 +154,61 @@ public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
 }
 
 
+private rel [inheritanceKey iKey, set [loc] otherParents] getOneGenericUsage(Expression castStmt, 	map [loc, set [loc]] invertedExtendsAndImplementsMap,
+																										map [loc, set [loc]] extendsAndImplementsMap ) {
+	rel [inheritanceKey iKey,set [loc] otherParents] oneUsage = {};
+	visit (castStmt) {
+		case \cast(castType, castExpr) : {  
+			TypeSymbol exprTypeSymbol = castExpr@typ;
+			// TODO Think about arrays, generics, etc. and test with examples!
+			TypeSymbol castTypeSymbol = getTypeSymbolFromRascalType(castType);
+			if (exprTypeSymbol := object()) {
+				loc genericParentCandidate = getClassOrInterfaceFromTypeSymbol(castTypeSymbol);
+				if (genericParentCandidate != DEFAULT_LOC) {
+					set [loc] directDescendants = getAllDirectDescendants(genericParentCandidate , invertedExtendsAndImplementsMap );
+					for (aDesc <- directDescendants) {
+						set [loc] allParentsOfADesc = getAllDirectAscendants(aDesc, extendsAndImplementsMap);
+						set [loc] otherParents = allParentsOfADesc - {genericParentCandidate};
+						if (!isEmpty(otherParents)) {
+							oneUsage += <<aDesc, genericParentCandidate>, otherParents>;
+						}
+					}
+				}
+			}
+		}
+	}
+	return oneUsage;
+}
+
+
+private rel [inheritanceKey, inheritanceType] findGenericUsages(M3 projectM3) {
+	rel [inheritanceKey, inheritanceType] retRel = {};
+	lrel [inheritanceKey _iKey, set [loc] _otherParents, loc _castLoc] genericLog = [];
+	map [loc, set [loc]] invertedExtendsAndImplementsMap 	= getInvertedExtendsAndImplementsMap(projectM3);	
+	map [loc, set [loc]] extendsAndImplementsMap 			= getExtendsAndImplementsMap(projectM3);		
+	set [Declaration] projectASTs = createAstsFromEclipseProject(projectM3.id, true);
+	for ( anAST <- projectASTs) {
+		visit (anAST) {
+			case castStmt:\cast(castType, castExpr) : {  
+				rel [inheritanceKey, set[loc]] oneGenericUsage = getOneGenericUsage(castStmt, invertedExtendsAndImplementsMap, extendsAndImplementsMap );
+				if ( !isEmpty(oneGenericUsage) ) { 
+					tuple [inheritanceKey iKey, set [loc] otherParents] genericTuple = getOneFrom(oneGenericUsage);
+					retRel += <genericTuple.iKey, GENERIC>;
+					genericLog += <genericTuple.iKey, genericTuple.otherParents, castStmt@src>;	
+				}
+			}
+		}	
+	}
+	iprintToFile(genericLogFile, genericLog);
+	return retRel;
+}
+
+
+private set [loc] getAllDirectAscendants(loc child, map [loc, set [loc]] extendsAndImplementsMap) {
+	set [loc] allDirectAscendants = child in extendsAndImplementsMap ? extendsAndImplementsMap[child] : {};
+	return allDirectAscendants;
+} 
+
 
 private set [loc] getAllDirectDescendants(loc parent, map [loc, set [loc]] invertedDescMap) {
 	set [loc] allDirectDescendants = parent in invertedDescMap ? invertedDescMap[parent] : {};
@@ -186,7 +242,8 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
 	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemInterfaces};
 
-	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, SUPER, GENERIC} };	
+	// TODO : Think about DOWNCALL_CANDIDATE and EXTERNAL_REUSE_CANDIDATE cases !!!
+	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, SUPER, GENERIC} };	
 	set [inheritanceKey] subtypeSet = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE };
 	
 	set [inheritanceKey] CCCategoryCandidates = allExplicitSystemCC - allUsedInheritanceRels;
@@ -216,6 +273,7 @@ public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM
 	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContainment, allFieldModifiers, projectM3), projectM3);
 	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainment, projectM3), projectM3);	
 	retRel += findSuperRelations(projectM3);
+	retRel += findGenericUsages(projectM3);
 	return retRel;
 }
 

@@ -94,8 +94,6 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
-		// TODO:take also initializers in to account  
-		// || getMethodASTEclipse does not work for initializers. declared.scheme == "java+initializer" 
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case mCall1:\methodCall(_, receiver:_, _, _): {
@@ -119,8 +117,10 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	}	
 	for ( int i <- [0..size(downcallLog)]) { 
 		tuple [ inheritanceKey iKey, downcallDetail dDetail] aCase = downcallLog[i];
-		resultRel += <aCase.iKey, DOWNCALL>;
+		resultRel += <aCase.iKey, DOWNCALL_ACTUAL>;
 	}
+	resultRel += {<<_child, _parent>, DOWNCALL_CANDIDATE> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates };
+	downcallLog += [<<_child, _parent>, <DEFAULT_LOC, _issMethod, _downcalledMethod>> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates ];
 	iprintToFile(downcallLogFile,downcallLog);
 	return resultRel;
 }

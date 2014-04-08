@@ -21,24 +21,26 @@ import inheritance::InheritanceDataTypes;
 
 public str getNameOfInheritanceType(inheritanceType iType) {
 		switch(iType) {
-		case INTERNAL_REUSE  	: {return "INTERNAL REUSE";}
-		case EXTERNAL_REUSE  	: {return "EXTERNAL REUSE";}
- 		case SUBTYPE  			: {return "SUBTYPE";}
- 		case DOWNCALL  			: {return "DOWNCALL";}
- 		case CONSTANT			: {return "CONSTANT";}
- 		case MARKER				: {return "MARKER";}
- 		case SUPER				: {return "SUPER";}
- 		case GENERIC		    : {return "GENERIC";}
- 		case GENERIC		    : {return "CATEGORY";}
+		case INTERNAL_REUSE  			: {return "INTERNAL REUSE";}
+		case EXTERNAL_REUSE_ACTUAL  	: {return "EXTERNAL REUSE ACTUAL";}
+		case EXTERNAL_REUSE_CANDIDATE 	: {return "EXTERNAL REUSE CANDIDATE";}
+ 		case SUBTYPE  					: {return "SUBTYPE";}
+ 		case DOWNCALL_ACTUAL  			: {return "DOWNCALL ACTUAL";}
+ 		case DOWNCALL_CANDIDATE			: {return "DOWNCALL CANDIDATE";}		
+ 		case CONSTANT					: {return "CONSTANT";}
+ 		case MARKER						: {return "MARKER";}
+ 		case SUPER						: {return "SUPER";}
+ 		case GENERIC		    		: {return "GENERIC";}
+ 		case CATEGORY		    		:{return "CATEGORY";}
  
- 
- 		case CLASS_CLASS		: {return "CLASS CLASS";}
- 		case CLASS_INTERFACE	: {return "CLASS INTERFACE";}
-		case INTERFACE_INTERFACE	: {return "INTERFACE INTERFACE";}
-
-		case NONFRAMEWORK_CC	: {return "NON FRAMEWORK CLASS CLASS";}
-		case NONFRAMEWORK_CI	: {return "NON FRAMEWORK CLASS INTERFACE";}
-		case NONFRAMEWORK_II	: {return "NON FRAMEWORK INTERFACE INTERFACE";}
+ //
+ //		case CLASS_CLASS		: {return "CLASS CLASS";}
+ //		case CLASS_INTERFACE	: {return "CLASS INTERFACE";}
+	//	case INTERFACE_INTERFACE	: {return "INTERFACE INTERFACE";}
+//
+	//	case NONFRAMEWORK_CC	: {return "NON FRAMEWORK CLASS CLASS";}
+	//	case NONFRAMEWORK_CI	: {return "NON FRAMEWORK CLASS INTERFACE";}
+	//	case NONFRAMEWORK_II	: {return "NON FRAMEWORK INTERFACE INTERFACE";}
  	}
 }
 
@@ -60,11 +62,27 @@ public str getNameOfInheritanceMetric(metricsType iMetric) {
 }
 
 
+map [loc, set [loc]] getExtendsAndImplementsMap(projectM3) {
+	rel [loc, loc] extendsAndImplementsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements} ;
+	return toMap(extendsAndImplementsRel );
+}	
+
+
 public map [loc, set[loc]] getInvertedDescMap(rel [loc, loc] m3Annotation) {
 	map [loc, set [loc]] retMap = ();
 	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- m3Annotation};
 	if (!isEmpty(extendsRel)) {
 		retMap = toMap(invert(extendsRel));
+	}
+	return retMap;
+}
+
+
+public map [loc, set[loc]] getInvertedExtendsAndImplementsMap(M3 projectM3) {
+	map [loc, set [loc]] retMap = ();
+	rel [loc, loc] extendsAndImplementsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements} ;
+	if (!isEmpty(extendsAndImplementsRel)) {
+		retMap = toMap(invert(extendsAndImplementsRel));
 	}
 	return retMap;
 }
@@ -144,6 +162,10 @@ public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] inver
 	return astsOfAClass;
 }
 
+
+public map [loc, set [loc]] getInvertedOverrides(M3 projectM3) {
+	return toMap(invert({<_childMethod, _parentMethod> | <_childMethod, _parentMethod> <- projectM3@methodOverrides}));
+}
 
 
 public map [loc, set[loc]] getInvertedClassAndInterfaceContainment(M3 projectM3) {
@@ -266,6 +288,37 @@ public bool inheritanceRelationExists(loc class1, loc class2, rel [loc, loc] all
 }
 
 
+public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
+	TypeSymbol returnSymbol = DEFAULT_TYPE_SYMBOL; 
+	visit (aType) {
+		case sType: \simpleType(typeExpr) : {
+			returnSymbol =  typeExpr@typ;
+		}
+ 	}
+ 	return returnSymbol;
+}
+
+
+
+public TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
+	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
+ 	visit (rascalType) {
+ 		 // I'm only interested in the simpleType and arrayType at the moment
+ 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() 
+ 		case pType :\parameterizedType(simpleTypeOfParamType) : {
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfParamType);
+ 		}
+ 		case sType: \simpleType(typeExpr) : {
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(sType);
+ 		}
+ 		case aType :\arrayType(simpleTypeOfArray) : {
+ 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
+ 		}
+ 
+ 	}
+ 	return retTypeSymbol;	
+}
+
 
 public loc getClassFromTypeSymbol(TypeSymbol typeSymbol) {
 	loc classLoc = DEFAULT_LOC;
@@ -338,17 +391,72 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 //}
 //
 
-public list [TypeSymbol] getDeclaredParameterTypes (loc methodLoc, map [loc, set[TypeSymbol]] typesMap ) {
-	list [TypeSymbol] retTypeList = [];
+
+TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr) {
+	println("Generic Type symbol is: <genericTypeSymbol> for method <methodOrConstExpr@decl>");
+	switch (methodOrConstExpr) {
+		case mCall:\methodCall(_,receiver:_,_,_) : {
+			println("Receiver of this method is: <receiver>");
+			println("Type of receiver is <receiver@typ>");
+			// TODO: I am here......!!!!!!
+			// get the type parameters from the receiver@typ
+			// and map them to the type parameter of the java+class or java+interface in @types annotation for the class or interface
+		}
+		case mCall:methodCall(_,_,_) : {
+			throw "Method call without receiver is not allowed if there is a type variable!";
+		}
+	//	case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
+	//		println("newObject 11111111111 type: <\type>, expArgs : <expArgs>");
+	//	}
+	//	case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
+	//		println("newObject 22222222222 type: <\type>, expArgs : <expArgs>");
+	//	}
+	//	case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
+	//		println("newObject 33333333333 type: <\type>, expArgs : <expArgs>");
+	//	}
+	//	case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
+	//		println("newObject 44444444444 type: <\type>, expArgs : <expArgs>");
+	//	}
+	}
+	println();
+	return genericTypeSymbol;
+}
+
+
+
+
+public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList) {
+	list [TypeSymbol] retList = [];
+	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	for (_aTypeSymbol <- typeList) {
+		currentTypeSymbol = _aTypeSymbol;
+		visit (_aTypeSymbol) {
+			case aTypePar:\typeParameter(loc decl, Bound upperbound) : {
+				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr);	
+			} 
+		}
+		retList += currentTypeSymbol;
+	}
+	return retList;
+}
+
+
+public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr, map [loc, set[TypeSymbol]] typesMap ) {
+	list [TypeSymbol] retTypeList 	= [];
+	list [TypeSymbol] methodParameterTypes = [];
+	loc methodLoc 					= methodOrConstExpr@decl;
 	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, typesMap);
 	visit (methodTypeSymbol) {
 		case \method(_, _, _, typeParameters:_) : {
-			retTypeList = typeParameters;
+			methodParameterTypes = typeParameters;
 		}
-		case \constructor(_, typeParameters:_) : {
-			retTypeList = typeParameters;
+		case cons:\constructor(_, typeParameters:_) : {
+			println("Type parameters for constructor: <cons>");
+			methodParameterTypes = typeParameters;
 		}
 	}
+	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes);
+	println();
 	return retTypeList;
 }
 

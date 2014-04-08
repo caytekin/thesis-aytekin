@@ -18,35 +18,8 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
 
-public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
-	TypeSymbol returnSymbol = DEFAULT_TYPE_SYMBOL; 
-	visit (aType) {
-		case sType: \simpleType(typeExpr) : {
-			returnSymbol =  typeExpr@typ;
-		}
- 	}
- 	return returnSymbol;
-}
 
 
-TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
-	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
- 	visit (rascalType) {
- 		 // I'm only interested in the simpleType and arrayType at the moment
- 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() 
- 		case pType :\parameterizedType(simpleTypeOfParamType) : {
- 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfParamType);
- 		}
- 		case sType: \simpleType(typeExpr) : {
- 			retTypeSymbol = getTypeSymbolFromSimpleType(sType);
- 		}
- 		case aType :\arrayType(simpleTypeOfArray) : {
- 			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfArray);
- 		}
- 
- 	}
- 	return retTypeSymbol;	
-}
 
 
 public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
@@ -238,11 +211,14 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 }
 
 
+
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
+	// TODO: Because of a bug in Rascal, I can only test this with method calls at the moment
+	// When that's fixed I should also test newObject()
 	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
-		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr@decl, typesMap);
+		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap);
 		list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
 		for (int i <- [0..size(passedSymbolList)]) {
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
@@ -251,6 +227,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 			}
 		}
 	}
+	println();
 	return retList;
 }
 

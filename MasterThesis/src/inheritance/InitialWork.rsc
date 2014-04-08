@@ -162,22 +162,63 @@ private void getInfoForClass(M3 projectM3, loc classLoc) {
 }
 
 
+void visitTypeSymbol(TypeSymbol aTypeSymbol) {
+	visit(aTypeSymbol) {
+		case classType:\class(loc decl, list[TypeSymbol] typeParameters) : {  
+			println("A class: <decl>");
+			if (size(typeParameters) > 1) {
+				println("Many type parameters for class : <decl>. Type parameters : <typeParameters>");
+			}		
+		}
+		case intType:\interface(loc decl, list[TypeSymbol] typeParameters) : {  
+			println("An interface: <decl>");
+			if (size(typeParameters) > 1) {
+				println("Many type parameters for class : <decl>. Type parameters : <typeParameters>");
+			}		
+		}
+	}
+}
+
+
+void searchForComplexTypes(M3 projectM3) {
+	 set [Declaration] projectASTs = createAstsFromEclipseProject(projectM3.id, true);
+	 for (anAST <- projectASTs) {
+	 	visit (anAST) {
+	 		case aStmt:\assignment(Expression lhs, str operator, Expression rhs) : {
+	 			visitTypeSymbol(lhs@typ);
+	 			visitTypeSymbol(rhs@typ);
+			}
+	 	}
+	 }
+}
 
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
+	M3 projectM3 = getM3Model(|project://VerySmallProject|);
+	println("Containment annotation");
+	//searchForComplexTypes(projectM3);
+	iprintln(sort(projectM3@containment));
+	//map [loc, set [Modifier]] modifierMap = toMap(projectM3@modifiers);
+	//set [Modifier] const1Mods = modifierMap[|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|];
+	//if (!isEmpty ( {_aModifier | _aModifier <- const1Mods, (_aModifier := \private()) } ) ) {
+	//	println("It is private");
+	//;} 
+	
+	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/UseTwo/runNewObject()|); 
+	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()|); 
+
 	//iprintln(projectM3@containment);
-	iprintln(projectM3@types);
-	loc classLoc = |java+class:///edu/uva/analysis/samples/Var1ArgsRunner|;
+	//iprintln(projectM3@types);
+	//loc classLoc = |java+class:///edu/uva/analysis/samples/Var1ArgsRunner|;
 	//println("Classes or interfaces containing: <classLoc>");
 	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc, isClass(_owner) || isInterface(_owner)});
 	//println("Classes or interfaces containing: <classLoc.parent>");
 	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc.parent, isClass(_owner) || isInterface(_owner)});	
-	map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
-	map [loc, set[loc]] invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
-	//println("Inverted containment entry for <classLoc> is: <invertedClassAndInterfaceContainment[classLoc]>");	
-	map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
+	//map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
+	//map [loc, set[loc]] invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	////println("Inverted containment entry for <classLoc> is: <invertedClassAndInterfaceContainment[classLoc]>");	
+	//map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
 	//println("The parent of the class <classLoc> is: <classLoc.parent>. The grand parent of the class is <classLoc.parent.parent>");
 	 //iprintln(getASTsOfAClass(classLoc, invertedClassAndInterfaceContainment, invertedUnitContainment , declarationsMap));
 	//listNewObjectCalls(m3Model);
@@ -186,7 +227,7 @@ public void runInitialWork() {
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
 	//println("Method containment: ");
 	//iprintln(sort(methodContainment));
-	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
+	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
 	//getInfoForClass(m3Model, |java+class:///edu/uva/analysis/samples/ThisChangingTypeParent|);
 	//println("Staring with constants at: <now()>");
 	//println("Inheritance relations with constant attribute are: ");
@@ -202,6 +243,8 @@ public void runInitialWork() {
 	//iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/Parent|, m3Model));		
 	//findDownCalls(m3Model);
 }
+
+
 
 private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
 	println("Called method is: <methodCallExpr@decl>");
@@ -327,13 +370,22 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
 	visit(methodAST) {
+		case enhFor:\foreach(Declaration parameter, Expression collection, Statement body) : {
+			//text(enhFor);
+			//println("Parameter type symbol is: <parameter@typ>");
+			//println("Collection type symbol is: <collection@typ>");
+		;}
 		case newObject1:\newObject(Type \type, list[Expression] args) : {
+			text(newObject1);
 		;}
 		case newObject2:\newObject(Type \type, list[Expression] args, Declaration class) : {
+			text(newObject2);
 		;}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] args) : {
+			text(newObject3);
 		;}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] args, Declaration class) : {
+			text(newObject4);
 		;}
 		
 		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {

@@ -24,29 +24,10 @@ import inheritance::OtherInheritanceCases;
 
 
 
-// TODO: introduce log mechanism
-
-
-
-
-
-private rel [inheritanceKey, inheritanceType] getCC_CI_II_NonFR_Relations (rel [loc child, loc parent] inheritRelation, M3 projectM3) {
-	rel [inheritanceKey, inheritanceType] CC_CI_II_NonFR_Relations = {};
-	set [loc] allClassesAndInterfacesInProject = getAllClassesAndInterfacesInProject(projectM3);
-	set [inheritanceKey] allInheritanceRels = getInheritanceRelations(projectM3);
-	CC_CI_II_NonFR_Relations += {<<child, parent>, CLASS_CLASS> | <child, parent> <- inheritRelation, isClass(child), isClass(parent)};
-	CC_CI_II_NonFR_Relations += {<<child, parent>, CLASS_INTERFACE> | <child, parent> <- inheritRelation, isClass(child), isInterface(parent)};
-	CC_CI_II_NonFR_Relations += {<<child, parent>, INTERFACE_INTERFACE> | <child, parent> <- inheritRelation, isInterface(child), isInterface(parent)};
-	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_CC> | <child, parent> <- inheritRelation, isClass(child), isClass(parent), parent in allClassesAndInterfacesInProject};
-	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_CI> | <child, parent> <- inheritRelation, isClass(child), isInterface(parent), parent in allClassesAndInterfacesInProject};
-	CC_CI_II_NonFR_Relations += {<<child, parent>, NONFRAMEWORK_II> | <child, parent> <- inheritRelation, isInterface(child), isInterface(parent), parent in allClassesAndInterfacesInProject};
-	return CC_CI_II_NonFR_Relations;
-}
-
 
 private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritanceType] inheritanceResults) {
 	map [inheritanceType, num] resultMap = ();
-	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+	for ( anInheritanceType <- [INTERNAL_REUSE..(CATEGORY+1)]) {
 		int totalOccurrences = size({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType });
 		resultMap += (anInheritanceType :  totalOccurrences);
 	}
@@ -54,51 +35,73 @@ private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritance
 }
 
 
-private void printFrameworkCases(rel [inheritanceKey, inheritanceType] inheritanceResults) {
-	int totalCC_CI_II_edges = size({<iKey, iType> | <iKey, iType> <- inheritanceResults, iType in [CLASS_CLASS, CLASS_INTERFACE, INTERFACE_INTERFACE]});
-	int totalNonFramework_CC_CI_II_edges = size({<iKey, iType> | <iKey, iType> <- inheritanceResults, iType in [NONFRAMEWORK_CC, NONFRAMEWORK_CI, NONFRAMEWORK_II]});
-	println("NUMBER OF FRAMEWORK CASES: <totalCC_CI_II_edges - totalNonFramework_CC_CI_II_edges> ");
+private set [loc] filterExceptions(set [loc] allClasses, rel [loc, loc] allInheritanceRelations) {
+	set [loc] retSet = {}; 
+	set [loc] allExceptionClasses = {_child | <_child, _parent> <- allInheritanceRelations, _parent == THROWABLE_CLASS };
+	retSet  = allClasses - allExceptionClasses;
+	return retSet;
 }
 
 
+private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] allInheritanceRelations, M3 projectM3) {
+	// TODO : For all statistics, think about DOWNCALL_CANDIDATE and EXTERNAL_REUSE_CANDIDATE cases !!!
+	// if you are going to count them, then count them otherwise get rid of them !!!
+	// VERY IMPORTANT TODO !!!!
+	map [metricsType, num] 		CCResultsMap 		= ();
+	set [loc] 					notFilteredSysClasses = getAllClassesInProject(projectM3);
+	set [loc] 					allSystemClasses 	= filterExceptions(notFilteredSysClasses, allInheritanceRelations);
+	rel [loc, loc] 				extendsRel 			= {<_child, _parent> | <_child, _parent> <- projectM3@extends, isClass(_child), isClass(_parent)};
+	rel [inheritanceKey, inheritanceType] explicitFoundInhRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, <_child, _parent> in extendsRel, _child in allSystemClasses, _parent in allSystemClasses };
 
-
-private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritanceType] inheritanceResults, M3 projectM3) {
-	map [metricsType, num] CCResultsMap = ();
-	set [loc] allSystemClasses = getAllClassesInProject(projectM3);
-	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends, isClass(_child), isClass(_parent)};
-	rel [inheritanceKey, inheritanceType] explicitInheritanceRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, <_child, _parent> in extendsRel};
-
-
-	CCResultsMap += (nExplicitCC: size({<_child, _parent> |<_child, _parent> <- extendsRel, _child in allSystemClasses, _parent in allSystemClasses}));			
+	set [inheritanceKey] explicitDefinedInhRels 	= {<_child, _parent> |<_child, _parent> <- extendsRel, _child in allSystemClasses, _parent in allSystemClasses};
+	CCResultsMap += (nExplicitCC: size(explicitDefinedInhRels));			
 	
-	CCResultsMap += (nCCUsed: size({<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE} }));
-	CCResultsMap += (nCCDC : size({<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType == DOWNCALL}));
+	CCResultsMap += (nCCUsed: size({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE} }));
+	CCResultsMap += (nCCDC : size({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == DOWNCALL_ACTUAL}));
 
-	set [inheritanceKey] subtypeRels = {<_child, _parent> | <<_child, _parent> , _iType> <-explicitInheritanceRels, _iType == SUBTYPE};
-	set [inheritanceKey] exreuseNoSubtypeRels = {<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType == EXTERNAL_REUSE} - subtypeRels;
-	set [inheritanceKey] usedOnlyInReRels = {<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType == INTERNAL_REUSE} - (exreuseNoSubtypeRels + subtypeRels); 
+	set [inheritanceKey] subtypeRels 			= {<_child, _parent> | <<_child, _parent> , _iType> <- explicitFoundInhRels, _iType == SUBTYPE};
+	set [inheritanceKey] exreuseNoSubtypeRels 	= {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == EXTERNAL_REUSE_ACTUAL} - subtypeRels;
+	set [inheritanceKey] usedOnlyInReRels 		= {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == INTERNAL_REUSE} - (exreuseNoSubtypeRels + subtypeRels); 
 			
 	CCResultsMap += (nCCSubtype : size(subtypeRels));	
 	CCResultsMap += (nCCExreuseNoSubtype : size(exreuseNoSubtypeRels) );	
 	CCResultsMap += (nCCUsedOnlyInRe : size(usedOnlyInReRels));
 	
 			
-	set [inheritanceKey] allButSuper = {<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, CATEGORY} };
-	CCResultsMap += (nCCUnexplSuper: size({<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType == SUPER} - allButSuper));
+	set [inheritanceKey] allButSuper = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, GENERIC, CATEGORY} };
+	CCResultsMap += (nCCUnexplSuper: size({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == SUPER} - allButSuper));
 
-	set [inheritanceKey] allButCategory = {<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER}};
+	//println("SUPER RELATIONSHIP"); iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == SUPER} - allButSuper));
+
+	set [inheritanceKey] allButCategory = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, GENERIC, SUPER}};
 	
-	CCResultsMap += (nCCUnExplCategory : size( {<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType == CATEGORY}  - allButCategory));
+	CCResultsMap += (nCCUnExplCategory : size( {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == CATEGORY}  - allButCategory));
 
-	CCResultsMap += (nCCUnknown: size({<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}}));
-	iprintln({<_child, _parent> | <<_child, _parent>, _iType> <-explicitInheritanceRels, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}});
+	set [inheritanceKey] allFoundUsages = {<_child, _parent> | <<_child, _parent> , _iType> <- explicitFoundInhRels};
+	CCResultsMap += (nCCUnknown: size(explicitDefinedInhRels - allFoundUsages));
+
+
+	set [inheritanceKey] allButConstant = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, SUPER, MARKER, GENERIC, CATEGORY} };
+	println("NUMBER OF CONSTANT ONLY CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == CONSTANT} - allButConstant )>");
+	iprintln({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == CONSTANT} - allButConstant);
+
+	set [inheritanceKey] allButMarker = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, SUPER, CONSTANT, GENERIC, CATEGORY} };
+	println("NUMBER OF MARKER CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == MARKER} - allButMarker )>");
+
+	set [inheritanceKey] allButGeneric = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, SUPER, MARKER, CONSTANT, CATEGORY} };
+	println("NUMBER OF GENERIC CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == GENERIC} - allButGeneric )>");
+
+
+
+	//println("CC UNKNOWN: ");
+	//iprintln({<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}});
 	return CCResultsMap;
 }
 
 
 private void printCCResults(map [metricsType, num]  CCMetricResults, M3 projectM3) {
 	println("RESULTS FOR CC EDGES:");
+	iprintln(CCMetricResults);
 	println("------------------------------------------------");	
 	for ( aCCMetric <- [nExplicitCC..nCCUnknown+1]) {
 		println("<getNameOfInheritanceMetric(aCCMetric)> 	: <CCMetricResults[aCCMetric]>");
@@ -108,7 +111,7 @@ private void printCCResults(map [metricsType, num]  CCMetricResults, M3 projectM
 
 
 private void printResults(map[inheritanceType, num] totals ) {
-	for ( anInheritanceType <- [INTERNAL_REUSE..(NONFRAMEWORK_II+1)]) {
+	for ( anInheritanceType <- [INTERNAL_REUSE..(CATEGORY+1)]) {
 		println("NUMBER OF <getNameOfInheritanceType(anInheritanceType)> CASES: <totals[anInheritanceType]>");
 	}
 	println();
@@ -117,10 +120,10 @@ private void printResults(map[inheritanceType, num] totals ) {
 
 private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceResults, map[inheritanceType, num] totals ){
 	iprintln(<totals>);
-	println("DOWNCALL PROPORTION: <(totals[DOWNCALL])/(totals[NONFRAMEWORK_CC])>");
+	println("DOWNCALL PROPORTION: <(totals[DOWNCALL_ACTUAL])/(totals[NONFRAMEWORK_CC])>");
 	println("SUBTYPE PROPORTION: <totals[SUBTYPE]/( totals[NONFRAMEWORK_CC] + totals[NONFRAMEWORK_CI] + totals[NONFRAMEWORK_II])>");
 	set [inheritanceKey] subtypeCases = {iKey | <iKey, iType> <- inheritanceResults, iType == SUBTYPE};
-	set [inheritanceKey] externalNotSubtype = {iKey | <iKey, iType> <- inheritanceResults, iType == EXTERNAL_REUSE, iKey notin subtypeCases };
+	set [inheritanceKey] externalNotSubtype = {iKey | <iKey, iType> <- inheritanceResults, iType == EXTERNAL_REUSE_ACTUAL, iKey notin subtypeCases };
 	set [inheritanceKey] externalOrSubtype = subtypeCases + externalNotSubtype;
 	set [inheritanceKey] internalOnly = {iKey | <iKey, iType> <- inheritanceResults, iType == INTERNAL_REUSE, iKey notin externalOrSubtype};
 	println("PROPORTION OF EDGES THAT ARE EXTERNAL REUSE BUT NOT SUBTYPE: <size(externalNotSubtype)/totals[NONFRAMEWORK_CC]>");
@@ -130,13 +133,12 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 
 
 public void runIt() {
-	rel [inheritanceKey, int] allInheritanceCases;	
+	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Creating M3....");
-	loc projectLoc = |project://InheritanceSamples|;
+	loc projectLoc = |project://VerySmallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-	allInheritanceCases = getCC_CI_II_NonFR_Relations (allInheritanceRelations, projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
@@ -165,12 +167,14 @@ public void runIt() {
 	allInheritanceCases += getCategoryCases(allInheritanceCases, projectM3);
 	println("Category cases are done at : <printTime(now())> ");
 
+	printResults(countResults(allInheritanceCases));
 
-	map [metricsType, num] CCMetricResults = calculateCCResults(allInheritanceCases, projectM3);
+	map [metricsType, num] CCMetricResults = calculateCCResults(allInheritanceCases, allInheritanceRelations, projectM3);
 	printCCResults(CCMetricResults, projectM3);
 	
 	
 	//printProportions(allInheritanceCases, totals);
-	//printLog(subtypeLogFile, "SUBTYPE LOG");
+	printLog(subtypeLogFile, "SUBTYPE LOG");
+	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
 }
 
