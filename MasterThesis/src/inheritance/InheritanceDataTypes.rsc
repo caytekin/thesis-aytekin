@@ -38,6 +38,7 @@ public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
 public inheritanceSubtype SUBTYPE_VIA_CAST = 203;
 public inheritanceSubtype SUBTYPE_VIA_RETURN = 204;
 public inheritanceSubtype SUBTYPE_VIA_PARAMETER = 205;
+public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP = 206;
 
 
 public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_METHOD_CALL = 210;

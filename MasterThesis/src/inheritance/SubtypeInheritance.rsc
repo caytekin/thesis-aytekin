@@ -143,6 +143,31 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 }
 
 
+
+private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoop(TypeSymbol paramTypeSymbol, TypeSymbol collTypeSymbol, loc forLoopRef) {
+	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	TypeSymbol compTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	switch (collTypeSymbol) {
+		case anArray:\array(TypeSymbol component, int dimension) : {
+			compTypeSymbol = component;
+		}
+		case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
+			if (size(typeParameters) != 1) throw "More than one type parameter in class collection def: <collTypeSymbol>"; 
+			compTypeSymbol = typeParameters[0];
+		}
+		case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+			if (size(typeParameters) != 1) throw "More than one type parameter in interface collection def: <collTypeSymbol>"; 
+			compTypeSymbol = typeParameters[0];
+		}
+	}
+	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
+		if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef>; }
+	}	
+	return retList;
+}
+
+
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap ) {
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
 	visit (returnStmt) {
@@ -227,7 +252,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 			}
 		}
 	}
-	println();
+	//println();
 	return retList;
 }
 
@@ -257,6 +282,9 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case castStmt:\cast(castType, castExpr) : {  
 					allSubtypeCases += getSubtypeViaCast(castStmt);					
 				} // case \cast
+				case enhForStmt:\foreach(Declaration parameter, Expression collection, Statement body) : {
+					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection@typ, enhForStmt@src);
+				}
 				case  methExpr1:\methodCall(_,_, _) : {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap);
 				}

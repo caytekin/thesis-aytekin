@@ -7,6 +7,15 @@ public class GenSample6 <T extends Shape>{
 //		return anInstance6;
 //	}
 	
+	GenSample6() {
+		
+	}
+	
+	GenSample6(T aT) {
+		
+	}
+	
+	
 	void getTAsParam(T tParam) {
 		
 	}

@@ -31,7 +31,7 @@ public str getNameOfInheritanceType(inheritanceType iType) {
  		case MARKER						: {return "MARKER";}
  		case SUPER						: {return "SUPER";}
  		case GENERIC		    		: {return "GENERIC";}
- 		case CATEGORY		    		:{return "CATEGORY";}
+ 		case CATEGORY		    		: {return "CATEGORY";}
  
  //
  //		case CLASS_CLASS		: {return "CLASS CLASS";}
@@ -97,9 +97,6 @@ public map [loc, set[loc]] getInvertedExtendsMap(M3 projectM3) {
 public map [loc, set[loc]] getInvertedImplementsMap(M3 projectM3) {
 	return getInvertedDescMap(projectM3@implements);
 }
-
-
-
 
 
 public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {
@@ -224,9 +221,6 @@ public loc getDefiningClassOrInterfaceOfALoc(loc aLoc, map [loc, set[loc]] inver
 		return getOneFrom(resultSet);
 	}
 }
-
-
-
 
 
 public loc getDefiningClassOfALoc(loc aLoc, map [loc, set[loc]] invertedContainment) {
@@ -391,16 +385,78 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 //}
 //
 
+loc getTypeVariableFromTypeSymbol(TypeSymbol aTypeSymbol) {
+	loc typeVar = DEFAULT_LOC;
+	visit (aTypeSymbol) {
+		case _typeParameter:\typeParameter(loc decl, _) : {
+			typeVar = decl;
+		}
+	}
+	if (typeVar == DEFAULT_LOC)  { throw "No type variable is found for <aTypeSymbol>"; }
+	return typeVar;		
+}
 
-TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr) {
-	println("Generic Type symbol is: <genericTypeSymbol> for method <methodOrConstExpr@decl>");
+
+list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymbol]] typesMap) {
+	TypeSymbol typeSymbolOfLoc = getTypeSymbolOfLocDeclaration(recClassOrInt, typesMap);
+	list [TypeSymbol] typeSymbolParList = [];
+	list [loc] typeVariablesList = [];
+	visit (typeSymbolOfLoc) {
+		case aClass:\class(loc decl, list[TypeSymbol] typeParameters) : {
+			typeSymbolParList = typeParameters;
+		}
+		case anInterface:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+			typeSymbolParList = typeParameters;
+		}		
+	}
+	for (aTypePar <- typeSymbolParList) {
+		typeVariablesList += getTypeVariableFromTypeSymbol(aTypePar);
+	}
+	//println("Type variables for class : <recClassOrInt>");
+	//iprintln(typeVariablesList );
+	return typeVariablesList ;
+}
+
+
+map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters) {
+	map [loc, TypeSymbol] retMap = ();
+	if (size(typeVariables) != size(typeParameters)) throw "Size of two list differ! Type variables: <typeVariables>, type parameters: <typeParameters> ";
+	for (int i <- [0..size(typeVariables)] ) {
+		retMap += (typeVariables[i] : typeParameters[i]);
+	}
+	return retMap;
+}
+
+
+
+TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr, map [loc, set [TypeSymbol]] typesMap) {
+	loc methodParameterTypeVariable = getTypeVariableFromTypeSymbol(genericTypeSymbol);
+	TypeSymbol resolvedTypeSymbol = genericTypeSymbol;
+	//println("Generic Type symbol is: <genericTypeSymbol> for method <methodOrConstExpr@decl>");
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
-			println("Receiver of this method is: <receiver>");
-			println("Type of receiver is <receiver@typ>");
-			// TODO: I am here......!!!!!!
-			// get the type parameters from the receiver@typ
-			// and map them to the type parameter of the java+class or java+interface in @types annotation for the class or interface
+			//println("Receiver of this method is: <receiver>");
+			//println("Type of receiver is <receiver@typ>");
+			TypeSymbol recTypeSymbol = receiver@typ;
+			list [TypeSymbol] recTypeParameters = [];
+			loc recClassOrInt;
+			visit (recTypeSymbol) {
+				case classDef:\class(loc decl, list[TypeSymbol] typeParameters) : {
+					recTypeParameters = typeParameters;
+					recClassOrInt = decl;
+				}
+				case intDef:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+					recTypeParameters = typeParameters;
+					recClassOrInt = decl;
+				}				
+			}
+			if (isEmpty(recTypeParameters)) {
+				throw "Receiver type parameters is empty for receiver : <receiver>";
+			}
+			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(recClassOrInt, typesMap);
+			//list 	[TypeSymbol] actualTypesOfRecClass		= getActualTypesOfReceivingClass(recTypeSymbol);
+			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
+			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
 		}
 		case mCall:methodCall(_,_,_) : {
 			throw "Method call without receiver is not allowed if there is a type variable!";
@@ -418,21 +474,22 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	//		println("newObject 44444444444 type: <\type>, expArgs : <expArgs>");
 	//	}
 	}
-	println();
-	return genericTypeSymbol;
+	//println("Resolved type symbol is: <resolvedTypeSymbol>" );
+	//println();
+	return resolvedTypeSymbol;
 }
 
 
 
 
-public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList) {
+public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList, map [loc, set[TypeSymbol]] typesMap ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
 		visit (_aTypeSymbol) {
 			case aTypePar:\typeParameter(loc decl, Bound upperbound) : {
-				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr);	
+				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap);	
 			} 
 		}
 		retList += currentTypeSymbol;
@@ -451,12 +508,12 @@ public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr
 			methodParameterTypes = typeParameters;
 		}
 		case cons:\constructor(_, typeParameters:_) : {
-			println("Type parameters for constructor: <cons>");
+			//println("Type parameters for constructor: <cons>");
 			methodParameterTypes = typeParameters;
 		}
 	}
-	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes);
-	println();
+	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap);
+	//println();
 	return retTypeList;
 }
 

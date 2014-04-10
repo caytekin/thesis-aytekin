@@ -196,17 +196,19 @@ void searchForComplexTypes(M3 projectM3) {
 
 public void runInitialWork() {
 	M3 projectM3 = getM3Model(|project://VerySmallProject|);
-	println("Containment annotation");
+	//println("Types annotation");
 	//searchForComplexTypes(projectM3);
-	iprintln(sort(projectM3@containment));
+	//iprintln(sort(projectM3@types));
 	//map [loc, set [Modifier]] modifierMap = toMap(projectM3@modifiers);
 	//set [Modifier] const1Mods = modifierMap[|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|];
 	//if (!isEmpty ( {_aModifier | _aModifier <- const1Mods, (_aModifier := \private()) } ) ) {
 	//	println("It is private");
 	//;} 
 	
-	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/UseTwo/runNewObject()|); 
-	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/InterfaceRunner/enhancedForSample()|); 
+	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/secondEnhancedForSample()|); 
+	 println();
+	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
+
 
 	//iprintln(projectM3@containment);
 	//iprintln(projectM3@types);
@@ -365,6 +367,32 @@ public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
 }
 
 
+private set [inheritanceKey] subtypeEnhancedForLoop(TypeSymbol paramTypeSymbol, TypeSymbol collTypeSymbol) {
+	set [inheritanceKey] retSet = {};
+	TypeSymbol compTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	switch (collTypeSymbol) {
+		case anArray:\array(TypeSymbol component, int dimension) : {
+			compTypeSymbol = component;
+		}
+		case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
+			if (size(typeParameters) != 1) throw "More than one type parameter in class collection def: <collTypeSymbol>"; 
+			compTypeSymbol = typeParameters[0];
+		}
+		case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+			if (size(typeParameters) != 1) throw "More than one type parameter in interface collection def: <collTypeSymbol>"; 
+			compTypeSymbol = typeParameters[0];
+		}
+	}
+	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
+		if (result.isSubtypeRel) { retSet += result.iKey; }
+	}	
+	return retSet;
+}
+
+
+
+
 private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
@@ -372,20 +400,22 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	visit(methodAST) {
 		case enhFor:\foreach(Declaration parameter, Expression collection, Statement body) : {
 			//text(enhFor);
-			//println("Parameter type symbol is: <parameter@typ>");
-			//println("Collection type symbol is: <collection@typ>");
-		;}
+			println("Parameter type symbol is: <parameter@typ>");
+			println("Collection type symbol is: <collection@typ>");
+			println("SUBTYPE LIST OF ENHANCED FOR LOOP:");
+			iprintln(subtypeEnhancedForLoop(parameter@typ, collection@typ));
+		}
 		case newObject1:\newObject(Type \type, list[Expression] args) : {
-			text(newObject1);
+			//text(newObject1);
 		;}
 		case newObject2:\newObject(Type \type, list[Expression] args, Declaration class) : {
-			text(newObject2);
+			//text(newObject2);
 		;}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] args) : {
-			text(newObject3);
+			//text(newObject3);
 		;}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] args, Declaration class) : {
-			text(newObject4);
+			//text(newObject4);
 		;}
 		
 		case cndStmt:\conditional(logicalExpr, thenBranch, elseBranch) : {

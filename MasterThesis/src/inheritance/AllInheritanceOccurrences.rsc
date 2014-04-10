@@ -135,7 +135,7 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Creating M3....");
-	loc projectLoc = |project://VerySmallProject|;
+	loc projectLoc = |project://InheritanceSamples|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -174,7 +174,17 @@ public void runIt() {
 	
 	
 	//printProportions(allInheritanceCases, totals);
-	printLog(subtypeLogFile, "SUBTYPE LOG");
+	//printLog(subtypeLogFile, "SUBTYPE LOG");
+	println("CONSTANTS:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));
+	
+	println("MARKER:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == MARKER }));
+	
+	println("GENERIC:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == GENERIC }));
+	
+	printLog(genericLogFile, "GENERIC LOG:");
 	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
 }
 

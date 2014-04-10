@@ -30,10 +30,16 @@ public class UseTwo <T, X> {	// after type erasure UseTwo
 //		String theT = twos.getT();
 //		int theX = twos.getX();
 		
-		UseTwo<Shape, Shape> anotherTwo;
-		anotherTwo = new UseTwo<Shape, Shape> (new Triangle(), new Triangle());
-		anotherTwo.doSomething(new Circle(), new Circle());
+		UseTwo<Shape, Triangle> anotherTwo;
+		anotherTwo = new UseTwo<Shape, Triangle> (new Triangle(), new Triangle());
+		anotherTwo.doSomething(new Circle(), new RightTriangle());
 //		
+		GenSample6 <Rectangle> myGenSample = new GenSample6 <Rectangle> ();
+		
+		UseTwo <GenSample6 <Rectangle>, Triangle> parameterInParameter;
+		parameterInParameter = new UseTwo <GenSample6 <Rectangle>, Triangle> (new GenSample6 <Rectangle> (), new Triangle());
+		parameterInParameter.doSomething(new GenSample6 <Rectangle> (new BlueRectangle()), new RightTriangle());
+		
 //		new UseTwo<Shape, Shape> (new Rectangle(), new Rectangle());
 //		
 //		GenSample1 <Shape> genSample1 = new GenSample1<Shape> (new Circle());

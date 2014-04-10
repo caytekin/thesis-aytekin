@@ -4,12 +4,22 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
 
+import edu.uva.analysis.samples.S;
+
 public class GenericRunner {
 
 	public List<Circle> getCircleList() {
 		List<Circle> circles = new ArrayList<Circle> ();
 		circles.add(new Circle());
 		return circles;
+	}
+	
+	public void anIIGenericSample() {
+		Parent1GenericInterface p1 = new Parent1GenericImplementor(); 
+		List aList = new ArrayList ();
+		aList.add(p1);
+		Parent1GenericInterface anotehrP1 = (Parent1GenericInterface)aList.get(0);
+		
 	}
 	
 	public void getCircleListAsParam(List<?> listParam) {

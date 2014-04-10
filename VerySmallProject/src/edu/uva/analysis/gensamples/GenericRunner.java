@@ -10,6 +10,34 @@ public class GenericRunner {
 //		return new Rectangle();
 //	}
 //	
+	
+	
+	void secondEnhancedForSample() {
+		Canvas aCanvas = new Canvas();
+		List <Triangle> aList = new ArrayList<Triangle> ();
+		aList.add(new Triangle()); 
+		aList.add(new RightTriangle());
+		aList.add(new Triangle()); 
+		aList.add(new RightTriangle());
+		for (Shape aShape : aList) {
+			aShape.draw(aCanvas);
+		}
+	}
+	
+	void enhancedForSample() {
+		Canvas aCanvas = new Canvas();
+		Rectangle[] rectangleArray = {new Rectangle(), new BlueRectangle()};
+		for (Shape aShape : rectangleArray) {
+			aShape.draw(aCanvas);
+		}
+	}
+	
+
+	
+	void enhancedForLoop() {
+	}
+	
+	
 	public MyArrayList<Circle> getCircleList() {
 		MySubArrayList<Circle> circles = new MySubArrayList<Circle> ();
 //		circles.add(new Circle());
@@ -32,14 +60,6 @@ public class GenericRunner {
 	
 	// after type erasure List and ArrayList		
 	// after type erasure List and ArrayList		
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	
 	
