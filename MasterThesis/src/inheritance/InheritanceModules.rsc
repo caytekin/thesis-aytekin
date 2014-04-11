@@ -459,8 +459,10 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
 		}
 		case mCall:methodCall(_,_,_) : {
-			throw "Method call without receiver is not allowed if there is a type variable!";
-		}
+			// TODO: Method call without receiver is allowed if there is a type variable, but receiver is then this(),
+			// Look how you can fix this problem.
+			  //throw "Method call without receiver is not allowed if there is a type variable!";
+		;}
 	//	case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
 	//		println("newObject 11111111111 type: <\type>, expArgs : <expArgs>");
 	//	}

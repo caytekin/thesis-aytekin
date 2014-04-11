@@ -174,17 +174,31 @@ public void runIt() {
 	
 	
 	//printProportions(allInheritanceCases, totals);
+	//println("CONSTANTS:");
+	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));
+	//
+	//println("MARKER:");
+	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == MARKER }));
+	//
+
+	//println("GENERIC:");
+	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == GENERIC }));
+
+	//println("SUPER:");
+	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUPER }));
+
+	println("CATEGORY:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
+
+
+	
+	//printLog(genericLogFile, "GENERIC LOG:");
 	//printLog(subtypeLogFile, "SUBTYPE LOG");
-	println("CONSTANTS:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));
-	
-	println("MARKER:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == MARKER }));
-	
-	println("GENERIC:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == GENERIC }));
-	
-	printLog(genericLogFile, "GENERIC LOG:");
 	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
+	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
+	//printLog(downcallLogFile, "DOWNCALL LOG");
+	//printLog(superLogFile, "SUPER LOG:");
+	
+	
 }
 

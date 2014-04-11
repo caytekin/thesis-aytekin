@@ -34,7 +34,14 @@ public class GenericRunner {
 	
 
 	
-	void enhancedForLoop() {
+	void externalReuseTest() {
+		RightTriangle aRightTriangle = new RightTriangle();
+		aRightTriangle.aTriangleMethod();   	// external reuse
+		
+		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> ();
+		aChild.acceptT(new Triangle());
+		aChild.getT();
+		aChild.genSample1String = "xytz";
 	}
 	
 	

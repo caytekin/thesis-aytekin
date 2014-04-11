@@ -1,8 +1,12 @@
 package edu.uva.analysis.gensamples;
 
 public class GenSample1 <T> {	// after type erasure T becomes Object.
-
-	GenSample1 (T aT) {
+	public String genSample1String = "";
+	public GenSample1() {
+		
+	}
+	
+	public GenSample1 (T aT) {
 		
 	}
 	
@@ -14,5 +18,4 @@ public class GenSample1 <T> {	// after type erasure T becomes Object.
 
 	void acceptT(T aT) {
 		
-	}
-}
+	}}

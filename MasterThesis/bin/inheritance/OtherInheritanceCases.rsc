@@ -42,10 +42,10 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 }
 
 
-public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInterfaceContainment, map[loc, set[Modifier]] allFieldModifiers) {
-	// we just want fields in the location
+public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInterfaceContWithoutTypeVars, map[loc, set[Modifier]] allFieldModifiers) {
+	// we just want fields in the location, type variables are also added to be able to cover the generic constant classes
 	bool retBool = false;
-	set [loc] everythingInLoc = aLoc in classAndInterfaceContainment ? classAndInterfaceContainment[aLoc] : {} ;
+	set [loc] everythingInLoc = aLoc in classAndInterfaceContWithoutTypeVars ? classAndInterfaceContWithoutTypeVars[aLoc] : {} ;
 	set [loc] fieldsInLoc = {_aField | _aField  <- everythingInLoc, isField(_aField)};
 	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, allFieldModifiers)) {
 		retBool = true;
@@ -54,11 +54,11 @@ public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInt
 }  
 
 
-public set [loc] getConstantCandidates(map[loc, set [loc]] classAndInterfaceContainment, map[loc, set[Modifier]] allFieldModifiers, M3 projectM3) {
+public set [loc] getConstantCandidates(map[loc, set [loc]] classAndInterfaceContWithoutTypeVars, map[loc, set[Modifier]] allFieldModifiers, M3 projectM3) {
 	set [loc] retSet = {};
 	list [loc] allClassesAndInterfaces = sort(getAllClassesAndInterfacesInProject(projectM3));
 	for (aLoc <- allClassesAndInterfaces ) {
-		if (containsOnlyConstantFields(aLoc, classAndInterfaceContainment, allFieldModifiers)) {
+		if (containsOnlyConstantFields(aLoc, classAndInterfaceContWithoutTypeVars, allFieldModifiers)) {
 			retSet += aLoc;
 		}
 	}
@@ -88,10 +88,10 @@ public rel [inheritanceKey,inheritanceType] findConstantLocs(set [loc] candidate
 }
 
 
-public set [loc] getMarkerCandidates(map[loc, set[loc]] interfaceContainment, M3 projectM3) {
+public set [loc] getMarkerCandidates(map[loc, set[loc]] interfaceContainmentWithoutTypeVars, M3 projectM3) {
 	set [loc] retSet = {};
 	set [loc] allInterfaces = getAllInterfacesInProject(projectM3);
-	set [loc] nonMarkerInterfaces = domain(interfaceContainment);
+	set [loc] nonMarkerInterfaces = domain(interfaceContainmentWithoutTypeVars);
 	retSet = allInterfaces - nonMarkerInterfaces;	
 	return retSet;
 }
@@ -267,11 +267,11 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 
 public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM3) {
 	rel [inheritanceKey,inheritanceType] retRel = {};
-	map [loc, set[loc]] interfaceContainment = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface)});	
-	map [loc, set[loc]] classAndInterfaceContainment = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface) });
+	map [loc, set[loc]] interfaceContainmentWithoutTypeVars = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface), _anItem.scheme != "java+typeVariable"});	
+	map [loc, set[loc]] classAndInterfaceContWithoutTypeVars = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface), _anItem.scheme != "java+typeVariable" });
 	map[loc, set[Modifier]] allFieldModifiers = toMap({<_aField, _aModifier> | <_aField, _aModifier>  <- projectM3@modifiers, isField(_aField)});
-	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContainment, allFieldModifiers, projectM3), projectM3);
-	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainment, projectM3), projectM3);	
+	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContWithoutTypeVars, allFieldModifiers, projectM3), projectM3);
+	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainmentWithoutTypeVars, projectM3), projectM3);	
 	retRel += findSuperRelations(projectM3);
 	retRel += findGenericUsages(projectM3);
 	return retRel;

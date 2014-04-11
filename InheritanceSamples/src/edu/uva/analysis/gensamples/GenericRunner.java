@@ -15,10 +15,10 @@ public class GenericRunner {
 	}
 	
 	public void anIIGenericSample() {
-		Parent1GenericInterface p1 = new Parent1GenericImplementor(); 
-		List aList = new ArrayList ();
-		aList.add(p1);
-		Parent1GenericInterface anotehrP1 = (Parent1GenericInterface)aList.get(0);
+//		Parent1GenericInterface p1 = new Parent1GenericImplementor(); 
+//		List aList = new ArrayList ();
+//		aList.add(p1);
+//		Parent1GenericInterface anotehrP1 = (Parent1GenericInterface)aList.get(0);
 		
 	}
 	
@@ -94,6 +94,12 @@ public class GenericRunner {
 		Circle myCircle222 = new Circle();
 		GenSample6<Shape> shapeSample6 = new GenSample6<Shape> ();
 		shapeSample6.getTAsParam(myCircle222);
+	}
+	
+	void genericTestMethod() {
+		Object o = new Object();
+		GrandParentImplementor <Shape, Triangle> impl = (GrandParentImplementor <Shape, Triangle>)o; 
+
 	}
 	
 }

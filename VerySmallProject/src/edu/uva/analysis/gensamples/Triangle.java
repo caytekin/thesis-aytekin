@@ -6,4 +6,8 @@ public class Triangle extends Shape {
 	public void draw(Canvas c) {
         System.out.println("I am drawing a traingle...");
     }
+	
+	public void aTriangleMethod() {
+		
+	}
 }

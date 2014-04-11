@@ -38,7 +38,6 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	map [loc, set [loc]] invertedContainmentMap = toMap(invert({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared) || declared.scheme == "java+initializer"}));
 	map [loc, set [loc]] invocationMap 			= toMap({ <caller, invoked> | <caller, invoked> <- projectM3@methodInvocation});
 	map [loc, set [loc]] fieldAccessMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isMethod(accessor) || accessor.scheme == "java+initializer"});
-	// map [loc, set[loc]] methInvocationMap = toMap(projectM3@methodInvocation);
 	for (oneClass <- intReuseClasses) {
 		// println("One class is: <oneClass>");
 		set [loc] ancestorClasses = { parent | <child, parent> <- allInheritanceRels, child == oneClass, isClass(parent)};
