@@ -52,6 +52,7 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 
 private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	//println("Assignment source ref: <sourceRef>");
 	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
 	if (result.isSubtypeRel) {
 		retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef>;
@@ -84,6 +85,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Ex
 
 private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	//println("Variable decl: <rhs@src>");	
 	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
 	if (result.isSubtypeRel) {
 		for (anExpression <- fragments) {
@@ -131,6 +133,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
+			//println("Cast subtype source ref: <castStmt@src>");	
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(castExpr@typ, getTypeSymbolFromRascalType(castType));
 			if (result.isSubtypeRel) {
 				retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
@@ -161,6 +164,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 		}
 	}
 	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+		//println("For loop: <forLoopRef>");
 		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
 		if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef>; }
 	}	
@@ -172,6 +176,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
 	visit (returnStmt) {
 		case \return(retExpr) : {
+			//println("Via return statement: <retExpr@src>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
 																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, typesMap));
 			if (result.isSubtypeRel) {
@@ -237,15 +242,17 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, map [loc, set[TypeSymbol]] typesMap ) {
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
+																					map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
 	// TODO: Because of a bug in Rascal, I can only test this with method calls at the moment
 	// When that's fixed I should also test newObject()
 	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
-		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap);
+		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment);
 		list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
 		for (int i <- [0..size(passedSymbolList)]) {
+			//println("Parameter passing: <methOrConstExpr@src>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
 			if (result.isSubtypeRel) {
 				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
@@ -286,22 +293,22 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection@typ, enhForStmt@src);
 				}
 				case  methExpr1:\methodCall(_,_, _) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
 				}
 				case methExpr2:\methodCall(_, _, _, _): {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
 				} 
 				case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
 				}
 				case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
 				}
 				case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
 				}
 				case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
 				}
         	} // visit()
 		}

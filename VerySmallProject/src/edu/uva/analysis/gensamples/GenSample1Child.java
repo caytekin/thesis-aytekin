@@ -19,5 +19,12 @@ public class GenSample1Child <T> extends GenSample1<T> {
 		aChild.getT();
 		genSample1String = "hello";
 	}
+	
+	public void acceptT(T aT) {
+		
+	}
 
+	public void threeParamMethodCall() {
+		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> ();
+	}
 }

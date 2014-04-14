@@ -195,7 +195,19 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://VerySmallProject|);
+	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
+	println("Method invocation annotation:");
+	iprintln(sort(projectM3@methodInvocation));
+	println();
+	println("Field access annotation:");
+	iprintln(sort(projectM3@fieldAccess));	
+	set [loc] methodInvokingVariables = {_invoker | <_invoker, _invoked> <- projectM3@methodInvocation, isVariable(_invoker)};
+	println("Method invoking variables: "); iprintln(methodInvokingVariables); println();
+	rel [loc, loc] methodsOfVariables = {<_container, _contained> | <_container, _contained> <- projectM3@containment, _contained in methodInvokingVariables};
+	println("Variables and the methods which contain those variables:");
+	iprintln(methodsOfVariables );
+	
+	
 	//println("Types annotation");
 	//searchForComplexTypes(projectM3);
 	//iprintln(sort(projectM3@types));
@@ -205,9 +217,9 @@ public void runInitialWork() {
 	//	println("It is private");
 	//;} 
 	
-	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/secondEnhancedForSample()|); 
-	 println();
-	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
+	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/secondEnhancedForSample()|); 
+	 //println();
+	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
 
 
 	//iprintln(projectM3@containment);

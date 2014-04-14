@@ -11,6 +11,17 @@ public class GenericRunner {
 //	}
 //	
 	
+	void acceptAnObject(Object anObject) {
+		
+	}
+	
+	
+	void aNonGenericSample() {
+		acceptAnObject(new Triangle());
+		List aList = new ArrayList();
+		aList.add(new Triangle()); 
+	}
+
 	
 	void secondEnhancedForSample() {
 		Canvas aCanvas = new Canvas();

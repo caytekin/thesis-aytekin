@@ -28,11 +28,6 @@ public metricsType nCCUnknown			= 1009;
 
 
 
-
-
-
-
-
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
 public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
 public inheritanceSubtype SUBTYPE_VIA_CAST = 203;
@@ -71,9 +66,10 @@ public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc
 public alias superCallLoc = loc;
 public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourceOfCandCall];
 public alias thisChangingTypeOccurrence = tuple [loc sourceRef, loc invokedmethod];
+public alias categorySibling = loc;
 
 
-
+public loc categoryLogFile = |file://c:/Users/caytekin/InheritanceLogs/Category.log|;
 public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
 public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
 public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;

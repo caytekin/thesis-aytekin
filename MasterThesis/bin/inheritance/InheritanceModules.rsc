@@ -355,6 +355,7 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 	inheritanceKey iKey = <DEFAULT_LOC, DEFAULT_LOC>;
 	iKey.parent = getClassOrInterfaceFromTypeSymbol(parentSymbol);
 	iKey.child = getClassOrInterfaceFromTypeSymbol(childSymbol);
+	//iprintln("getSubtypeRelation:  child : <childSymbol>, parent: <parentSymbol>."); println();
 	if ((iKey.child != DEFAULT_LOC) && (iKey.parent != DEFAULT_LOC) && (iKey.child != iKey.parent)) {
 		isSubtypeRel = true;
 	}
@@ -428,40 +429,37 @@ map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSym
 }
 
 
+tuple [ loc, list [TypeSymbol]]  getReceivingTypeParameters(TypeSymbol recTypeSymbol) {
+	list [TypeSymbol] recTypeParameters = [];
+	loc recClassOrInt;
+	visit (recTypeSymbol) {
+		case classDef:\class(loc decl, list[TypeSymbol] typeParameters) : {
+			recTypeParameters = typeParameters;
+			recClassOrInt = decl;
+		}
+		case intDef:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+			recTypeParameters = typeParameters;
+			recClassOrInt = decl;
+		}				
+	}
+	if (isEmpty(recTypeParameters)) {
+		throw "Receiver type parameters is empty for receiver : <receiver>";
+	}
+	return <recClassOrInt, recTypeParameters>;
+}
 
-TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr, map [loc, set [TypeSymbol]] typesMap) {
+
+
+TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr, map [loc, set [TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment ) {
 	loc methodParameterTypeVariable = getTypeVariableFromTypeSymbol(genericTypeSymbol);
 	TypeSymbol resolvedTypeSymbol = genericTypeSymbol;
-	//println("Generic Type symbol is: <genericTypeSymbol> for method <methodOrConstExpr@decl>");
+	TypeSymbol recTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
-			//println("Receiver of this method is: <receiver>");
-			//println("Type of receiver is <receiver@typ>");
 			TypeSymbol recTypeSymbol = receiver@typ;
-			list [TypeSymbol] recTypeParameters = [];
-			loc recClassOrInt;
-			visit (recTypeSymbol) {
-				case classDef:\class(loc decl, list[TypeSymbol] typeParameters) : {
-					recTypeParameters = typeParameters;
-					recClassOrInt = decl;
-				}
-				case intDef:\interface(loc decl, list[TypeSymbol] typeParameters) : {
-					recTypeParameters = typeParameters;
-					recClassOrInt = decl;
-				}				
-			}
-			if (isEmpty(recTypeParameters)) {
-				throw "Receiver type parameters is empty for receiver : <receiver>";
-			}
-			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(recClassOrInt, typesMap);
-			//list 	[TypeSymbol] actualTypesOfRecClass		= getActualTypesOfReceivingClass(recTypeSymbol);
-			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
-			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
 		}
 		case mCall:methodCall(_,_,_) : {
-			// TODO: Method call without receiver is allowed if there is a type variable, but receiver is then this(),
-			// Look how you can fix this problem.
-			  //throw "Method call without receiver is not allowed if there is a type variable!";
+			// There can be no subtyping between type parameters, so I do not have to do anything here.
 		;}
 	//	case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
 	//		println("newObject 11111111111 type: <\type>, expArgs : <expArgs>");
@@ -478,20 +476,26 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	}
 	//println("Resolved type symbol is: <resolvedTypeSymbol>" );
 	//println();
+	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+		tuple 	[loc recClassOrInt, list [TypeSymbol] recTypeParameters] result  = getReceivingTypeParameters(recTypeSymbol);  
+		list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(result.recClassOrInt, typesMap);
+		map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, result.recTypeParameters);
+		resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
+	}
 	return resolvedTypeSymbol;
 }
 
 
 
 
-public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList, map [loc, set[TypeSymbol]] typesMap ) {
+public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList, map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment  ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
 		visit (_aTypeSymbol) {
 			case aTypePar:\typeParameter(loc decl, Bound upperbound) : {
-				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap);	
+				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment );	
 			} 
 		}
 		retList += currentTypeSymbol;
@@ -500,7 +504,7 @@ public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, l
 }
 
 
-public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr, map [loc, set[TypeSymbol]] typesMap ) {
+public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr, map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment ) {
 	list [TypeSymbol] retTypeList 	= [];
 	list [TypeSymbol] methodParameterTypes = [];
 	loc methodLoc 					= methodOrConstExpr@decl;
@@ -514,7 +518,7 @@ public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr
 			methodParameterTypes = typeParameters;
 		}
 	}
-	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap);
+	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap, invertedClassAndInterfaceContainment);
 	//println();
 	return retTypeList;
 }

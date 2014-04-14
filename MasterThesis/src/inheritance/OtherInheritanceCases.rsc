@@ -216,23 +216,28 @@ private set [loc] getAllDirectDescendants(loc parent, map [loc, set [loc]] inver
 }
 
 
-private bool isCategory(inheritanceKey anExtendsCandidate,  set [inheritanceKey] subtypeSet, map [loc, set[loc]] invertedDescMap) {
+private lrel [inheritanceKey, categorySibling] getOneCategoryCase(inheritanceKey anExtendsCandidate,  set [inheritanceKey] subtypeSet, map [loc, set[loc]] invertedDescMap) {
+	lrel [inheritanceKey, categorySibling] retRel = [];
 	bool isExtendsCategory = false;
 	list [loc] allSiblings = toList(getAllDirectDescendants( anExtendsCandidate.parent, invertedDescMap)); 
 	int i = 0;
 	while ( (!isExtendsCategory)  && (i < (size(allSiblings)) ) ) {
 		aSibling = allSiblings[i];
 		inheritanceKey siblingKey = <aSibling, anExtendsCandidate.parent>;
-		if (siblingKey in subtypeSet ) { isExtendsCategory = true; }
+		if (siblingKey in subtypeSet ) { 
+			isExtendsCategory = true; 
+			retRel += [<anExtendsCandidate, aSibling>];
+		}
 		i += 1;
 	}
-	return isExtendsCategory;
+	return retRel;
 }
 
 
 
 public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKey, inheritanceType] allInheritanceCases, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
+	lrel [inheritanceKey, categorySibling] categoryLog = [];
 	map [loc, set[loc]] invertedExtendsMap =  getInvertedExtendsMap(projectM3);
 	map [loc, set[loc]] invertedImplementsMap =  getInvertedImplementsMap(projectM3);
 	
@@ -251,16 +256,14 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [inheritanceKey] IICategoryCandidates = allExplicitSystemII - allUsedInheritanceRels;
 	
 	for (anExtendsCandidate <- (CCCategoryCandidates + IICategoryCandidates) ) {
-		if (isCategory(anExtendsCandidate,  subtypeSet, invertedExtendsMap ) ) {
-			retRel += {<anExtendsCandidate, CATEGORY>};
-		} 
+		categoryLog += getOneCategoryCase(anExtendsCandidate,  subtypeSet, invertedExtendsMap ); 
 	}
 	for (anImplementsCandidate <- CICategoryCandidates) {
-		if (isCategory(anImplementsCandidate,  subtypeSet, invertedImplementsMap) ) {
-			retRel += {<anImplementsCandidate, CATEGORY>};
-		} 
+		categoryLog += getOneCategoryCase(anImplementsCandidate,  subtypeSet, invertedImplementsMap); 
 	}
-	
+
+	iprintToFile(categoryLogFile, categoryLog);	
+	retRel = {<_iKey, CATEGORY> | <_iKey, _> <- categoryLog};
 	return retRel;
 }
 

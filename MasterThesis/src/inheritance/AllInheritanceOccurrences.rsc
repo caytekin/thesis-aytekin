@@ -135,7 +135,7 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Creating M3....");
-	loc projectLoc = |project://InheritanceSamples|;
+	loc projectLoc = |project://VerySmallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -187,13 +187,13 @@ public void runIt() {
 	//println("SUPER:");
 	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUPER }));
 
-	println("CATEGORY:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
+	//println("CATEGORY:");
+	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
 
 
-	
+	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
-	//printLog(subtypeLogFile, "SUBTYPE LOG");
+	printLog(subtypeLogFile, "SUBTYPE LOG");
 	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	//printLog(downcallLogFile, "DOWNCALL LOG");
