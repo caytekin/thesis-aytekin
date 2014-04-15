@@ -144,6 +144,9 @@ public void runIt() {
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
 	
+	printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
+	
+	
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
@@ -193,7 +196,7 @@ public void runIt() {
 
 	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
-	printLog(subtypeLogFile, "SUBTYPE LOG");
+	//printLog(subtypeLogFile, "SUBTYPE LOG");
 	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	//printLog(downcallLogFile, "DOWNCALL LOG");

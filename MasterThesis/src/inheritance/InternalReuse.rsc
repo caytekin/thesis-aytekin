@@ -15,6 +15,24 @@ import inheritance::InheritanceModules;
 
 
 
+lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] getClassLevelInternalReuse(loc oneClass, set [loc] declaredFields, set [loc] declaredMethods, 
+																							set [loc] ancestorFieldsMethods, map [loc, set [loc]] invocationMap, map [loc, set [loc]] fieldAccessFromClassMap,
+																							map [loc, set [loc]] invertedContainmentMap) {
+	lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] retRel = [];
+	set [loc] invokedMethodsClassLevel 	= oneClass in invocationMap ? invocationMap[oneClass] : {};
+	set [loc] accessedFieldsClassLevel  = oneClass in fieldAccessFromClassMap ? fieldAccessFromClassMap[oneClass] : {};
+	set [loc] internalReuseLocs 		= 	{aMethod | aMethod <- invokedMethodsClassLevel, isMethod(aMethod), aMethod notin declaredMethods,  aMethod in ancestorFieldsMethods }
+	  									    +
+	  									    {aField | aField <- accessedFieldsClassLevel, isField(aField), aField notin declaredFields, aField in ancestorFieldsMethods };
+	for (reusedLoc <- internalReuseLocs) {
+		loc parentClass =  getDefiningClassOfALoc(reusedLoc, invertedContainmentMap);
+		inheritanceKey iKey = <oneClass, parentClass>;
+		retRel += < iKey, INTERNAL_REUSE_CLASS_LEVEL, <reusedLoc, parentClass>>;		
+	};																			
+	return retRel; 							    
+}	
+			
+
 
 public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3) {
 	// Get all the child classes in CC relation, they are the only ones which can initiate internal reuse.
@@ -30,14 +48,16 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	// TODO: I should look (and test) if I take the constructors in to account.
 	// A constructor can also invoke parent methods (not only super())
 	rel [inheritanceKey, inheritanceType] resultRel = {};
-	lrel [inheritanceKey, internalReuseDetail] internalReuseLog = []; 
+	lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] internalReuseLog = []; 
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	set [loc] intReuseClasses = { child | <child, parent> <- allInheritanceRels, isClass(child), isClass(parent)};
 	map [loc, set [loc]] containmentMap 		= toMap({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared)});
 	map [loc, set [loc]] containmentMapWithInit = toMap({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared) || declared.scheme == "java+initializer"});
 	map [loc, set [loc]] invertedContainmentMap = toMap(invert({<owner, declared> |<owner, declared> <- projectM3@containment, isClass(owner), isField(declared) || isMethod(declared) || declared.scheme == "java+initializer"}));
 	map [loc, set [loc]] invocationMap 			= toMap({ <caller, invoked> | <caller, invoked> <- projectM3@methodInvocation});
-	map [loc, set [loc]] fieldAccessMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isMethod(accessor) || accessor.scheme == "java+initializer"});
+	map [loc, set [loc]] fieldAccessFromMethodMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isMethod(accessor) || accessor.scheme == "java+initializer"});
+	map [loc, set [loc]] fieldAccessFromClassMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isClass(accessor)});
+
 	for (oneClass <- intReuseClasses) {
 		// println("One class is: <oneClass>");
 		set [loc] ancestorClasses = { parent | <child, parent> <- allInheritanceRels, child == oneClass, isClass(parent)};
@@ -47,8 +67,12 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 		}		
 		
 		set [loc] declaredFieldsMethods = oneClass in containmentMapWithInit ? containmentMapWithInit[oneClass] : {} ; 
-		
 		set [loc] declaredMethods = { declMeth | declMeth <- declaredFieldsMethods, isMethod(declMeth) || declMeth.scheme == "java+initializer" };
+		set [loc] declaredFields = declaredFieldsMethods - declaredMethods;
+			
+		internalReuseLog += getClassLevelInternalReuse(oneClass, declaredFields, declaredMethods, 	ancestorFieldsMethods, invocationMap, 
+																									fieldAccessFromClassMap, invertedContainmentMap );	
+			
 										
 		for (oneMethod <- declaredMethods) {
 			set [loc] allInvokedMethods	= oneMethod in invocationMap ? invocationMap[oneMethod] : {};
@@ -56,22 +80,21 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 			set [loc] internalReuseMethodInvocation = { invoked | invoked <- allInvokedMethods, invoked notin declaredFieldsMethods, 
 																			invoked in ancestorFieldsMethods, 
 																			invoked.scheme != "java+constructor" };	
-			set [loc] allAccessedFields = oneMethod in fieldAccessMap ? fieldAccessMap[oneMethod] : {} ;																
+			set [loc] allAccessedFields = oneMethod in fieldAccessFromMethodMap ? fieldAccessFromMethodMap[oneMethod] : {} ;																
 																			
 			set [loc] internalReuseFieldAccess = { accessed | accessed <- allAccessedFields,  accessed notin declaredFieldsMethods, 
 																							  accessed in ancestorFieldsMethods };
 																							  	
 			set [loc] internalReuseLoc = internalReuseMethodInvocation + internalReuseFieldAccess;																		
 			for (reusedLoc <- internalReuseLoc) {
-				set [loc]  classOfLoc = reusedLoc in invertedContainmentMap ? invertedContainmentMap[reusedLoc] : {}; 
-				if (size(classOfLoc) != 1) { throw "A method or a field  can be defined in one class only! <reusedLoc>"; }; 
-				loc parentClass = getOneFrom(classOfLoc);
+				loc parentClass =  getDefiningClassOfALoc(reusedLoc, invertedContainmentMap);
 				inheritanceKey iKey = <oneClass, parentClass>;
-				resultRel  += < iKey, INTERNAL_REUSE>;
-				internalReuseLog += < iKey, <reusedLoc, oneMethod>>;		
+				internalReuseLog += < iKey, INTERNAL_REUSE_METHOD_LEVEL, <reusedLoc, oneMethod>>;		
 			};																			
 		};	
 	};
+	
+	resultRel = {<iKey, INTERNAL_REUSE> | <iKey, _, <_,_>> <- internalReuseLog};
 	iprintToFile(internalReuseLogFile , internalReuseLog);
 	return resultRel;
 }

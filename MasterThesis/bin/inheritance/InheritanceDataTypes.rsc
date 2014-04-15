@@ -41,6 +41,8 @@ public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS = 211;
 public inheritanceSubtype EXTERNAL_REUSE_CANDIDATE_METHOD = 212;
 
 
+public inheritanceSubtype INTERNAL_REUSE_METHOD_LEVEL = 220;
+public inheritanceSubtype INTERNAL_REUSE_CLASS_LEVEL = 221;
 
 
 
@@ -59,7 +61,7 @@ public loc THROWABLE_CLASS = |java+class:///java/lang/Throwable|;
 public loc OBJECT_CLASS = |java+class:///java/lang/Object|;
 
 
-public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
+public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethodOrClass];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
 public alias subtypeDetail = tuple [ inheritanceSubtype inhSub, loc subtypeDetailLoc];
 public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];

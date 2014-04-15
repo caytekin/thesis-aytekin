@@ -196,21 +196,21 @@ void searchForComplexTypes(M3 projectM3) {
 
 public void runInitialWork() {
 	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
-	println("Method invocation annotation:");
-	iprintln(sort(projectM3@methodInvocation));
-	println();
-	println("Field access annotation:");
-	iprintln(sort(projectM3@fieldAccess));	
-	set [loc] methodInvokingVariables = {_invoker | <_invoker, _invoked> <- projectM3@methodInvocation, isVariable(_invoker)};
-	println("Method invoking variables: "); iprintln(methodInvokingVariables); println();
-	rel [loc, loc] methodsOfVariables = {<_container, _contained> | <_container, _contained> <- projectM3@containment, _contained in methodInvokingVariables};
-	println("Variables and the methods which contain those variables:");
-	iprintln(methodsOfVariables );
+	//println("Method invocation annotation:");
+	//iprintln(sort(projectM3@methodInvocation));
+	//println();
+	//println("Field access annotation:");
+	//iprintln(sort(projectM3@fieldAccess));	
+	//set [loc] methodInvokingVariables = {_invoker | <_invoker, _invoked> <- projectM3@methodInvocation, isVariable(_invoker)};
+	//println("Method invoking variables: "); iprintln(methodInvokingVariables); println();
+	//rel [loc, loc] methodsOfVariables = {<_container, _contained> | <_container, _contained> <- projectM3@containment, _contained in methodInvokingVariables};
+	//println("Variables and the methods which contain those variables:");
+	//iprintln(methodsOfVariables );
 	
 	
-	//println("Types annotation");
+	println("Types annotation");
 	//searchForComplexTypes(projectM3);
-	//iprintln(sort(projectM3@types));
+	iprintln(sort(projectM3@types));
 	//map [loc, set [Modifier]] modifierMap = toMap(projectM3@modifiers);
 	//set [Modifier] const1Mods = modifierMap[|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|];
 	//if (!isEmpty ( {_aModifier | _aModifier <- const1Mods, (_aModifier := \private()) } ) ) {

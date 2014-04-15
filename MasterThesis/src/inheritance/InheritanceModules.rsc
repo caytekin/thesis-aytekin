@@ -355,7 +355,6 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 	inheritanceKey iKey = <DEFAULT_LOC, DEFAULT_LOC>;
 	iKey.parent = getClassOrInterfaceFromTypeSymbol(parentSymbol);
 	iKey.child = getClassOrInterfaceFromTypeSymbol(childSymbol);
-	//iprintln("getSubtypeRelation:  child : <childSymbol>, parent: <parentSymbol>."); println();
 	if ((iKey.child != DEFAULT_LOC) && (iKey.parent != DEFAULT_LOC) && (iKey.child != iKey.parent)) {
 		isSubtypeRel = true;
 	}
@@ -367,7 +366,8 @@ public tuple [bool, inheritanceKey] getSubtypeRelation(TypeSymbol childSymbol, T
 TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbol]] typesMap ) {
 	set [TypeSymbol] locSymbolSet = definedLoc in typesMap ? typesMap[definedLoc] : {}; 
 	if (size(locSymbolSet) != 1) {
-		throw("The location <definedLoc> has not exactly one entry in @types annotation.");
+		iprintln(locSymbolSet);
+		throw("The location <definedLoc> has not exactly one entry in @types annotation. locSymbolSet : <locSymbolSet>");
 	};
 	TypeSymbol locTypeSymbol = getOneFrom(locSymbolSet); 
 	return locTypeSymbol;
@@ -429,23 +429,20 @@ map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSym
 }
 
 
-tuple [ loc, list [TypeSymbol]]  getReceivingTypeParameters(TypeSymbol recTypeSymbol) {
+list [TypeSymbol]  getReceivingTypeParameters(TypeSymbol recTypeSymbol) {
 	list [TypeSymbol] recTypeParameters = [];
-	loc recClassOrInt;
 	visit (recTypeSymbol) {
 		case classDef:\class(loc decl, list[TypeSymbol] typeParameters) : {
 			recTypeParameters = typeParameters;
-			recClassOrInt = decl;
 		}
 		case intDef:\interface(loc decl, list[TypeSymbol] typeParameters) : {
 			recTypeParameters = typeParameters;
-			recClassOrInt = decl;
 		}				
 	}
 	if (isEmpty(recTypeParameters)) {
 		throw "Receiver type parameters is empty for receiver : <receiver>";
 	}
-	return <recClassOrInt, recTypeParameters>;
+	return recTypeParameters;
 }
 
 
@@ -454,33 +451,47 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	loc methodParameterTypeVariable = getTypeVariableFromTypeSymbol(genericTypeSymbol);
 	TypeSymbol resolvedTypeSymbol = genericTypeSymbol;
 	TypeSymbol recTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	loc methodOwningClassOrInt = DEFAULT_LOC;
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
-			TypeSymbol recTypeSymbol = receiver@typ;
+			println("Method call at <methodOrConstExpr@decl> ");
+			methodOwningClassOrInt =  getDefiningClassOrInterfaceOfALoc(methodOrConstExpr@decl, invertedClassAndInterfaceContainment);
+			recTypeSymbol = receiver@typ;
 		}
 		case mCall:methodCall(_,_,_) : {
 			// There can be no subtyping between type parameters, so I do not have to do anything here.
 		;}
-	//	case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-	//		println("newObject 11111111111 type: <\type>, expArgs : <expArgs>");
-	//	}
-	//	case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-	//		println("newObject 22222222222 type: <\type>, expArgs : <expArgs>");
-	//	}
-	//	case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-	//		println("newObject 33333333333 type: <\type>, expArgs : <expArgs>");
-	//	}
-	//	case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-	//		println("newObject 44444444444 type: <\type>, expArgs : <expArgs>");
-	//	}
+		case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
+			println("Called constructor: <newObject1@decl>");
+			println("newObject 11111111111 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
+			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
+			println("Received type symbol: <recTypeSymbol>");
+		}
+		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
+			println("newObject 22222222222 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+		}
+		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
+			println("newObject 33333333333 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+		}
+		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
+			println("newObject 44444444444 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+		}
 	}
-	//println("Resolved type symbol is: <resolvedTypeSymbol>" );
-	//println();
 	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-		tuple 	[loc recClassOrInt, list [TypeSymbol] recTypeParameters] result  = getReceivingTypeParameters(recTypeSymbol);  
-		list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(result.recClassOrInt, typesMap);
-		map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, result.recTypeParameters);
+		println("Receiver type symbol is: <recTypeSymbol>");
+		// recTypeParameters holds the actual types with which the object was instantiated, like Shape, Ractangle, String, etc.
+		list [TypeSymbol] recTypeParameters = getReceivingTypeParameters(recTypeSymbol);  
+		println("Receiving type parameters:"); iprintln(recTypeParameters);
+		// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
+		list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
+		println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
+		// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
+		map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
+		println("Type variable map: "); iprintln(typeVariableMap);
 		resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
+		println("Resolved type symbol is: <resolvedTypeSymbol>" );
+		println();
 	}
 	return resolvedTypeSymbol;
 }
@@ -514,7 +525,6 @@ public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr
 			methodParameterTypes = typeParameters;
 		}
 		case cons:\constructor(_, typeParameters:_) : {
-			//println("Type parameters for constructor: <cons>");
 			methodParameterTypes = typeParameters;
 		}
 	}

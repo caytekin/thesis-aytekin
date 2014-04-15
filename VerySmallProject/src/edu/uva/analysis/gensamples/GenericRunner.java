@@ -49,7 +49,7 @@ public class GenericRunner {
 		RightTriangle aRightTriangle = new RightTriangle();
 		aRightTriangle.aTriangleMethod();   	// external reuse
 		
-		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> ();
+		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> (new Triangle());
 		aChild.acceptT(new Triangle());
 		aChild.getT();
 		aChild.genSample1String = "xytz";

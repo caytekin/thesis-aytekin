@@ -4,6 +4,12 @@ public class UseTwo <T, X> {	// after type erasure UseTwo
 	
 	T one;
 	X two;
+	Shape myShape = new Rectangle();
+	Shape anotherShape = myShape;
+	
+	UseTwo () {
+		
+	}
 	
 	UseTwo(T one, X two) {
 		this.one = one;
@@ -31,14 +37,14 @@ public class UseTwo <T, X> {	// after type erasure UseTwo
 //		int theX = twos.getX();
 		
 		UseTwo<Shape, Triangle> anotherTwo;
-		anotherTwo = new UseTwo<Shape, Triangle> (new Triangle(), new Triangle());
+		anotherTwo = new UseTwo<Shape, Triangle> ();
 		anotherTwo.doSomething(new Circle(), new RightTriangle());
 //		
 		GenSample6 <Rectangle> myGenSample = new GenSample6 <Rectangle> ();
 		
-		UseTwo <GenSample6 <Rectangle>, Triangle> parameterInParameter;
-		parameterInParameter = new UseTwo <GenSample6 <Rectangle>, Triangle> (new GenSample6 <Rectangle> (), new Triangle());
-		parameterInParameter.doSomething(new GenSample6 <Rectangle> (new BlueRectangle()), new RightTriangle());
+//		UseTwo <GenSample6 <Rectangle>, Triangle> parameterInParameter;
+//		parameterInParameter = new UseTwo <GenSample6 <Rectangle>, Triangle> (new GenSample6 <Rectangle> (), new Triangle());
+//		parameterInParameter.doSomething(new GenSample6 <Rectangle> (new BlueRectangle()), new RightTriangle());
 		
 //		new UseTwo<Shape, Shape> (new Rectangle(), new Rectangle());
 //		

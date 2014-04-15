@@ -14,7 +14,7 @@ public class GenSample1Child <T> extends GenSample1<T> {
 	public void doThings() {
 //		T aT = getT();
 //		acceptT(aT);
-		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> (new Triangle()); 
+		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> (); 
 		aChild.acceptT(new Circle());
 		aChild.getT();
 		genSample1String = "hello";
