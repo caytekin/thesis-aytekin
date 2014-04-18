@@ -134,6 +134,7 @@ private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceR
 
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
+	println("Date: <printDate(now())>");
 	println("Creating M3....");
 	loc projectLoc = |project://VerySmallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
@@ -143,9 +144,6 @@ public void runIt() {
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
-	
-	printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
-	
 	
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
@@ -192,12 +190,23 @@ public void runIt() {
 
 	//println("CATEGORY:");
 	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
+	
+	println("INTERNAL REUSE:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == INTERNAL_REUSE }));
+
+	println("EXTERNAL REUSE ACTUAL:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE_ACTUAL}));
+
+	println("EXTERNAL REUSE CANDIDATE:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE_CANDIDATE}));
 
 
 	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
 	//printLog(subtypeLogFile, "SUBTYPE LOG");
-	//printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
+	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
+	printLog(actualExternalReuseLogFile, "ACTUAL EXTERNAL REUSE LOG");
+	printLog(candidateExternalReuseLogFile, "CANDIDATE EXTERNAL REUSE LOG");	
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	//printLog(downcallLogFile, "DOWNCALL LOG");
 	//printLog(superLogFile, "SUPER LOG:");

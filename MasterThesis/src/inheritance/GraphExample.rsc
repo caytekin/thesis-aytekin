@@ -28,3 +28,26 @@ public void getAllPredecessors() {
 	set [int] immPredecessors = predecessors(g, 4);
 	iprintln(immPredecessors); 
 }
+
+
+
+
+
+set [loc] getGenericParentCanidates (set [Declaration] projectASts) {
+	set [loc] retSet = {};
+	for ( Declaration anAST <- projectASTs) {
+		list [Expression] passedArguments = [];
+		visit (anAST) {
+			case methCall1:methodCall(_,_,args:_) : {
+				passedArguments = args;
+			}
+			case methCall2:methodCall(_,_,_,args:_) : {
+				passedArguments = args;
+			}
+		}
+		
+	}
+	return retSet;
+}
+
+

@@ -195,7 +195,7 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
+	M3 projectM3 = getM3Model(|project://VerySmallProject|);
 	//println("Method invocation annotation:");
 	//iprintln(sort(projectM3@methodInvocation));
 	//println();
@@ -208,16 +208,16 @@ public void runInitialWork() {
 	//iprintln(methodsOfVariables );
 	
 	
-	println("Types annotation");
+	//println("Types annotation");
 	//searchForComplexTypes(projectM3);
-	iprintln(sort(projectM3@types));
+	//iprintln(sort(projectM3@types));
 	//map [loc, set [Modifier]] modifierMap = toMap(projectM3@modifiers);
 	//set [Modifier] const1Mods = modifierMap[|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|];
 	//if (!isEmpty ( {_aModifier | _aModifier <- const1Mods, (_aModifier := \private()) } ) ) {
 	//	println("It is private");
 	//;} 
 	
-	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/secondEnhancedForSample()|); 
+	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/printlnSample()|); 
 	 //println();
 	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
 
@@ -410,6 +410,15 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
 	visit(methodAST) {
+		case m1:\methodCall(_,_, args) : {
+			//text(m1);
+		;}
+		case m2:\methodCall(_, receiver:_, _, args): {
+			println("Receivers type symbol is: <receiver@typ>");
+			println("Arguments are:");
+			iprintln(args);
+			
+		;}
 		case enhFor:\foreach(Declaration parameter, Expression collection, Statement body) : {
 			//text(enhFor);
 			println("Parameter type symbol is: <parameter@typ>");
@@ -541,57 +550,6 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 				;
 		}
 		
-		case m1:\methodCall(_,_, args) : {
-			//for (/this() := args) {
-			//	println("m1: A this match at <m1@src>");
-			//}
-			//for (anArg <- args) {
-			//	if (this() := anArg) {println("m1: SURFACE A this match at <m1@src>");;}
-			//}		
-		//case 1: case 3: case 5: {
-			 // \methodCall(bool isSuper, str name, list[Expression] arguments)
-			//println("m1: ");
-			//text(m1);
-			//dealWithMethodCall(m1, projectModel);
-			;
-		}
-		case m2:\methodCall(_, _, _, args): {
-			//for (/this() := args) {
-			//	println("m2: A this match at <m2@src>");
-			//}		
-			//for (anArg <- args) {
-			//	if (this() := anArg) {println("m2: SURFACE A this match at <m2@src>");;}
-			//}
-			//for (this() := args) {
-			//	println("m2: SURFACE A this match at <m2@src>");
-			//}			
-        	//  \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments):
-			//println("m2: ");
-			//text(m2);
-			//dealWithMethodCall(m2, projectModel);
-   //     	println(m2);
-   //     	println("receiver: <receiver>");
-   //     	println("m2 Annotations: <getAnnotations(m2)>");
-   //     	println("m2@typ: <m2@typ>");     
-   //     	println("m2@decl with @decl: <m2@decl>");            	         	   	
-   //     	println("Receiver annotations: <getAnnotations(receiver)>");
-   //     	TypeSymbol typeOfReceiver = receiver@typ;
-   //     	println("Receiver type: <typeOfReceiver>");
-   //     	//println("Receiver class: <typeOfReceiver@decl>");        	        	
-   //     	loc classOfReceiver = DEFAULT_LOC;
-   //     	println("Is this a class? <isClass(classOfReceiver)>");
-   //     	visit (typeOfReceiver) {
-   //     		case c:\class(classLoc,_) : {
-   //     			classOfReceiver = classLoc;  	
-   //     		}
-   //     	}
-   //     	println("Receiver class: <classOfReceiver>");        	
-   //     	// receiver@typ returns a TypeSymbol, this is again a Rascal construction (probably a node)
-   //     	// which will be visited to find out the type of the receiver.
-   //     	// The type of the receiver is also in the M3  	        	
-   //     	println("Receiver declaration: <receiver@decl>");  	 
-   ;
-        }
         case c:\cast(_, _) : { 
         	//  \cast(Type \type, Expression expression)
    //     	print("cast: ");

@@ -470,12 +470,18 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 		}
 		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
 			println("newObject 22222222222 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
+			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
 			println("newObject 33333333333 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
+			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
 			println("newObject 44444444444 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
+			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 	}
 	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {

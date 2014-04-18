@@ -276,7 +276,6 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		// TODO : Do not forget to think about encahnced for loop, there can also be a subtype there.
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {

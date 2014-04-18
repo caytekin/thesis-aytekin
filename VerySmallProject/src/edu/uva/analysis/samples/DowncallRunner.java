@@ -14,6 +14,6 @@ public class DowncallRunner {
 	
 	public static void main (String[] args) {
 		DowncallChild <Shape> dChild = new DowncallChild<Shape> ();
-		dChild.p(new Triangle());				// downcall, tested, working.
+//		dChild.p(new Triangle());				// downcall, tested, working.
 	}
 }

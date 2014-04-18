@@ -39,6 +39,7 @@ public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP = 206;
 public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_METHOD_CALL = 210;
 public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS = 211;
 public inheritanceSubtype EXTERNAL_REUSE_CANDIDATE_METHOD = 212;
+public inheritanceSubtype EXTERNAL_REUSE_CANDIDATE_FIELD = 213;
 
 
 public inheritanceSubtype INTERNAL_REUSE_METHOD_LEVEL = 220;
@@ -74,7 +75,8 @@ public alias categorySibling = loc;
 public loc categoryLogFile = |file://c:/Users/caytekin/InheritanceLogs/Category.log|;
 public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
 public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
-public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
+public loc actualExternalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ActualExternalReuse.log|;
+public loc candidateExternalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/CandidateExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 public loc superLogFile = |file://c:/Users/caytekin/InheritanceLogs/Super.log|;
 public loc thisChangingTypeCandFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeCand.log|;

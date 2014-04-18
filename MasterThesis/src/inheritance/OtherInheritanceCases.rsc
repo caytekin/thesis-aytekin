@@ -181,12 +181,15 @@ private rel [inheritanceKey iKey, set [loc] otherParents] getOneGenericUsage(Exp
 }
 
 
+
 private rel [inheritanceKey, inheritanceType] findGenericUsages(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
 	lrel [inheritanceKey _iKey, set [loc] _otherParents, loc _castLoc] genericLog = [];
 	map [loc, set [loc]] invertedExtendsAndImplementsMap 	= getInvertedExtendsAndImplementsMap(projectM3);	
 	map [loc, set [loc]] extendsAndImplementsMap 			= getExtendsAndImplementsMap(projectM3);		
 	set [Declaration] projectASTs = createAstsFromEclipseProject(projectM3.id, true);
+	// search for methodCalls with passed parameter System type and declared parameter object(). Put all such system types to a set,
+	// because the otherParent we are looking for should also be in that set.
 	for ( anAST <- projectASTs) {
 		visit (anAST) {
 			case castStmt:\cast(castType, castExpr) : {  

@@ -5,11 +5,26 @@ import java.util.ArrayList;
 import java.util.Map;
 
 public class GenericRunner {
-
+	
+	List <Object> myList = new ArrayList<Object> ();
+	Triangle aTriangle = new Triangle();
+	
+	
 //	public Shape returnShape() {
 //		return new Rectangle();
 //	}
 //	
+	void printlnSample() {
+		System.out.println("Hello world.");
+		myList.add(aTriangle);
+	}
+
+	
+	void parameterInParameter() {
+		
+	}
+	
+	
 	
 	void acceptAnObject(Object anObject) {
 		
@@ -49,10 +64,10 @@ public class GenericRunner {
 		RightTriangle aRightTriangle = new RightTriangle();
 		aRightTriangle.aTriangleMethod();   	// external reuse
 		
-		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> (new Triangle());
-		aChild.acceptT(new Triangle());
-		aChild.getT();
-		aChild.genSample1String = "xytz";
+//		GenSample1Child <Shape> aChild = new GenSample1Child <Shape> (new Triangle());
+//		aChild.acceptT(new Triangle());
+//		aChild.getT();
+//		aChild.genSample1String = "xytz";
 	}
 	
 	
@@ -105,6 +120,8 @@ public class GenericRunner {
 	void iHaveACircleParam(Circle circleParam) {
 		
 	}
+	
+	
 	
 	void tryGenSample1() {
 ////		GenSample1<Object> objectSample1 = new GenSample1<Object> ();

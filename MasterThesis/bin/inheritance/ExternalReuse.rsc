@@ -39,8 +39,10 @@ private bool isPrivate(loc aMethod, map[loc, set[Modifier]] allModifiers) {
 }
 
 
-private bool areAllMethodsOverridden(	set [loc] parentMethods, set [loc] childMethods, 
-										map[loc, set[loc]] invertedOverridesMap, map [loc, set[Modifier]] allModifiers) {
+private set [loc] getOneNotOverriddenMethod (	set [loc] parentMethods, set [loc] childMethods, 
+												map[loc, set[loc]] invertedOverridesMap, map [loc, set[Modifier]] allModifiers) {
+	// get one of the parent methods which are not overridden by the child, if any, otherwise return an epty set.
+	set [loc] retSet = {};
 	list [loc] parentMethodList = toList(parentMethods);
 	bool allOverridden = true; 
 	int listIndex = 0;
@@ -51,6 +53,7 @@ private bool areAllMethodsOverridden(	set [loc] parentMethods, set [loc] childMe
 		if (isEmpty(overridingChildMethods)) {
 			if (!isPrivate(aParentMethod, allModifiers)) {
 				allOverridden = false;	
+				retSet += aParentMethod;
 			}
 		} 
 		else {
@@ -60,12 +63,12 @@ private bool areAllMethodsOverridden(	set [loc] parentMethods, set [loc] childMe
 		}
 		listIndex += 1;
 	}
-	return allOverridden;
+	return retSet;
 }
 
 
-public rel [inheritanceKey, inheritanceSubtype] getCandidatesExternalReuse(rel [loc, loc] allInheritanceRelations, M3 projectM3) {
-	rel [inheritanceKey, inheritanceSubtype] retRel = {};
+public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getCandidatesExternalReuse(rel [loc, loc] allInheritanceRelations, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retRel = [];
 	rel [loc, loc] 				allSystemInhRelsCC_II 	= getAllSystemInhRelsCC_CI(allInheritanceRelations, projectM3);
 	map [loc, set[loc]] 		containmentMapMethods 	= toMap ({<_aClassOrInterface, _aMethod> | <_aClassOrInterface, _aMethod> <- projectM3@containment, isMethod(_aMethod), (isClass(_aClassOrInterface) || isInterface(_aClassOrInterface) ) });
 	map [loc, set [Modifier]] 	modifiersMap 			= toMap({<_aLoc, _aModifier> | <_aLoc, _aModifier>  <- projectM3@modifiers});
@@ -73,12 +76,14 @@ public rel [inheritanceKey, inheritanceSubtype] getCandidatesExternalReuse(rel [
 	for ( <_child, _parent> <- allSystemInhRelsCC_II) {
 		set [loc] childMethods = _child in containmentMapMethods ? containmentMapMethods[_child] : {};
 		set [loc] parentMethods = _parent in  containmentMapMethods ? containmentMapMethods[_parent] : {};
-		bool allMethodsOverridden = areAllMethodsOverridden(parentMethods, childMethods, invertedOverridesMap, modifiersMap);
-		if (!allMethodsOverridden) {
-			retRel += <<_child, _parent>, EXTERNAL_REUSE_CANDIDATE>;
+		set [loc] oneNotOverriddenMethodSet = getOneNotOverriddenMethod (parentMethods, childMethods, invertedOverridesMap, modifiersMap);
+		if (!isEmpty(oneNotOverriddenMethodSet )) {
+			retRel += <<_child, _parent>, EXTERNAL_REUSE_CANDIDATE_METHOD, getOneFrom(oneNotOverriddenMethodSet), DEFAULT_LOC>;
 		}
 	 } 
 	 // TODO: Until I get the answer from the authors, I do not do anything about field external reuse...
+	 // TODO: No, I decided to include field external reuse candidates already, independent from what the authors say...
+	 // TODO: Code this!
 	 return retRel;
 }
 
@@ -91,8 +96,8 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 		case m2:\methodCall(_, receiver:_, _, _): {
 			loc invokedMethod = m2@decl;        			
 			loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-			// I am only interested in the classes and not interfaces, enums, etc.
-			// I am not interested in this() and also variables of classOfMethodCall
+			// I am only interested in the classes and interfaces and not in enums, etc.
+			// I am not interested in this() and also fields of classOfMethodCall
 			if ((invokedMethod in invertedClassContainment) && (classOfReceiver != classOfMethodCall) 
 									&& isLocDefinedInProject(invokedMethod, declarationsMap) 
 								 	&& ! inheritanceRelationExists(classOfMethodCall, classOfReceiver, allInheritanceRelations)) {
@@ -133,6 +138,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	// TODO: This assumption has to change because there are also statistics for II in the paper, like nOnlyIIReuse
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] allExternalReuseCases = [];
+	lrel [inheritanceKey, inheritanceType, loc, loc] allCandExtReuseCases = [];
 	set	[loc] 				allClassesInProject 		= {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) };
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set [loc]] 	invertedClassContainment 	= toMap(invert({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner)}));
@@ -157,11 +163,13 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
 		resultRel += <aCase.iKey, EXTERNAL_REUSE_ACTUAL>;
 	}
-	// TODO !!! I am here. getCandidatesExternalReuse
-	rel [inheritanceKey, inheritanceType] candExtReuse = getCandidatesExternalReuse(allInheritanceRelations, projectM3);
-	resultRel += candExtReuse;
-	allExternalReuseCases += [<<_child, _parent>, EXTERNAL_REUSE_CANDIDATE_METHOD , DEFAULT_LOC, DEFAULT_LOC> | <<_child, _parent>, _> <- candExtReuse];
-	iprintToFile(externalReuseLogFile, allExternalReuseCases);
+	allCandExtReuseCases = getCandidatesExternalReuse(allInheritanceRelations, projectM3);
+	for ( int i <- [0..size(allCandExtReuseCases )]) { 
+		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allCandExtReuseCases[i];
+		resultRel += <aCase.iKey, EXTERNAL_REUSE_CANDIDATE>;
+	}
+	iprintToFile(actualExternalReuseLogFile, allExternalReuseCases);
+	iprintToFile(candidateExternalReuseLogFile,  allCandExtReuseCases);
 	return resultRel;
 }
 

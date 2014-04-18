@@ -27,7 +27,7 @@ lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] getClassLevelInte
 	for (reusedLoc <- internalReuseLocs) {
 		loc parentClass =  getDefiningClassOfALoc(reusedLoc, invertedContainmentMap);
 		inheritanceKey iKey = <oneClass, parentClass>;
-		retRel += < iKey, INTERNAL_REUSE_CLASS_LEVEL, <reusedLoc, parentClass>>;		
+		retRel += < iKey, INTERNAL_REUSE_CLASS_LEVEL, <reusedLoc, oneClass>>;		
 	};																			
 	return retRel; 							    
 }	
@@ -36,17 +36,9 @@ lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] getClassLevelInte
 
 public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3) {
 	// Get all the child classes in CC relation, they are the only ones which can initiate internal reuse.
-	//
 	// The super() calls in the constructors are not counted as internal reuse, also see assumptions document.
 	//
 	// In classes, not only the methods, but also the initializers are taken into account
-	//
-	// I do NOT traverse  framework inheritance relationships.
-	//
-	// It also works for arrays and collections
-	//
-	// TODO: I should look (and test) if I take the constructors in to account.
-	// A constructor can also invoke parent methods (not only super())
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	lrel [inheritanceKey, inheritanceSubtype, internalReuseDetail] internalReuseLog = []; 
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
@@ -65,15 +57,12 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 		for (anAncestorClass <- ancestorClasses) {
 			ancestorFieldsMethods += anAncestorClass in containmentMap ? containmentMap[anAncestorClass] : {}; 
 		}		
-		
 		set [loc] declaredFieldsMethods = oneClass in containmentMapWithInit ? containmentMapWithInit[oneClass] : {} ; 
 		set [loc] declaredMethods = { declMeth | declMeth <- declaredFieldsMethods, isMethod(declMeth) || declMeth.scheme == "java+initializer" };
 		set [loc] declaredFields = declaredFieldsMethods - declaredMethods;
 			
 		internalReuseLog += getClassLevelInternalReuse(oneClass, declaredFields, declaredMethods, 	ancestorFieldsMethods, invocationMap, 
 																									fieldAccessFromClassMap, invertedContainmentMap );	
-			
-										
 		for (oneMethod <- declaredMethods) {
 			set [loc] allInvokedMethods	= oneMethod in invocationMap ? invocationMap[oneMethod] : {};
 			
@@ -84,7 +73,6 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 																			
 			set [loc] internalReuseFieldAccess = { accessed | accessed <- allAccessedFields,  accessed notin declaredFieldsMethods, 
 																							  accessed in ancestorFieldsMethods };
-																							  	
 			set [loc] internalReuseLoc = internalReuseMethodInvocation + internalReuseFieldAccess;																		
 			for (reusedLoc <- internalReuseLoc) {
 				loc parentClass =  getDefiningClassOfALoc(reusedLoc, invertedContainmentMap);
@@ -96,6 +84,7 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	
 	resultRel = {<iKey, INTERNAL_REUSE> | <iKey, _, <_,_>> <- internalReuseLog};
 	iprintToFile(internalReuseLogFile , internalReuseLog);
+	println("Size of internal reuse log is: <size(internalReuseLog)>");
 	return resultRel;
 }
 

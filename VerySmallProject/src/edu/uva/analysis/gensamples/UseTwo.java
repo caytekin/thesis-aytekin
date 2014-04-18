@@ -23,8 +23,24 @@ public class UseTwo <T, X> {	// after type erasure UseTwo
 		
 	}
 	
+	void doOneThing(UseTwo <T, X> aParam) {
+		
+	}
+	
+	
 	void runNewObject() {
 //		new UseTwo<Shape, Shape> (new Rectangle(), new Rectangle());		
+	}
+	
+		UseTwo <GenSample6 <BlueRectangle>, RightTriangle> getParameterInParameter() {
+		return new UseTwo <GenSample6 <BlueRectangle>, RightTriangle> ();
+	}
+	
+	
+	void nestedParamExample() {
+		UseTwo <GenSample1 <Rectangle>, Triangle> aUseTwoObject = new UseTwo <GenSample1 <Rectangle>, Triangle> ();
+		aUseTwoObject.doSomething(new GenSample1Child <Rectangle> (), new RightTriangle());
+//		aUseTwoObject.doOneThing(parameterInParameter);
 	}
 	
 	
@@ -36,12 +52,16 @@ public class UseTwo <T, X> {	// after type erasure UseTwo
 //		String theT = twos.getT();
 //		int theX = twos.getX();
 		
-		UseTwo<Shape, Triangle> anotherTwo;
-		anotherTwo = new UseTwo<Shape, Triangle> ();
-		anotherTwo.doSomething(new Circle(), new RightTriangle());
+//		GenSample6 <Shape> aGenSample6 = new GenSample6 <Shape> ();
 //		
-		GenSample6 <Rectangle> myGenSample = new GenSample6 <Rectangle> ();
-		
+//		
+//		
+//		UseTwo<Shape, Triangle> anotherTwo;
+//		anotherTwo = new UseTwo<Shape, Triangle> ();
+//		anotherTwo.doSomething(new Circle(), new RightTriangle());
+//		
+//		GenSample6 <Rectangle> myGenSample = new GenSample6 <Rectangle> ();
+//		
 //		UseTwo <GenSample6 <Rectangle>, Triangle> parameterInParameter;
 //		parameterInParameter = new UseTwo <GenSample6 <Rectangle>, Triangle> (new GenSample6 <Rectangle> (), new Triangle());
 //		parameterInParameter.doSomething(new GenSample6 <Rectangle> (new BlueRectangle()), new RightTriangle());

@@ -18,4 +18,10 @@ public class GenSample1 <T> {	// after type erasure T becomes Object.
 
 	void acceptT(T aT) {
 		
-	}}
+	}
+	
+	GenSample1 <GenSample1 <T>> returnAGenSample() {
+		return new GenSample1Child<GenSample1 <T>> ();
+	}
+	
+}
