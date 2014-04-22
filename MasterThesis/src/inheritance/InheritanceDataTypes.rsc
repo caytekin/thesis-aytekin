@@ -15,16 +15,55 @@ public inheritanceType SUPER = 8;
 public inheritanceType GENERIC = 9;
 public inheritanceType CATEGORY = 10;
 
+public inheritanceType EXTERNAL_REUSE = 11;
+public inheritanceType DOWNCALL = 12;
 
-public metricsType nExplicitCC			= 1001;
-public metricsType nCCUsed				= 1002;
-public metricsType nCCDC				= 1003;
-public metricsType nCCSubtype 			= 1004;
-public metricsType nCCExreuseNoSubtype 	= 1005;
-public metricsType nCCUsedOnlyInRe		= 1006;
-public metricsType nCCUnexplSuper		= 1007;
-public metricsType nCCUnExplCategory	= 1008;
-public metricsType nCCUnknown			= 1009;
+
+
+
+public metricsType numExplicitCC			= 1001;
+public metricsType numCCUsed				= 1002;
+public metricsType perCCUsed				= 1003;		// numCCUsed / numExplicitCC
+public metricsType numCCDC					= 1004;
+public metricsType perCCDC					= 1005;		// numCCDC / numExplicitCC
+public metricsType numCCSubtype 			= 1006;
+public metricsType perCCSubtype 			= 1007;		// numCCSubtype / numCCUsed
+public metricsType numCCExreuseNoSubtype 	= 1008;
+public metricsType perCCExreuseNoSubtype 	= 1009;		// numCCExreuseNoSubtype / numCCUsed
+public metricsType numCCUsedOnlyInRe		= 1010;
+public metricsType perCCUsedOnlyInRe		= 1011;		// numCCUsedOnlyInRe / numCCUsed
+public metricsType numCCUnexplSuper			= 1012;
+public metricsType perCCUnexplSuper			= 1013;		// numCCUnexplSuper / numExplicitCC
+public metricsType numCCUnexplCategory		= 1014;
+public metricsType perCCUnexplCategory		= 1015;		// numCCUnexplCategory / numExplicitCC
+public metricsType numCCUnknown				= 1016;
+public metricsType perCCUnknown				= 1017;		// numCCUnknown / numExplicitCC
+
+
+public metricsType numExplicitCI			= 1025;
+public metricsType numOnlyCISubtype			= 1026;
+public metricsType perOnlyCISubtype			= 1027;		// numOnlyCISubtype / numExplicitCI
+public metricsType numExplainedCI			= 1028;
+public metricsType perExplainedCI			= 1028;		// numExplainedCI / numExplicitCI
+public metricsType numCategoryExplCI		= 1029;
+public metricsType perCategoryExplCI		= 1030;		// numCategoryExplCI / numExplicitCI
+public metricsType numUnexplainedCI			= 1031;
+public metricsType perUnexplainedCI			= 1032;		// numUnexplainedCI / numExplicitCI
+
+
+public metricsType numExplicitII			= 1040;
+public metricsType numIISubtype				= 1041;
+public metricsType perIISubtype				= 1042;		// numIISubtype / numExplicitII
+public metricsType numOnlyIIReuse			= 1043;
+public metricsType perOnlyIIReuse			= 1044;		// numOnlyIIReuse / numExplicitII
+public metricsType numExplainedII			= 1045;
+public metricsType perExplainedII			= 1046;		// numExplainedII / numExplicitII
+public metricsType numCategoryExplII		= 1047;
+public metricsType perCategoryExplII		= 1048;		// numCategoryExplII / numExplicitII
+public metricsType numUnexplainedII			= 1049;
+public metricsType perUnexplainedII			= 1050;		// numUnexplainedII / numExplicitII
+
+
 
 
 
@@ -59,6 +98,7 @@ public alias metricsType = int;
 public loc DEFAULT_LOC = |java+project:///|;
 public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);
 public loc THROWABLE_CLASS = |java+class:///java/lang/Throwable|;
+public loc EXCEPTION_CLASS = |java+class:///java/lang/Exception|;
 public loc OBJECT_CLASS = |java+class:///java/lang/Object|;
 
 

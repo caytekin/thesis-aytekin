@@ -32,6 +32,9 @@ public str getNameOfInheritanceType(inheritanceType iType) {
  		case SUPER						: {return "SUPER";}
  		case GENERIC		    		: {return "GENERIC";}
  		case CATEGORY		    		: {return "CATEGORY";}
+ 		case EXTERNAL_REUSE     		: {return "EXTERNAL REUSE";}
+ 		case DOWNCALL 		    		: {return "DOWNCALL";}
+ 		
  
  //
  //		case CLASS_CLASS		: {return "CLASS CLASS";}
@@ -48,16 +51,27 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 public str getNameOfInheritanceMetric(metricsType iMetric) {
 		switch(iMetric) {
 		
-		case nExplicitCC			: {return "nExplicitCC			";}
-		case nCCUsed				: {return "nCCUsed				";}
-		case nCCDC					: {return "nCCDC				";}
-		case nCCSubtype 		 	: {return "nCCSubtype			";}
-		case nCCExreuseNoSubtype 	: {return "nCCExreuseNoSubtype	";}
-		case nCCUsedOnlyInRe	 	: {return "nCCUsedOnlyInRe		";}
-		case nCCUnexplSuper		 	: {return "nCCUnexplSuper		";}
-		case nCCUnExplCategory		: {return "nCCUnExplCategory	";}
-		case nCCUnexplSuper			: {return "nCCUnexplSuper		";}
-		case nCCUnknown				: {return "nCCUnknown			";}
+		case numExplicitCC				: {return "numExplicitCC			";}
+		case numCCUsed					: {return "numCCUsed				";}
+		case perCCUsed					: {return "perCCUsed				";}
+		case numCCDC					: {return "numCCDC				";}
+		case perCCDC					: {return "perCCDC				";}
+		case numCCSubtype 		 		: {return "numCCSubtype			";}
+		case perCCSubtype 		 		: {return "perCCSubtype			";}
+		case numCCExreuseNoSubtype 		: {return "numCCExreuseNoSubtype	";}
+		case perCCExreuseNoSubtype 		: {return "perCCExreuseNoSubtype	";} 		
+		case numCCUsedOnlyInRe	 		: {return "numCCUsedOnlyInRe		";}
+		case perCCUsedOnlyInRe	 		: {return "perCCUsedOnlyInRe		";}
+		case numCCUnexplSuper		 	: {return "numCCUnexplSuper		";}
+		case perCCUnexplSuper		 	: {return "perCCUnexplSuper		";}
+		case numCCUnexplCategory		: {return "numCCUnExplCategory	";}
+		case perCCUnexplCategory		: {return "perCCUnExplCategory	";}
+		case numCCUnexplSuper			: {return "numCCUnexplSuper		";}
+		case perCCUnexplSuper			: {return "perCCUnexplSuper		";}
+		case numCCUnknown				: {return "numCCUnknown			";}
+		case perCCUnknown				: {return "perCCUnknown			";}		
+		
+		default : {return "NOT KNOWN: <iMetric>"; }
  	}
 }
 
@@ -454,7 +468,7 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	loc methodOwningClassOrInt = DEFAULT_LOC;
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
-			println("Method call at <methodOrConstExpr@decl> ");
+			//println("Method call at <methodOrConstExpr@decl> ");
 			methodOwningClassOrInt =  getDefiningClassOrInterfaceOfALoc(methodOrConstExpr@decl, invertedClassAndInterfaceContainment);
 			recTypeSymbol = receiver@typ;
 		}
@@ -462,42 +476,42 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			// There can be no subtyping between type parameters, so I do not have to do anything here.
 		;}
 		case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-			println("Called constructor: <newObject1@decl>");
-			println("newObject 11111111111 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			//println("Called constructor: <newObject1@decl>");
+			//println("newObject 11111111111 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
-			println("Received type symbol: <recTypeSymbol>");
+			//println("Received type symbol: <recTypeSymbol>");
 		}
 		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-			println("newObject 22222222222 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			//println("newObject 22222222222 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-			println("newObject 33333333333 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			//println("newObject 33333333333 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-			println("newObject 44444444444 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
+			//println("newObject 44444444444 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 	}
 	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-		println("Receiver type symbol is: <recTypeSymbol>");
+		//println("Receiver type symbol is: <recTypeSymbol>");
 		// recTypeParameters holds the actual types with which the object was instantiated, like Shape, Ractangle, String, etc.
 		list [TypeSymbol] recTypeParameters = getReceivingTypeParameters(recTypeSymbol);  
-		println("Receiving type parameters:"); iprintln(recTypeParameters);
+		//println("Receiving type parameters:"); iprintln(recTypeParameters);
 		// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
 		list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
-		println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
+		//println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
 		// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
 		map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
-		println("Type variable map: "); iprintln(typeVariableMap);
+		//println("Type variable map: "); iprintln(typeVariableMap);
 		resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
-		println("Resolved type symbol is: <resolvedTypeSymbol>" );
-		println();
+		//println("Resolved type symbol is: <resolvedTypeSymbol>" );
+		//println();
 	}
 	return resolvedTypeSymbol;
 }
