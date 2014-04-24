@@ -23,6 +23,7 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 	bool retBool = false;
 	for ( aField <- fieldsInLoc) {
 		set [Modifier] modifiers = aField in allFieldModifiers ? allFieldModifiers[aField] : {} ;
+		//println("Modifiers for field : <aField>  is : <modifiers>");
 		bool isFinal = false, isStatic = false;		
 		for (aModifier <- modifiers) {
 			switch (aModifier) {
@@ -38,6 +39,7 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 			retBool = true;
 		}
 	}
+	//println("Ret bool is: <retBool>");
 	return retBool;
 }
 
@@ -47,6 +49,9 @@ public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInt
 	bool retBool = false;
 	set [loc] everythingInLoc = aLoc in classAndInterfaceContWithoutTypeVars ? classAndInterfaceContWithoutTypeVars[aLoc] : {} ;
 	set [loc] fieldsInLoc = {_aField | _aField  <- everythingInLoc, isField(_aField)};
+	//println("classAndInterfaceContWithoutTypeVars:  <classAndInterfaceContWithoutTypeVars>");
+	//println("For location: <aLoc>, everythingInLoc is: <everythingInLoc>"); 
+	//println("For location: <aLoc>, fieldsInLoc is: <fieldsInLoc>"); 	
 	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, allFieldModifiers)) {
 		retBool = true;
 	}
@@ -59,6 +64,7 @@ public set [loc] getConstantCandidates(map[loc, set [loc]] classAndInterfaceCont
 	list [loc] allClassesAndInterfaces = sort(getAllClassesAndInterfacesInProject(projectM3));
 	for (aLoc <- allClassesAndInterfaces ) {
 		if (containsOnlyConstantFields(aLoc, classAndInterfaceContWithoutTypeVars, allFieldModifiers)) {
+			//println("A constant candidate: <aLoc>");
 			retSet += aLoc;
 		}
 	}
@@ -82,6 +88,7 @@ public rel [inheritanceKey,inheritanceType] findConstantLocs(set [loc] candidate
 		set [loc] allParentsOfLoc = {parent | <child, parent> <- allInheritanceRels, aLoc == child};
 		if (isEmpty(allParentsOfLoc) || (areAllParentsInCandidateList(allParentsOfLoc, candidateLocs))) {
 			retRel += {<<child, parent>, CONSTANT> | <child, parent> <- allInheritanceRels, aLoc == parent};
+			//println("A constant case is found!!!! Parent: <aLoc>");
 		}
 	}
 	return retRel;
@@ -276,6 +283,7 @@ public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM
 	map [loc, set[loc]] interfaceContainmentWithoutTypeVars = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface), _anItem.scheme != "java+typeVariable"});	
 	map [loc, set[loc]] classAndInterfaceContWithoutTypeVars = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface), _anItem.scheme != "java+typeVariable" });
 	map[loc, set[Modifier]] allFieldModifiers = toMap({<_aField, _aModifier> | <_aField, _aModifier>  <- projectM3@modifiers, isField(_aField)});
+	//iprintln(sort(projectM3@modifiers));
 	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContWithoutTypeVars, allFieldModifiers, projectM3), projectM3);
 	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainmentWithoutTypeVars, projectM3), projectM3);	
 	retRel += findSuperRelations(projectM3);

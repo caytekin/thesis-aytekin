@@ -8,12 +8,12 @@ public class DowncallRunner {
 	}
 	
 	void runWithThis() {
-//		DowncallChild dChild = new DowncallChild();
-//		dChild.p();		// downcall, tested, working
+		DowncallChild<Shape> dChild = new DowncallChild <Shape>();
+		dChild.p(new Triangle());		// downcall, tested, working
 	}
 	
 	public static void main (String[] args) {
 		DowncallChild <Shape> dChild = new DowncallChild<Shape> ();
-//		dChild.p(new Triangle());				// downcall, tested, working.
+		dChild.p(new Triangle());				// downcall, tested, working.
 	}
 }

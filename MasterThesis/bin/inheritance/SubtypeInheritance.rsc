@@ -126,7 +126,26 @@ public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(De
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt) {
+public bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
+	bool retBool = false;
+	set [loc] allParentsOfAChild = (aChild in inheritanceRelsMap) ? inheritanceRelsMap[aChild] : {};
+	if (aParent notin allParentsOfAChild) {
+		// we suspect upcasting
+		set [loc] reverseParentSet = (aParent in inheritanceRelsMap) ? inheritanceRelsMap[aParent] : {};
+		if (aChild in reverseParentSet) {
+			retBool = true;
+		}
+		else {
+			// TODO: I should handle the sideways cast here!!!
+			// Tomorrow continue from here !!!!!!!!!!!!!!
+			throw "A cast between non subtypes! Child : <aChild>, Parent: <aParent>";
+		}
+	}
+	return retBool;
+}
+
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt, map [loc, set [loc]] inheritanceRelsMap ) {
 // The cast can be from child to parent, but also from parent to child
 // Also, sideways cast is possible. This will give some irregularities 
 // in the statistics, because we assume a <child, parent> tuple in CC, CI or II. 
@@ -136,9 +155,16 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 			//println("Cast subtype source ref: <castStmt@src>");	
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(castExpr@typ, getTypeSymbolFromRascalType(castType));
 			if (result.isSubtypeRel) {
-				retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
-				// TODO: Is it possible to log sideways cast and casting from child to parent 
-				// 		 with different inheritance subtype? Think about it...
+				bool upcasting = isUpCasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
+				if (upcasting) {
+					// reverse the order if there is upcasting.
+					retList += < <result.iKey.parent,result.iKey.child> , SUBTYPE_VIA_CAST, castStmt@src>;				
+				}
+				else {
+					retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+					// TODO: Is it possible to log sideways cast and casting from child to parent 
+					// 		 with different inheritance subtype? Think about it...
+				}	
 			} 
 		}
 	}
@@ -165,7 +191,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 	}
 	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 		//println("For loop: <forLoopRef>");
-		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(compTypeSymbol, paramTypeSymbol);
 		if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef>; }
 	}	
 	return retList;
@@ -275,6 +301,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(getInheritanceRelations(projectM3));
 	for (oneClass <- allClassesInProject ) {
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
@@ -286,7 +313,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeViaVariables(variables);
 				} 
 				case castStmt:\cast(castType, castExpr) : {  
-					allSubtypeCases += getSubtypeViaCast(castStmt);					
+					allSubtypeCases += getSubtypeViaCast(castStmt, inheritanceRelsMap);					
 				} // case \cast
 				case enhForStmt:\foreach(Declaration parameter, Expression collection, Statement body) : {
 					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection@typ, enhForStmt@src);

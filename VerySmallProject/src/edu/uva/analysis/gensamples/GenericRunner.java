@@ -1,6 +1,6 @@
 package edu.uva.analysis.gensamples;
 
-import java.util.List;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -19,6 +19,14 @@ public class GenericRunner {
 		myList.add(aTriangle);
 	}
 
+	
+	void genericDefinitionInArticle() {
+		List aList = new Vector();
+		T aT = new R();
+		aList.add(aT);
+		S anS = (S)aList.get(0);
+	}
+	
 	
 	void parameterInParameter() {
 		

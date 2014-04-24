@@ -22,14 +22,13 @@ import inheritance::OtherInheritanceCases;
 
 
 
-set [inheritanceKey] explicitCCs = {};
-set [inheritanceKey] actualCCs = {};
-
 
 private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritanceType] inheritanceResults) {
 	map [inheritanceType, num] resultMap = ();
 	for ( anInheritanceType <- [INTERNAL_REUSE..(CATEGORY+1)]) {
 		int totalOccurrences = size({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType });
+		println("<getNameOfInheritanceType(anInheritanceType)>"); iprintln(sort({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType }));
+		println();
 		resultMap += (anInheritanceType :  totalOccurrences);
 	}
 	return resultMap;
@@ -96,22 +95,16 @@ num calcPercentage (num nominator, num denominator) {
 
 
 
-private map [metricsType, num] calculateCCResults(bool actuals, rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] allInheritanceRelations, M3 projectM3) {
+private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] inheritanceRelations, M3 projectM3) {
 	
 	map [metricsType, num] 		CCResultsMap 		= ();
 	// filter out CC only
 	rel [inheritanceKey, inheritanceType] ccResults = {<<_child, _parent>, iKey> | <<_child, _parent>, iKey> <- inheritanceResults, isClass(_child), isClass(_parent)};
+	rel [loc, loc] ccRelations = { <_child, _parent> | <_child, _parent> <- inheritanceRelations, isClass(_child), isClass(_parent)};
+	
+	// numExplicitCC : Number of explicit user defined cc edges (for the authors), and for me number of user defined (system) edges.
 
-	if (actuals) { 
-		explicitCCs = {<_child, _parent>| <<_child, _parent>, _iKey>  <- ccResults}; 
-	} 
-	else {
-		actualCCs = {<_child, _parent>| <<_child, _parent>, _iKey>  <- ccResults}; ;
-	};
-	// numExplicitCC : Number of explicit userdefined cc edges
-	// TODO : To be able to look at that, I also have to filter out the allInheritanceRelations accordingly ....
-	// On Thursday, start from here!!!!!!!
-	CCResultsMap += (numExplicitCC: size({<_child, _parent>| <<_child, _parent>, _iKey>  <- ccResults}));			
+	CCResultsMap += (numExplicitCC: size({<_child, _parent>| <_child, _parent>  <- ccRelations}));			
 	
 	CCResultsMap += (numCCUsed: size({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE} }));
 	CCResultsMap += (perCCUsed : calcPercentage(CCResultsMap[numCCUsed], CCResultsMap[numExplicitCC]));
@@ -127,8 +120,6 @@ private map [metricsType, num] calculateCCResults(bool actuals, rel [inheritance
 	CCResultsMap += (numCCSubtype : size(subtypeRels));	
 	CCResultsMap += (perCCSubtype : calcPercentage(CCResultsMap[numCCSubtype], CCResultsMap[numCCUsed]));	
 	
-	//  calcPercentage(CCResultsMap[], CCResultsMap[])
-	
 	CCResultsMap += (numCCExreuseNoSubtype : size(exreuseNoSubtypeRels) );	
 	CCResultsMap += (perCCExreuseNoSubtype : calcPercentage(CCResultsMap[numCCExreuseNoSubtype ], CCResultsMap[numCCUsed]));
 	
@@ -140,34 +131,28 @@ private map [metricsType, num] calculateCCResults(bool actuals, rel [inheritance
 	CCResultsMap += (numCCUnexplSuper: size({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == SUPER} - allButSuper));
 	CCResultsMap += (perCCUnexplSuper: calcPercentage(CCResultsMap[numCCUnexplSuper], CCResultsMap[numExplicitCC]));
 	
-	//println("SUPER RELATIONSHIP"); iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == SUPER} - allButSuper));
-
 	set [inheritanceKey] allButCategory = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER}};
 	CCResultsMap += (numCCUnexplCategory : size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CATEGORY}  - allButCategory));
 	CCResultsMap += (perCCUnexplCategory: calcPercentage(CCResultsMap[numCCUnexplCategory ], CCResultsMap[numExplicitCC]));
 
-	rel [loc, loc] nonFrameworkInhRels = getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3); 
-	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends, isClass(_child), isClass(_parent)}; 
-	rel [loc, loc] nonFrExplicitInhRels = {<_child, _parent> | <_child, _parent> <- nonFrameworkInhRels, <_child, _parent> in extendsRel};
-
 	set [inheritanceKey] allFoundUsages = {<_child, _parent> | <<_child, _parent> , _iType> <- ccResults};
-	CCResultsMap += (numCCUnknown: size(nonFrExplicitInhRels - allFoundUsages));
+	//println("UNKNOWN RELATIONS LIST: "); iprintln(sort(ccRelations- allFoundUsages));
+	CCResultsMap += (numCCUnknown: size(ccRelations- allFoundUsages));
 	CCResultsMap += (perCCUnknown: calcPercentage(CCResultsMap[numCCUnknown], CCResultsMap[numExplicitCC]));
 
-	set [inheritanceKey] allButConstant = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, GENERIC, CATEGORY} };
+	//set [inheritanceKey] allButConstant = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, GENERIC, CATEGORY} };
 	//println("NUMBER OF CONSTANT ONLY CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CONSTANT} - allButConstant )>");
 	//iprintln({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CONSTANT} - allButConstant);
 
-	set [inheritanceKey] allButMarker = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, CONSTANT, GENERIC, CATEGORY} };
+	//set [inheritanceKey] allButMarker = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, CONSTANT, GENERIC, CATEGORY} };
 	//println("NUMBER OF MARKER CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == MARKER} - allButMarker )>");
 
-	set [inheritanceKey] allButGeneric = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, CONSTANT, CATEGORY} };
+	//set [inheritanceKey] allButGeneric = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, CONSTANT, CATEGORY} };
 	//println("NUMBER OF GENERIC CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == GENERIC} - allButGeneric )>");
 
+	println("CC UNKNOWN: ");
+	iprintln({<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- ccResults, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}});
 
-
-	//println("CC UNKNOWN: ");
-	//iprintln({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}});
 	return CCResultsMap;
 }
 
@@ -191,27 +176,15 @@ private void printResults(map[inheritanceType, num] totals ) {
 }
 
 
-private void printProportions(rel [inheritanceKey, inheritanceType] inheritanceResults, map[inheritanceType, num] totals ){
-	iprintln(<totals>);
-	println("DOWNCALL PROPORTION: <(totals[DOWNCALL_ACTUAL])/(totals[NONFRAMEWORK_CC])>");
-	println("SUBTYPE PROPORTION: <totals[SUBTYPE]/( totals[NONFRAMEWORK_CC] + totals[NONFRAMEWORK_CI] + totals[NONFRAMEWORK_II])>");
-	set [inheritanceKey] subtypeCases = {iKey | <iKey, iType> <- inheritanceResults, iType == SUBTYPE};
-	set [inheritanceKey] externalNotSubtype = {iKey | <iKey, iType> <- inheritanceResults, iType == EXTERNAL_REUSE_ACTUAL, iKey notin subtypeCases };
-	set [inheritanceKey] externalOrSubtype = subtypeCases + externalNotSubtype;
-	set [inheritanceKey] internalOnly = {iKey | <iKey, iType> <- inheritanceResults, iType == INTERNAL_REUSE, iKey notin externalOrSubtype};
-	println("PROPORTION OF EDGES THAT ARE EXTERNAL REUSE BUT NOT SUBTYPE: <size(externalNotSubtype)/totals[NONFRAMEWORK_CC]>");
-	println("PROPORTION OF EDGES THAT ARE INTERNAL REUSE ONLY: <size(internalOnly)/totals[NONFRAMEWORK_CC]>");	
-	// TODO: Do not forget to handle divide by zero.
-}
-
 
 public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://InheritanceSamples|;
+	loc projectLoc = |project://VerySmallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
+	//println("M3 Modifiers for the project:"); iprintln(sort(projectM3@modifiers)); 
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");
@@ -246,20 +219,20 @@ public void runIt() {
 
 	rel [inheritanceKey, inheritanceType] explicitResults = getExplicitResults(filteredInheritanceCases, projectM3);
 	rel [inheritanceKey, inheritanceType] actualResults = getActualResults(filteredInheritanceCases);	
+	
+	rel [loc, loc] systemInhRelations = getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
+	
+	rel [loc, loc] explicitInhRelations = getExplicitInhRelations(systemInhRelations, projectM3);
 
-	map [metricsType, num] explicitCCMetricResults = calculateCCResults(false, explicitResults, allInheritanceRelations, projectM3);
+	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, explicitInhRelations, projectM3);
 	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
 	printCCResults(explicitCCMetricResults, projectM3);
 	
-	map [metricsType, num] actualCCMetricResults = calculateCCResults(true, actualResults, allInheritanceRelations, projectM3);
+	map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
 	println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
 	printCCResults(actualCCMetricResults, projectM3);
 	
 	
-	println("Difference between explicit and actuals:");
-	iprintln( explicitCCs - actualCCs) ;
-	
-	//printProportions(allInheritanceCases, totals);
 	//println("CONSTANTS:");
 	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));
 	//
@@ -288,12 +261,12 @@ public void runIt() {
 
 	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
-	//printLog(subtypeLogFile, "SUBTYPE LOG");
+	printLog(subtypeLogFile, "SUBTYPE LOG");
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	printLog(actualExternalReuseLogFile, "ACTUAL EXTERNAL REUSE LOG");
 	printLog(candidateExternalReuseLogFile, "CANDIDATE EXTERNAL REUSE LOG");	
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
-	//printLog(downcallLogFile, "DOWNCALL LOG");
+	printLog(downcallLogFile, "DOWNCALL LOG");
 	//printLog(superLogFile, "SUPER LOG:");
 	
 	

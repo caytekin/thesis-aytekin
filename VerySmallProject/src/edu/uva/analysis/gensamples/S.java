@@ -1,5 +1,5 @@
 package edu.uva.analysis.gensamples;
 
-public interface S {
+public class S {
 
 }

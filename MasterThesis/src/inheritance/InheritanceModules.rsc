@@ -271,6 +271,14 @@ public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
 }
 
 
+rel [loc, loc] getExplicitInhRelations(rel [loc, loc] systemInhRelations, M3 projectM3) {
+	rel [loc, loc] retRel = {};
+	rel [loc, loc] 	extendsOrImplRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements};
+	retRel = {<_child, _parent> | <_child, _parent> <- systemInhRelations, <_child, _parent> in extendsOrImplRel };
+	return retRel;	
+}
+
+
 //returns all the classes defined in the project.
 public set [loc] getAllClassesInProject(M3 projectM3) {
 	return {decl | <decl, prjct> <- projectM3@declarations, isClass(decl) };

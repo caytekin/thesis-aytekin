@@ -10,4 +10,6 @@ public class Rectangle extends Shape {
 	public void draw(Canvas c) {
         System.out.println("I am drawing a rectangle...");
     }
+	
+	
 }
