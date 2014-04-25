@@ -37,6 +37,9 @@ private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritance
 
 
 private set [loc] getAllExceptionClasses(rel [loc, loc] allInheritanceRelations) {
+	// TODO: At the moment I look only the children of java.lang.Exception or java.lang.Throwable
+	// There can be framework types which are exceptions, and the system types which are children of them.
+	// May be I can use a name heuristic. 
 	set [loc] retSet = {}; 
 	set [loc] allExceptionClasses = {_child | <_child, _parent> <- allInheritanceRelations, _parent == THROWABLE_CLASS || _parent == EXCEPTION_CLASS };
 	retSet  = allExceptionClasses;
@@ -181,7 +184,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://VerySmallProject|;
+	loc projectLoc = |project://DowncallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	//println("M3 Modifiers for the project:"); iprintln(sort(projectM3@modifiers)); 

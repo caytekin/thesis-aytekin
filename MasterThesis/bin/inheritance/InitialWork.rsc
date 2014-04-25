@@ -196,6 +196,8 @@ void searchForComplexTypes(M3 projectM3) {
 
 public void runInitialWork() {
 	M3 projectM3 = getM3Model(|project://VerySmallProject|);
+	TypeSymbol myTypeSymbol = class(|java+class:///java.lang.Object|, []);
+	println("myTypeSymbol is: <myTypeSymbol>");
 	//println("Method invocation annotation:");
 	//iprintln(sort(projectM3@methodInvocation));
 	//println();

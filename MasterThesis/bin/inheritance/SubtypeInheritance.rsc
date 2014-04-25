@@ -135,11 +135,6 @@ public bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanc
 		if (aChild in reverseParentSet) {
 			retBool = true;
 		}
-		else {
-			// TODO: I should handle the sideways cast here!!!
-			// Tomorrow continue from here !!!!!!!!!!!!!!
-			throw "A cast between non subtypes! Child : <aChild>, Parent: <aParent>";
-		}
 	}
 	return retBool;
 }
@@ -155,10 +150,10 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 			//println("Cast subtype source ref: <castStmt@src>");	
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(castExpr@typ, getTypeSymbolFromRascalType(castType));
 			if (result.isSubtypeRel) {
-				bool upcasting = isUpCasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
+				bool upcasting = isUpcasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
 				if (upcasting) {
 					// reverse the order if there is upcasting.
-					retList += < <result.iKey.parent,result.iKey.child> , SUBTYPE_VIA_CAST, castStmt@src>;				
+					retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_CAST, castStmt@src>;				
 				}
 				else {
 					retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;

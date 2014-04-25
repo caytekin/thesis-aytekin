@@ -100,6 +100,7 @@ public TypeSymbol DEFAULT_TYPE_SYMBOL = class(|java+class:///|,[]);
 public loc THROWABLE_CLASS = |java+class:///java/lang/Throwable|;
 public loc EXCEPTION_CLASS = |java+class:///java/lang/Exception|;
 public loc OBJECT_CLASS = |java+class:///java/lang/Object|;
+public TypeSymbol OBJECT_TYPE_SYMBOL = class(OBJECT_CLASS, []); 
 
 
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethodOrClass];

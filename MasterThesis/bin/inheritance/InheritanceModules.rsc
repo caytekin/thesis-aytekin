@@ -462,8 +462,10 @@ list [TypeSymbol]  getReceivingTypeParameters(TypeSymbol recTypeSymbol) {
 		}				
 	}
 	if (isEmpty(recTypeParameters)) {
-		throw "Receiver type parameters is empty for receiver : <receiver>";
-	}
+		// in case of a class which is declared with type parameter(s), but still is instantiated without 
+		// type parameters, the recTypParameters can be empty. I handle this further in the calling method.  
+		// throw "Receiver type parameters is empty for receiver : <recTypeSymbol>";
+	;}
 	return recTypeParameters;
 }
 
@@ -509,17 +511,24 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 		//println("Receiver type symbol is: <recTypeSymbol>");
 		// recTypeParameters holds the actual types with which the object was instantiated, like Shape, Ractangle, String, etc.
-		list [TypeSymbol] recTypeParameters = getReceivingTypeParameters(recTypeSymbol);  
-		//println("Receiving type parameters:"); iprintln(recTypeParameters);
-		// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
-		list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
-		//println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
-		// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
-		map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
-		//println("Type variable map: "); iprintln(typeVariableMap);
-		resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
-		//println("Resolved type symbol is: <resolvedTypeSymbol>" );
-		//println();
+		list [TypeSymbol] recTypeParameters = getReceivingTypeParameters(recTypeSymbol); 
+		if ( !isEmpty(recTypeParameters) ) { 
+			//println("Receiving type parameters:"); iprintln(recTypeParameters);
+			// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
+			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
+			//println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
+			// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
+			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
+			//println("Type variable map: "); iprintln(typeVariableMap);
+			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
+			//println("Resolved type symbol is: <resolvedTypeSymbol>" );
+			//println();
+		}
+		else {
+			// recTypeParameters can be empty if a child that's decalered to take a type parameter is instantiated without a type parameter
+			// Then I will assume that it is as if the child is instantiated with Object type parameter.
+			resolvedTypeSymbol  = OBJECT_TYPE_SYMBOL;
+		}
 	}
 	return resolvedTypeSymbol;
 }

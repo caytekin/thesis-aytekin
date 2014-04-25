@@ -82,6 +82,7 @@ private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invert
 
 
 public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3) {
+	// Downcall is only possible between class class edges, by definition.
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
