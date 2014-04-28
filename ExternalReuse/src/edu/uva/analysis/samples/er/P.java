@@ -3,8 +3,16 @@ package edu.uva.analysis.samples.er;
 public class P {
 	
 	public int intFieldParent = 0;
+	public boolean boolFieldParent = false;
 	String strFieldParent = "";
 	
+	boolean booleanOfP() {
+		return false;
+	}
+	
+	C CofP() {
+		return new C();
+	}
 	
 	void thisChangingType() {
 		

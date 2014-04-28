@@ -14,7 +14,10 @@ public class G extends C {
 	void e() {
 		System.out.println("G implemnts e()...");
 		C aC = new C();	
-		aC.q();		// internal reuse or external reuse?
+		aC.q();		// no reuse
+		aC.p();     // an actual reuse, but not counted 
+					// because it does not fall under the definition of external reuse
+					// or internal reuse.
 	}
 	
 	void xxx() {

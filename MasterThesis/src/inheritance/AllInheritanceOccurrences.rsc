@@ -184,7 +184,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://DowncallProject|;
+	loc projectLoc = |project://ExternalReuse|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	//println("M3 Modifiers for the project:"); iprintln(sort(projectM3@modifiers)); 
@@ -265,7 +265,7 @@ public void runIt() {
 	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
 	printLog(subtypeLogFile, "SUBTYPE LOG");
-	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
+	printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	printLog(actualExternalReuseLogFile, "ACTUAL EXTERNAL REUSE LOG");
 	printLog(candidateExternalReuseLogFile, "CANDIDATE EXTERNAL REUSE LOG");	
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");

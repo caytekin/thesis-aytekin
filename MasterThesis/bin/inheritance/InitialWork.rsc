@@ -195,9 +195,12 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://VerySmallProject|);
-	TypeSymbol myTypeSymbol = class(|java+class:///java.lang.Object|, []);
-	println("myTypeSymbol is: <myTypeSymbol>");
+	M3 projectM3 = getM3Model(|project://ExternalReuse|);
+	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/methodChain()|); 
+	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/anotherMethod()|); 
+
+	//TypeSymbol myTypeSymbol = class(|java+class:///java.lang.Object|, []);
+	//println("myTypeSymbol is: <myTypeSymbol>");
 	//println("Method invocation annotation:");
 	//iprintln(sort(projectM3@methodInvocation));
 	//println();
@@ -219,7 +222,6 @@ public void runInitialWork() {
 	//	println("It is private");
 	//;} 
 	
-	 getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/printlnSample()|); 
 	 //println();
 	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
 
@@ -411,6 +413,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
+	//text(methodAST);
 	visit(methodAST) {
 		case m1:\methodCall(_,_, args) : {
 			//text(m1);
@@ -449,10 +452,12 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 		;}
 		// \conditional(Expression expression, Expression thenBranch, Expression elseBranch)
 		case fAccess1:\fieldAccess(isSuper, expression, name) : {
+			text(fAccess1);
 			//println("Field access 1 ----------------------");
 			//iprintln(expression);
 		;}
     	case fAccess2:\fieldAccess(bool isSuper, str name) : {
+    		text(fAccess2);
    // 		println("Field access 2 ----------------------");
 			//iprintln(fAccess2);
     	;}
@@ -538,19 +543,6 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			// the other is the class where the variable refers to
 			;			
         }
-		
-		case f1:\fieldAccess(isSuper,name) : {
-			    // \fieldAccess(bool isSuper, str name)
-			    //println("Field access 1: ");
-			    //println("Is super: <isSuper>, name: <name>");
-				;
-		}
-		case f2:\fieldAccess(isSuper,expression,name) : {
-				// 		(bool isSuper, Expression expression, str name)
-			    //println("Field access 2: ");
-			    //println("Is super: <isSuper>, expression: <expression>, name: <name>");
-				;
-		}
 		
         case c:\cast(_, _) : { 
         	//  \cast(Type \type, Expression expression)

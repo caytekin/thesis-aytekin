@@ -4,12 +4,17 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 public class N {
-	
+	/*
 	String theFieldOfN = "I am a field of N"; 
+
+	{
+		C aC = new C();
+		int myInt = aC.intFieldParent; 			// external reuse in initializer, tested, working 28-4
+		aC.p22();                               // external reuse in initializer, tested, working 28-4
+	}
+	
 	
 	public N() {
-//		StatChild sChild = new StatChild();
-//		sChild.nonStaticParentMethod();
 	}
 	
 	
@@ -26,10 +31,8 @@ public class N {
 		this.theFieldOfN = "I am being updated";
 		theFieldOfN = "I am being updated again.";
 		C aCGlow = new C();
-		int k = aCGlow.intFieldParent;	// external reuse - field
-		aCGlow.intFieldParent = 0;
-//		aCGlow.intFieldParent++;	// external reuse - field
-//		aCGlow.intFieldChild++;		// no external reuse
+		int k = aCGlow.intFieldParent;	// external reuse - field, tested working 28-4
+		aCGlow.intFieldParent = 0;		// external reuse - field , tested working 28-4
 	}
 	
 	
@@ -41,25 +44,25 @@ public class N {
 		this.theFieldOfN = "I am being updated";
 		theFieldOfN = "I am being updated again.";
 		C aCGlow = new C();
-		aCGlow.p();		// external reuse and downcall, tested, working
-		aCGlow.returnTwo(2);	// external reuse
+		aCGlow.p();		// external reuse and downcall, tested, working, tested working 28-4
+		aCGlow.returnTwo(2);	// external reuse, tested working 28-4
 		this.callMeWithInt(2);
-		int k = aCGlow.intFieldParent;	// external reuse - field
-		aCGlow.intFieldParent = 0;
-		aCGlow.intFieldParent++;	// external reuse - field
+		int k = aCGlow.intFieldParent;	// external reuse - field, tested working 28-4
+		aCGlow.intFieldParent = 0;		// external reuse - field, tested working 28-4
+		aCGlow.intFieldParent++;	// external reuse - field, , tested working 28-4
 		aCGlow.intFieldChild++;		// no external reuse
 		G aGGlow = new G();
-		aGGlow.p();		// external reuse and downcall, tested, working
-//		P aP = new P();
-//		aP.p(); 		// NOT an external reuse
+		aGGlow.p();		// external reuse and downcall, tested working 28-4
+		P aP = new P();
+		aP.p(); 		// NOT an external reuse
 		int j = 43;
 		int lmk = 32;
 		int kmkml;
 		kmkml = 99;
 		G mySecondG = new G();
-		callMeWithInt(mySecondG.returnZero()); 	// external reuse, mySecondG.returnZero()
+		callMeWithInt(mySecondG.returnZero()); 	// external reuse, , tested working 28-4, mySecondG.returnZero()
 		G myThirdG = new G();
-		j = myThirdG.returnOne() - 1 ;					// external reuse
+		j = myThirdG.returnOne() - 1 ;					// external reuse, tested working 28-4
 	}
 	
 	
@@ -68,8 +71,7 @@ public class N {
 	void overrideTest() {
 		G aG = new G();
 		aG.methodToOverride();
-	}
-	
+	}	
 	
 	C getMeAC() {
 		return new C();
@@ -77,21 +79,22 @@ public class N {
 	
 	void fieldTest() {
 		C aC = new C();
-		int i = aC.intFieldParent;
-		i = aC.intFieldParent;
+		int i = aC.intFieldParent;		// external reuse field, tested working 28-4
+		i = aC.intFieldParent;			// external reuse field, , tested working 28-4
 	}
 	
 	
 	
 	void arrayTest () {
 		C[] cArray = new C[3];
-		cArray[0].returnArrayZero();			// external reuse on array
+		cArray[0].returnArrayZero();			// external reuse on array, tested working 28-4
 		
 		HashSet <C> aSet = new HashSet <C>();
 		aSet.add(new C());
 		Iterator <C> anIterator = aSet.iterator();
 		while (anIterator.hasNext()) {
-			anIterator.next().returnCollectionZero();		// external reuse on collection, method chaining...
+			anIterator.next().returnCollectionZero();		// external reuse, tested working 28-4
+															// on collection, method chaining...
 		}
 		
 		
@@ -101,5 +104,5 @@ public class N {
 	int callMeWithInt(int intParameter) {
 		return intParameter++; 
 	}
-	
+	*/ 
 }

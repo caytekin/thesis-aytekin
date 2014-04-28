@@ -117,18 +117,35 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, map [loc, set[loc]] invClassAndInterfaceContainment,
 																											map[loc, set[loc]] declarationsMap) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
+	loc accessedField = DEFAULT_LOC;
+	TypeSymbol receiverTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	loc srcRef = DEFAULT_LOC;
 	visit (qName) {
 		case \qualifiedName(qualifier, expression) : {
-			loc accessedField = expression@decl;
-			if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap)) {  
-				loc classOfQualifier = getClassOrInterfaceFromTypeSymbol(qualifier@typ);
-				loc classOfExpression = getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
-				if (classOfQualifier != classOfExpression) {
-					retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS, expression@src, accessedField>;
-				}
-			}
+			accessedField = expression@decl;
+			// TODO: Debug from here tomorrow....
+			// I am here !!!!!!!!!!!!!!!!!!!!!!
+			println("qualifiedName: accessed Field : <accessedField>");
+			if (isField(accessedField) ) { receiverTypeSymbol = qualifier@typ; }
+			srcRef = expression@src;
+			println("Qualifier type symbol: <receiverTypeSymbol>, at source : <srcRef> ");
 		} 
+		case fAccessStmt:\fieldAccess(isSuper, fAccessExpr:_, str name:_) : {
+			println("fieldAccess: Field name: <name>");
+			accessedField = fAccessStmt@decl;
+			receiverTypeSymbol = fAccessExpr@typ;
+			srcRef = fAccessStmt@src;			
+		}
 	}
+	if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap)) {  
+		loc classOfQualifier = getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
+		loc classOfExpression = getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
+		if (classOfQualifier != classOfExpression) {
+			retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS, srcRef, accessedField>;
+			//println("Field access : <classOfQualifier> , <classOfExpression>, at: <srcRef>, field: <accessedField> ");
+		}
+	}
+
 	return retList;
 }
 
@@ -150,12 +167,15 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
-				case m2:\methodCall(_, receiver:_, _, _): {
-					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedClassContainment, declarationsMap, allInheritanceRelations);
-        		} // case methodCall()
         		case qName:\qualifiedName(_, _) : {
         			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, invClassAndInterfaceContainment, declarationsMap);
         		}
+        		case fAccess:\fieldAccess(_,_,_) : {
+        			allExternalReuseCases += getExternalReuseViaFieldAccess(fAccess, invClassAndInterfaceContainment, declarationsMap);
+        		}
+				case m2:\methodCall(_, receiver:_, _, _): {
+					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedClassContainment, declarationsMap, allInheritanceRelations);
+        		} // case methodCall()
         	} // visit()
 		}	// for each method in the class															
 	}	// for each class in the project
