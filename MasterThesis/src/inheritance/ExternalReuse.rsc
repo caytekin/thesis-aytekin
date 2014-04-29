@@ -151,8 +151,6 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {
-	// Decision: The external reuse cases are only about classes, see assumptions and decisions document.
-	// TODO: This assumption has to change because there are also statistics for II in the paper, like nOnlyIIReuse
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] allExternalReuseCases = [];
 	lrel [inheritanceKey, inheritanceType, loc, loc] allCandExtReuseCases = [];

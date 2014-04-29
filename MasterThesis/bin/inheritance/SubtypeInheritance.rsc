@@ -19,9 +19,6 @@ import inheritance::InheritanceModules;
 
 
 
-
-
-
 public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 	list [Expression] args 		= [];
 	list [TypeSymbol] retList 	= [];
@@ -68,7 +65,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Ex
 	visit (asmtStmt) {
 		case aStmt:\assignment(lhs, operator, rhs) : {  
 			visit (aStmt) {
-				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
+				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {		// ternary operator, ,ex: p4 = (i == 3) ? new C() : new G();
 					isConditional = true;
 					retList += getSubtypeResultViaAssignment(lhs, thenBranch, conditionalS@src);
 					retList += getSubtypeResultViaAssignment(lhs, elseBranch, conditionalS@src);				
@@ -88,6 +85,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariab
 	//println("Variable decl: <rhs@src>");	
 	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
 	if (result.isSubtypeRel) {
+		println("Fragments: "); iprintln(fragments); 
 		for (anExpression <- fragments) {
 			retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
 		}

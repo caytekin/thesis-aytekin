@@ -4,7 +4,10 @@ public class P {
 	
 	public int intFieldParent = 0;
 	public boolean boolFieldParent = false;
-	String strFieldParent = "";
+	public String strFieldParent = "";
+	
+	public ExRChild exRChildField = new ExRChild();
+	
 	
 	boolean booleanOfP() {
 		return false;
