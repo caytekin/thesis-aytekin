@@ -1,6 +1,7 @@
 package edu.uva.analysis.samples.er;
 
 public class LastClass {
+	/*
 	
 	C fieldC = new C();
 
@@ -44,6 +45,6 @@ public class LastClass {
 																					// external reuse, 35, boolFieldParent,  tested, working, 29-4-2014
 	}
 
-	
+	*/
 	
 }

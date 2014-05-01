@@ -4,14 +4,13 @@ import edu.uva.analysis.gensamples.st.*;
 
 public class VrblRunner {
 	/*
+	
 	{
 		VrblParent initParent =  new VrblChild();			// subtype case 25,  tested, working, 29-4-2014
 	}
 
 	static {
-		VrblParent initParent, iParent2, iParent3= new VrblChild();			// subtype case 26, there's a Rascal issue, about initParent variable decl,
-																			// I opened an issue #562 in cwi-swat/rascal repository.
-																			// it is working, but logging isnot correct.
+		VrblParent initParent, iParent2, iParent3= new VrblChild();			// subtype case 26, tested, working, 01-5-2014
 																			// subtype case 43, tested, working, 29-4-2014
 																			// subtype case 44, tested, working, 29-4-2014
 	}
@@ -78,5 +77,4 @@ public class VrblRunner {
 		
 	}
 */
-
 }

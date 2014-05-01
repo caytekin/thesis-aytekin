@@ -26,6 +26,7 @@ public class GenExRRunner {
 	}
 	
 	
+	
 	void otherExreuse() {
 		GenExRChild <C> aChild = new GenExRChild <C> ();
 		boolean myBool = true;
@@ -37,8 +38,7 @@ public class GenExRRunner {
 		if (aChild.getABoolean()) {}			 // external reuse 4, tested, working 28-4
 		}
 		int anotherInt = aChild.aT.intFieldParent;		// external reuse 8, , tested, working 28-4 (aT is counted OK)
-														// external reuse, 9 , NOT WORKING! intFieldParent reference is counted but the
-														// child and parent are listed wrong !
+														// external reuse, 9 , intFieldParent,  tested, working 28-4 
 	}
 
 	void methodChain() {

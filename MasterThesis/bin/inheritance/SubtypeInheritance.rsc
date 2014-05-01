@@ -85,7 +85,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariab
 	//println("Variable decl: <rhs@src>");	
 	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
 	if (result.isSubtypeRel) {
-		println("Fragments: "); iprintln(fragments); 
+		//println("Fragments: "); iprintln(fragments); 
 		for (anExpression <- fragments) {
 			retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
 		}
@@ -124,7 +124,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(De
 }
 
 
-public bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
+private bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
 	bool retBool = false;
 	set [loc] allParentsOfAChild = (aChild in inheritanceRelsMap) ? inheritanceRelsMap[aChild] : {};
 	if (aParent notin allParentsOfAChild) {
@@ -138,10 +138,32 @@ public bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanc
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt, map [loc, set [loc]] inheritanceRelsMap ) {
+private tuple [bool , loc ] isSidewaysCast(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap, map [loc, set [loc]] invertedInheritanceRelsMap,   loc castLoc) {
+	bool isSideCast = false;
+	loc implClass = DEFAULT_LOC;
+	set [loc] allParentsOfAChild = (aChild in inheritanceRelsMap) ? inheritanceRelsMap[aChild] : {};
+	set [loc] allParentsOfAParent = (aParent in inheritanceRelsMap) ? inheritanceRelsMap[aParent] : {};
+	if ( isInterface(aParent) && isInterface(aChild) && (aParent notin allParentsOfAChild) && (aChild notin allParentsOfAParent)) {
+		// we suspect sideways casting, find the implementing class
+		set [loc] allImplClassesOfParent = (aParent in invertedInheritanceRelsMap) ? invertedInheritanceRelsMap[aParent] : {};
+		set [loc] allImplClassesOfChild	 = (aChild in invertedInheritanceRelsMap) ? invertedInheritanceRelsMap[aChild] : {};		
+		set [loc] implClasses = allImplClassesOfParent & allImplClassesOfChild;
+		if (!isEmpty(implClasses)) {
+			isSideCast = true;
+			implClass = getOneFrom(implClasses);
+		}
+		else {
+			// possibly non sytem (framework) types.
+		;} 
+	}
+	return <isSideCast, implClass>;
+}
+
+
+
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt, map [loc, set [loc]] inheritanceRelsMap, map [loc, set [loc]] invertedInheritanceRelsMap ) {
 // The cast can be from child to parent, but also from parent to child
-// Also, sideways cast is possible. This will give some irregularities 
-// in the statistics, because we assume a <child, parent> tuple in CC, CI or II. 
+// Also, sideways cast is possible. 
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
@@ -151,12 +173,22 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 				bool upcasting = isUpcasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
 				if (upcasting) {
 					// reverse the order if there is upcasting.
-					retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_CAST, castStmt@src>;				
+					retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_UPCASTING, castStmt@src>;				
 				}
 				else {
-					retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
-					// TODO: Is it possible to log sideways cast and casting from child to parent 
-					// 		 with different inheritance subtype? Think about it...
+					if (isInterface(result.iKey.child) && isInterface (result.iKey.parent) ) {
+						tuple [bool isSidewaysCast, loc implChild] sidewaysResult = isSidewaysCast(result.iKey.child, result.iKey.parent, inheritanceRelsMap, invertedInheritanceRelsMap, castStmt@src);
+						if (sidewaysResult.isSidewaysCast) {
+							retList += <<sidewaysResult.implChild, result.iKey.child>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src>;
+							retList += <<sidewaysResult.implChild, result.iKey.parent>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src>;						
+						}
+						else {
+							retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+						}							
+					}
+					else {
+						retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+					}
 				}	
 			} 
 		}
@@ -294,7 +326,9 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
-	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(getInheritanceRelations(projectM3));
+	rel [loc, loc] 			projectInhRels 						 = getInheritanceRelations(projectM3);
+	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(projectInhRels);
+	map [loc, set [loc]] 	invertedInheritanceRelsMap 			= toMap(invert(projectInhRels));		
 	for (oneClass <- allClassesInProject ) {
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
@@ -306,7 +340,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeViaVariables(variables);
 				} 
 				case castStmt:\cast(castType, castExpr) : {  
-					allSubtypeCases += getSubtypeViaCast(castStmt, inheritanceRelsMap);					
+					allSubtypeCases += getSubtypeViaCast(castStmt, inheritanceRelsMap, invertedInheritanceRelsMap);					
 				} // case \cast
 				case enhForStmt:\foreach(Declaration parameter, Expression collection, Statement body) : {
 					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection@typ, enhForStmt@src);
