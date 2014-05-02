@@ -18,7 +18,7 @@ import util::ValueUI;
 
 import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
-import inheritance::SubtypeInheritance;
+import inheritance::SubtypeInheritance; 
 import inheritance::DowncallCases;
 
 data CTree = 	leaf(int n)
@@ -194,10 +194,13 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 
+
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://ExternalReuse|);
-	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/methodChain()|); 
-	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/anotherMethod()|); 
+	M3 projectM3 = getM3Model(|project://Subtype|);
+	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
+	getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
+	
+	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/anotherMethod()|); 
 
 	//TypeSymbol myTypeSymbol = class(|java+class:///java.lang.Object|, []);
 	//println("myTypeSymbol is: <myTypeSymbol>");
@@ -413,7 +416,7 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	//text(methodAST);
+	text(methodAST);
 	visit(methodAST) {
 		case m1:\methodCall(_,_, args) : {
 			//text(m1);
@@ -555,16 +558,18 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			//println(super1); 
 			;
         }
-        case consCall1:\constructorCall(_, _): {
+        case consCall1:\constructorCall(_, arguments:_): {
         //       (bool isSuper, list[Expression] arguments)
-   //         print("constructor call 1: ");
-			//println(consCall1); 
-			;
+            print("constructor call 1: ");
+			println("arguments: <arguments> "); 
+			//;
         }
-        case consCall2:\constructorCall(_, _, _): {
+        case consCall2:\constructorCall(_, expr:_, arguments:_): {
         //       (bool isSuper, Expression expr, list[Expression] arguments)
-   //         print("constructor call 2: ");
-			//println(consCall2); 
+            print("constructor call 2: ");
+			println("expr: <expr> "); 
+			println("arguments: <arguments> "); 
+
 			;
         }
         

@@ -123,15 +123,10 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 	visit (qName) {
 		case \qualifiedName(qualifier, expression) : {
 			accessedField = expression@decl;
-			// TODO: Debug from here tomorrow....
-			// I am here !!!!!!!!!!!!!!!!!!!!!!
-			println("qualifiedName: accessed Field : <accessedField>");
 			if (isField(accessedField) ) { receiverTypeSymbol = qualifier@typ; }
 			srcRef = expression@src;
-			println("Qualifier type symbol: <receiverTypeSymbol>, at source : <srcRef> ");
 		} 
 		case fAccessStmt:\fieldAccess(isSuper, fAccessExpr:_, str name:_) : {
-			println("fieldAccess: Field name: <name>");
 			accessedField = fAccessStmt@decl;
 			receiverTypeSymbol = fAccessExpr@typ;
 			srcRef = fAccessStmt@src;			
