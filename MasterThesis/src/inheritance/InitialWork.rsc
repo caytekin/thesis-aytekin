@@ -196,9 +196,10 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://Subtype|);
-	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
-	getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
+	M3 projectM3 = getM3Model(|project://InheritanceSamples|);
+	iprintln(sort(projectM3@containment));
+	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
+	//getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
 	
 	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/anotherMethod()|); 
 

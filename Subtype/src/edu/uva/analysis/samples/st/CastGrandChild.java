@@ -6,4 +6,8 @@ public class CastGrandChild extends CastChild {
 		return new C();
 	}
 
+	public STClass getMeASTC() {
+		return new STClass();
+	}
+
 }

@@ -42,6 +42,10 @@ public class ParamPassHolder {
 		
 	}
 	
+	ParamPassHolder (CastParent... cp) {
+		
+	}
+	
 	
 	
 	
@@ -50,6 +54,14 @@ public class ParamPassHolder {
 	}
 	
 	void acceptPArray(P[] anArray) {
+		
+	}
+	
+	void acceptVarArgs(NestedParent <P> nc, P... ps) {
+		
+	}
+	
+	void acceptVarArgsAnother(P p, CastParent... cp) {
 		
 	}
 

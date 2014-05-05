@@ -29,10 +29,9 @@ private set [loc] surfaceMatch(Expression aStatement, list [Expression] args) {
 }
 
 
-private set [loc] getThisReferencesInMethod(loc ascClass, loc descClass, loc aMethodOfAscClass, M3 projectM3) {
+private set [loc] getThisReferencesInAST(Declaration anAST) {
 	set [loc] retSet = {};
-	methodAST = getMethodASTEclipse(aMethodOfAscClass, model = projectM3);
-	visit (methodAST) {
+	visit (anAST) {
 		case methExpr2:\methodCall(_,_,_,_args) : {
 			retSet += surfaceMatch(methExpr2, _args); 
 		}
@@ -70,6 +69,25 @@ private set [loc] getThisReferencesInMethod(loc ascClass, loc descClass, loc aMe
 }
 
 
+private set [loc]  getThisReferencesInMethod(loc aMethodOfAscClass, M3 projectM3) {
+	Declaration methodAST = getMethodASTEclipse(aMethodOfAscClass, model = projectM3);
+	set [loc] retSet = getThisReferencesInAST(methodAST);
+	return retSet;
+} 
+
+
+private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] invertedClassAndInterfaceContainment, map [loc, set [loc]] invertedUnitContainment, 
+																													map [loc, set [loc]] declarationsMap) {
+	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+	set [loc] retSet = {};
+	for (anAST <- ASTsOfOneClass ) {
+		set [loc] retSet = getThisReferencesInAST(anAST);
+	}
+	return retSet;
+}
+
+
+
 private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 	// I only look for class - class relationships
 	// ascClass, descClass, candMethod
@@ -80,20 +98,32 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 	map [loc, set [loc]]		methodsInClasses = toMap({<_aClass, _aMethod> | <_aClass, _aMethod> <- projectM3@containment, isClass(_aClass), isMethod(_aMethod)});
 	map [loc, set[loc]] 		invertedContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set[loc]]			methodClassContainment = toMap({<_aClass, _aMethod> | <_aClass, _aMethod> <- projectM3@containment, isClass(_aClass), isMethod(_aMethod)});
+	map [loc, set [loc]] 		invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set[loc]] 		invertedUnitContainment = getInvertedUnitContainment(projectM3);
+	map [loc, set[loc]] 		declarationsMap =  toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	for (ascClass <- ascDescPair) {
-		set [loc] allMethodsOfAscClass =  ascClass in methodClassContainment ? methodClassContainment[ascClass] : {}; 
-		for (aMethodOfAscClass <- allMethodsOfAscClass) {
-			set [loc] allDescClassesOfAscClass = ascDescPair[ascClass];
-			for (descClass <- ascDescPair[ascClass]) {
+		set [loc] allDescClassesOfAscClass = ascDescPair[ascClass];
+		for (descClass <- allDescClassesOfAscClass ) {
+			set [loc] allMethodsOfAscClass =  ascClass in methodClassContainment ? methodClassContainment[ascClass] : {}; 
+			set [loc] allCandidateRefsInMethods = {};
+			for (aMethodOfAscClass <- allMethodsOfAscClass) {
 				if (!isMethodOverriddenByDescClass(aMethodOfAscClass, descClass, invertedContainment, projectM3)) {
-					set[loc] candidateReferences = getThisReferencesInMethod(ascClass, descClass, aMethodOfAscClass, projectM3); 
-					for (aCandRef <- candidateReferences ) {
+					set[loc] candidateMethodReferences = getThisReferencesInMethod(aMethodOfAscClass, projectM3); 
+					allCandidateRefsInMethods += candidateMethodReferences;
+					for (aCandRef <- candidateMethodReferences ) {
 						candidateLog += <<descClass, ascClass>, <aMethodOfAscClass, aCandRef>>;
 						retRel += <descClass, ascClass, aMethodOfAscClass>;
 					}
 				} // if
-			}	// for descClass
-		} // for  aMethodOfAscClass
+			}	// for aMethodOfAscClass
+			// look at the initializers of ascending class.
+			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+			set [loc] candidateInitializerReferences = candidateClassReferences - allCandidateRefsInMethods;
+			for (anInitRef <- candidateInitializerReferences) {
+				candiadateLog += <<<descClass, ascClass>, <ascClass, anInitRef>>>;
+				retRel += <descClass, ascClass, ascClass>;
+			}
+		} // for  descClass
 	} // for ascClass
 	iprintToFile(thisChangingTypeCandFile, candidateLog);
 	return retRel; 

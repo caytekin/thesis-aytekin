@@ -9,12 +9,12 @@ public class ParamPassChild extends ParamPassHolder {
 	}
 	
 	ParamPassChild() {
-		this(new C());		// subtype case 231,
+		this(new C());		// subtype case 231,		waiting for Rascal fix
 	}
 	
 	
 	ParamPassChild (P aP) {
-		super(aChild);		// subtype case 230, 
+		super(aChild);		// subtype case 230, 		waiting for Rascal fix
 	}
 
 }

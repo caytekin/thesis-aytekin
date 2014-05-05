@@ -83,4 +83,27 @@ public class ParamPassRunner {
 	
 	*/
 	
+	void varArgsTesting() {
+		/*
+		ParamPassHolder pph = new ParamPassHolder(new CastChild(), new CastChild(), new CastParent()) ;			// subtype, case 235, 	tested, working, 5-5-2014
+																												// subtype, case 236,	tested, working, 5-5-2014
+																												// no subtype, case 237,	tested, working, 5-5-2014
+		
+		pph.acceptVarArgs(new NestedChild<P> (), new C(), new C(), new P(), new C());							// subtype, case 238,		tested, working, 5-5-2014																											
+																												// subtype, case 239,		tested, working, 5-5-2014
+																												// no subtype, case 240,	tested, working, 5-5-2014
+																												// subtype, case 241,		tested, working, 5-5-2014
+																												
+	 
+		ParamPassHolder pph2 = new ParamPassHolder(new CastGrandChild(), new CastChild());								// subtype, case 242,,		tested, working, 5-5-2014
+																														// subtype, case 243,,		tested, working, 5-5-2014
+		
+		pph2.acceptVarArgsAnother(new C(), new CastGrandChild(), new CastChild(), new CastParent(), new CastParent());	// subtype, case 244, ,		tested, working, 5-5-2014
+																														// subtype, case 245,,		tested, working, 5-5-2014
+																														// subtype, case 246,,		tested, working, 5-5-2014
+																														// no subtype, case 247,,		tested, working, 5-5-2014
+																														// no subtype, case 248,,		tested, working, 5-5-2014
+	*/ 
+	}
+	
 }
