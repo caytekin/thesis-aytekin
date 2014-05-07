@@ -22,8 +22,7 @@ import inheritance::InheritanceDataTypes;
 public str getNameOfInheritanceType(inheritanceType iType) {
 		switch(iType) {
 		case INTERNAL_REUSE  			: {return "INTERNAL REUSE";}
-		case EXTERNAL_REUSE_ACTUAL  	: {return "EXTERNAL REUSE ACTUAL";}
-		case EXTERNAL_REUSE_CANDIDATE 	: {return "EXTERNAL REUSE CANDIDATE";}
+		case EXTERNAL_REUSE				: {return "EXTERNAL REUSE";}
  		case SUBTYPE  					: {return "SUBTYPE";}
  		case DOWNCALL_ACTUAL  			: {return "DOWNCALL ACTUAL";}
  		case DOWNCALL_CANDIDATE			: {return "DOWNCALL CANDIDATE";}		
@@ -32,18 +31,10 @@ public str getNameOfInheritanceType(inheritanceType iType) {
  		case SUPER						: {return "SUPER";}
  		case GENERIC		    		: {return "GENERIC";}
  		case CATEGORY		    		: {return "CATEGORY";}
- 		case EXTERNAL_REUSE     		: {return "EXTERNAL REUSE";}
+ 		case FRAMEWORK 					: {return "FRAMEWORK";}
  		case DOWNCALL 		    		: {return "DOWNCALL";}
- 		
- 
- //
- //		case CLASS_CLASS		: {return "CLASS CLASS";}
- //		case CLASS_INTERFACE	: {return "CLASS INTERFACE";}
-	//	case INTERFACE_INTERFACE	: {return "INTERFACE INTERFACE";}
-//
-	//	case NONFRAMEWORK_CC	: {return "NON FRAMEWORK CLASS CLASS";}
-	//	case NONFRAMEWORK_CI	: {return "NON FRAMEWORK CLASS INTERFACE";}
-	//	case NONFRAMEWORK_II	: {return "NON FRAMEWORK INTERFACE INTERFACE";}
+  		
+ 		default 						: {return "NOT KNOWN INHERITANCE TYPE: <iType>"; }
  	}
 }
 
@@ -71,7 +62,7 @@ public str getNameOfInheritanceMetric(metricsType iMetric) {
 		case numCCUnknown				: {return "numCCUnknown			";}
 		case perCCUnknown				: {return "perCCUnknown			";}		
 		
-		default : {return "NOT KNOWN: <iMetric>"; }
+		default 						: {return "NOT KNOWN: <iMetric>"; }
  	}
 }
 
@@ -204,6 +195,43 @@ public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, map[l
 	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, invertedContainment, projectM3);
 	if (descClass in classesThatOverrideTheMethod ) {
 		retBool = true;
+	}
+	return retBool;
+}
+
+
+private set [loc] getInBetweenClasses(loc ascClass, loc descClass, map[loc, set[loc]] extendsMap) {
+	//println("Extends map: <extendsMap>");
+	set  [loc] 	allInBetweenClasses = {}; 
+	list [loc] 	ascendantsInOrder = getAscendantsInOrder(descClass, extendsMap);
+	//println("Ascendants in order: <ascendantsInOrder>");
+	bool ascClassFound = false;
+	int i = 0;
+	while ((!ascClassFound) && (i < size(ascendantsInOrder))) {
+		loc anAscendant = ascendantsInOrder[i];
+		//println("An ascendant: <anAscendant>");
+		if (anAscendant == ascClass) {
+			//println("Equality is true...");
+			ascClassFound = true;
+		}
+		else {
+			allInBetweenClasses += anAscendant;
+		}
+		i += 1;
+	}
+	//println("ascClassFound is: <ascClassFound>");
+	if (!ascClassFound) { throw "Ascending class <ascClass> is not found in the Ascendants list of class: <descClass>"; }
+	return allInBetweenClasses;
+}
+
+
+public bool isMethodOverriddenByAnyDescClass(loc aMethod, loc ascClass, loc descClass, map[loc, set[loc]] invertedContainment, map[loc, set[loc]] extendsMap, M3 projectM3) {
+	bool retBool = false;
+	set  [loc] 	classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(aMethod, invertedContainment, projectM3);
+	set  [loc]	allDescClassesUpToDescClass =  descClass + getInBetweenClasses(ascClass, descClass, extendsMap); 
+	if ( !isEmpty(classesThatOverrideTheMethod & allDescClassesUpToDescClass) ) {
+		retBool = true;
+		//println("isMethodOverriddenByAnyDescClass is true for acsClass <ascClass>, descClass: <descClass>");
 	}
 	return retBool;
 }

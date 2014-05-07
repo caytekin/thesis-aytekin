@@ -19,6 +19,7 @@ import inheritance::ExternalReuse;
 import inheritance::SubtypeInheritance;
 import inheritance::DowncallCases;
 import inheritance::OtherInheritanceCases;
+import inheritance::ThisChangingType;
 
 
 
@@ -67,9 +68,9 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	rel [inheritanceKey, inheritanceType] explicitFoundInhRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, <_child, _parent> in extendsOrImplRel};
 
 	rel [inheritanceKey, inheritanceType] allDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- explicitFoundInhRels , _iType == DOWNCALL_ACTUAL || _iType == DOWNCALL_CANDIDATE };
-	rel [inheritanceKey, inheritanceType] allExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- explicitFoundInhRels , _iType == EXTERNAL_REUSE_ACTUAL || _iType == EXTERNAL_REUSE_CANDIDATE };
+	rel [inheritanceKey, inheritanceType] allExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- explicitFoundInhRels , _iType == EXTERNAL_REUSE};
 	rel [inheritanceKey, inheritanceType] others =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- explicitFoundInhRels , 	_iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE,  
-																																			_iType != EXTERNAL_REUSE_ACTUAL, _iType != EXTERNAL_REUSE_CANDIDATE };
+																																			_iType != EXTERNAL_REUSE};
 	retRel = others + allDowncalls + allExtReuse;
 	return retRel;
 }
@@ -82,9 +83,9 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 private rel [inheritanceKey, inheritanceType] getActualResults (rel [inheritanceKey, inheritanceType] inheritanceResults) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
 	rel [inheritanceKey, inheritanceType] actualDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == DOWNCALL_ACTUAL};
-	rel [inheritanceKey, inheritanceType] actualExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == EXTERNAL_REUSE_ACTUAL};
+	rel [inheritanceKey, inheritanceType] actualExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == EXTERNAL_REUSE};
 	rel [inheritanceKey, inheritanceType] others =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, 	_iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE,  
-																																		_iType != EXTERNAL_REUSE_ACTUAL, _iType != EXTERNAL_REUSE_CANDIDATE };
+																																		_iType != EXTERNAL_REUSE };
 	retRel = others + actualDowncalls + actualExtReuse;
 	return retRel;
 }
@@ -184,10 +185,9 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://Subtype|;
+	loc projectLoc = |project://jrat_0.6|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
-	//println("M3 Modifiers for the project:"); iprintln(sort(projectM3@modifiers)); 
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");
@@ -198,12 +198,13 @@ public void runIt() {
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
 	
-	
 	println("Starting with subtype cases at: <printTime(now())> ");
-	// TODO: DO NOT FORGET TO PUT "this changing type" analysis in getSubtypeCases()
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	println("Subtype cases are done at <printTime(now())>...");	
 	
+	println("Starting with this changing type cases at: <printTime(now())> ");
+	allInheritanceCases += getThisChangingTypeOccurrences(projectM3);
+	println("This changing type cases are done at: <printTime(now())> ");
 	
 	println("Starting with downcall cases at: <printTime(now())> ");
 	allInheritanceCases += getDowncallOccurrences(projectM3);	
@@ -255,19 +256,17 @@ public void runIt() {
 	println("INTERNAL REUSE:");
 	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == INTERNAL_REUSE }));
 
-	println("EXTERNAL REUSE ACTUAL:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE_ACTUAL}));
-
-	println("EXTERNAL REUSE CANDIDATE:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE_CANDIDATE}));
+	println("EXTERNAL REUSE:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE}));
 
 
 	//printLog(categoryLogFile, "CATEGORY LOG: ");
 	//printLog(genericLogFile, "GENERIC LOG:");
 	printLog(subtypeLogFile, "SUBTYPE LOG");
 	printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
-	printLog(actualExternalReuseLogFile, "ACTUAL EXTERNAL REUSE LOG");
-	printLog(candidateExternalReuseLogFile, "CANDIDATE EXTERNAL REUSE LOG");	
+	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
+	printLog(thisChangingTypeCandFile, "THIS CHANGING TYPE CANDIDATES:");
+	printLog(thisChangingTypeOccurFile, "THIS CHANGING TYPE OCCURRENCES:");	
 	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
 	printLog(downcallLogFile, "DOWNCALL LOG");
 	//printLog(superLogFile, "SUPER LOG:");

@@ -20,6 +20,7 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
 
+
 private set [loc] surfaceMatch(Expression aStatement, list [Expression] args) {
 	set [loc] retSet = {};
 	for (anArg <- args) {
@@ -81,8 +82,9 @@ private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] in
 	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 	set [loc] retSet = {};
 	for (anAST <- ASTsOfOneClass ) {
-		set [loc] retSet = getThisReferencesInAST(anAST);
+		retSet += getThisReferencesInAST(anAST);
 	}
+	//println("This references in class: <ascClass> are: "); iprintln(sort(retSet));
 	return retSet;
 }
 
@@ -101,15 +103,17 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 	map [loc, set [loc]] 		invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set[loc]] 		invertedUnitContainment = getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 		declarationsMap =  toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	map[loc, set[loc]] 			extendsMap = toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	for (ascClass <- ascDescPair) {
 		set [loc] allDescClassesOfAscClass = ascDescPair[ascClass];
 		for (descClass <- allDescClassesOfAscClass ) {
 			set [loc] allMethodsOfAscClass =  ascClass in methodClassContainment ? methodClassContainment[ascClass] : {}; 
 			set [loc] allCandidateRefsInMethods = {};
 			for (aMethodOfAscClass <- allMethodsOfAscClass) {
-				if (!isMethodOverriddenByDescClass(aMethodOfAscClass, descClass, invertedContainment, projectM3)) {
-					set[loc] candidateMethodReferences = getThisReferencesInMethod(aMethodOfAscClass, projectM3); 
-					allCandidateRefsInMethods += candidateMethodReferences;
+				set[loc] candidateMethodReferences = getThisReferencesInMethod(aMethodOfAscClass, projectM3); 
+				allCandidateRefsInMethods += candidateMethodReferences;			
+				if (!isMethodOverriddenByAnyDescClass(aMethodOfAscClass, ascClass, descClass, invertedContainment, extendsMap, projectM3)) {
+					//println("Method: <aMethodOfAscClass> is not overridden by any desc class...");
 					for (aCandRef <- candidateMethodReferences ) {
 						candidateLog += <<descClass, ascClass>, <aMethodOfAscClass, aCandRef>>;
 						retRel += <descClass, ascClass, aMethodOfAscClass>;
@@ -120,7 +124,7 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
 			set [loc] candidateInitializerReferences = candidateClassReferences - allCandidateRefsInMethods;
 			for (anInitRef <- candidateInitializerReferences) {
-				candiadateLog += <<<descClass, ascClass>, <ascClass, anInitRef>>>;
+				candidateLog += <<descClass, ascClass>, <ascClass, anInitRef>>;
 				retRel += <descClass, ascClass, ascClass>;
 			}
 		} // for  descClass
@@ -141,11 +145,29 @@ private loc getAscClassFromDescAndMethod(loc invokedMethod, loc descClass, rel [
 }
 
 
+private rel [inheritanceKey, thisChangingTypeOccurrence] getOccurrenceItems(Expression newObjExpr, Type oType, rel [loc, loc] initializerThisRefClasses, 
+																				set [loc] initializerChildren) {
+	rel [inheritanceKey, thisChangingTypeOccurrence] occurrenceItems = {};
+	TypeSymbol newTypeSymbol = getTypeSymbolFromRascalType(oType);
+	loc newClass = getClassFromTypeSymbol(newTypeSymbol);
+	if ((newClass != DEFAULT_LOC) && (newClass in initializerChildren)) {
+		set [inheritanceKey] keySet = {<_child, _parent> | <_child, _parent> <- initializerThisRefClasses, _child == newClass};
+		for (inheritanceKey iKey <- keySet ) {
+			occurrenceItems += <iKey, <newObjExpr@src, newClass>>; 
+		}	
+	}
+	return occurrenceItems;
+}
 
-private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] candidates, loc aProject, M3 projectM3) {
+
+
+private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] candidates, M3 projectM3) {
 	rel [inheritanceKey, thisChangingTypeOccurrence] occurrenceLog = {};
 	set [inheritanceKey] retSet = {};
-	map [loc, set[loc]] methodAndDescClasses = toMap({<calledMethod, descClass> | <descClass, ascClass, calledMethod> <- candidates});
+	map [loc, set[loc]] methodAndDescClasses = toMap({<calledMethod, descClass> | <descClass, ascClass, calledMethod> <- candidates, isMethod(calledMethod)});
+	rel [loc, loc] initializerThisRefClasses = {<_descClass, _ascClass> | <_descClass, _ascClass, _classRef> <- candidates, isClass(_classRef)};
+	set [loc] initializerThisRefChildren = domain(initializerThisRefClasses);
+	loc aProject = projectM3.id;
 	set [Declaration] projectASTs = createAstsFromEclipseProject(aProject, true);
 	for (aProjectAST <- projectASTs) {
 		visit (aProjectAST) {
@@ -158,27 +180,31 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
    					if (classOfReceiver in candDescClasses) {
    						loc ascClass = getAscClassFromDescAndMethod(invokedMethod, classOfReceiver, candidates);
    						occurrenceLog += <<classOfReceiver, ascClass>, <methExpr1@src, invokedMethod>>;
-   						retSet += <classOfReceiver, ascClass>;
    					}
    				}
+			} // case \methodCall
+			case newObject1:\newObject(Type oType:\type, list[Expression] expArgs) : {
+				occurrenceLog += getOccurrenceItems(newObject1, oType, initializerThisRefClasses, initializerThisRefChildren);
+			}
+			case newObject2:\newObject(Type oType:\type, list[Expression] expArgs, Declaration class) : {
+				occurrenceLog += getOccurrenceItems(newObject2, oType, initializerThisRefClasses, initializerThisRefChildren);
+			}
+			case newObject3:\newObject(Expression expr, Type oType:\type, list[Expression] expArgs) : {
+				occurrenceLog += getOccurrenceItems(newObject3, oType, initializerThisRefClasses, initializerThisRefChildren);
+			}
+			case newObject4:\newObject(Expression expr, Type oType:\type, list[Expression] expArgs, Declaration class) : {
+				occurrenceLog += getOccurrenceItems(newObject4, oType, initializerThisRefClasses, initializerThisRefChildren);
 			}
 		}
 	}	
+	retSet = { <_descClass, _ascClass> | <<_descClass, _ascClass>, <_srcRef, _methodOrClass>> <- occurrenceLog };
 	iprintToFile(thisChangingTypeOccurFile, occurrenceLog);	
 	return retSet;
 }
 
 
-public rel [inheritanceKey, inheritanceType] getThisChangingTypeOccurrences() {
-	loc aProject = |project://InheritanceSamples|;
-	println("Creating M3...");
-	M3 projectM3 = createM3FromEclipseProject(aProject);
-	println("Created M3.");
-	println("Starting with this changing type...<printTime(now())>");
+public rel [inheritanceKey, inheritanceType] getThisChangingTypeOccurrences(M3 projectM3) {
 	rel [loc, loc, loc] thisChangingTypeCandidates = getThisChangingTypeCandidates(projectM3);
-	set [inheritanceKey] thisChangingTypeOccurrences = getThisChangingTypeOccurrences(thisChangingTypeCandidates, aProject, projectM3);
-	printLog(thisChangingTypeCandFile, "THIS CHANGING TYPE CANDIDATES THIS REFERENCES:");
-	printLog(thisChangingTypeOccurFile, "THIS CHANGING TYPE OCCURRENCES:");
-	println("Finished with this changing type...<printTime(now())>");
+	set [inheritanceKey] thisChangingTypeOccurrences = getThisChangingTypeOccurrences(thisChangingTypeCandidates, projectM3);
 	return {<iKey, SUBTYPE> | iKey <- thisChangingTypeOccurrences };
 }

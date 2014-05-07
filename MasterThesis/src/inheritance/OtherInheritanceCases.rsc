@@ -81,7 +81,7 @@ public bool areAllParentsInCandidateList(set [loc] allParentsOfLoc, set [loc] ca
 }
 
 
-public rel [inheritanceKey,inheritanceType] findConstantLocs(set [loc] candidateLocs, M3 projectM3) {
+public rel [inheritanceKey,inheritanceType] getConstantLocs(set [loc] candidateLocs, M3 projectM3) {
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	rel [inheritanceKey,inheritanceType] retRel = {};
 	for (aLoc <- candidateLocs) {
@@ -104,7 +104,7 @@ public set [loc] getMarkerCandidates(map[loc, set[loc]] interfaceContainmentWith
 }
 	
 
-public rel [inheritanceKey, inheritanceType] findMarkerInterfaces(set [loc] markerCandidates, M3 projectM3) {
+public rel [inheritanceKey, inheritanceType] getMarkerInterfaces(set [loc] markerCandidates, M3 projectM3) {
 	rel [loc, loc] allInheritanceRels = getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
 	rel [inheritanceKey,inheritanceType] retRel = {};
 	for (anInterface <- markerCandidates) {
@@ -130,7 +130,7 @@ public loc getImmediateParentOfAClass(loc childClass, map [loc, set[loc]] extend
 }
 
 
-public rel [inheritanceKey, inheritanceType] findSuperRelations(M3 projectM3) {
+public rel [inheritanceKey, inheritanceType] getSuperRelations(M3 projectM3) {
 	set [loc] 				allClassesInProject 		= getAllClassesInProject(projectM3);
 	map [loc, set [loc]] 	constructorContainmentMap 	= toMap({<_owner, _constructor> | <_owner, _constructor> <- projectM3@containment, _constructor.scheme == "java+constructor" });
 	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends });
@@ -188,8 +188,7 @@ private rel [inheritanceKey iKey, set [loc] otherParents] getOneGenericUsage(Exp
 }
 
 
-
-private rel [inheritanceKey, inheritanceType] findGenericUsages(M3 projectM3) {
+private rel [inheritanceKey, inheritanceType] getGenericUsages(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
 	lrel [inheritanceKey _iKey, set [loc] _otherParents, loc _castLoc] genericLog = [];
 	map [loc, set [loc]] invertedExtendsAndImplementsMap 	= getInvertedExtendsAndImplementsMap(projectM3);	
@@ -244,6 +243,19 @@ private lrel [inheritanceKey, categorySibling] getOneCategoryCase(inheritanceKey
 }
 
 
+private rel [inheritanceKey, inheritanceType] getFrameworkCases(M3 projectM3) {
+	rel [inheritanceKey, inheritanceType] retRel = {};
+	rel [loc, loc] 	allInheritanceRels 	= getInheritanceRelations(projectM3);
+	set [loc] 		allTypesInProject 	= carrier(allInheritanceRels);
+	set [loc] 		allSystemTypes 		= getAllClassesAndInterfacesInProject(projectM3);
+	set [loc] 		allNonSystemTypes 	= allTypesInProject - allSystemTypes;
+	set [loc] 		childrenOfNonSystemTypes = {_child | <_child, _parent> <- allInheritanceRels, _parent in allNonSystemTypes};
+	retRel = {<<_child, _parent>, FRAMEWORK> | <_child, _parent> <- allInheritanceRels, _parent in childrenOfNonSystemTypes};
+	println("FRAMEWORK CASES: ");
+	iprintln(sort(retRel));
+	return retRel;
+}
+
 
 public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKey, inheritanceType] allInheritanceCases, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
@@ -257,8 +269,8 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
 	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemInterfaces};
 
-	// TODO : Think about DOWNCALL_CANDIDATE and EXTERNAL_REUSE_CANDIDATE cases !!!
-	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE_ACTUAL, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, SUPER, GENERIC} };	
+	// TODO : Think about DOWNCALL_CANDIDATE cases !!!
+	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, SUPER, GENERIC, FRAMEWORK} };	
 	set [inheritanceKey] subtypeSet = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE };
 	
 	set [inheritanceKey] CCCategoryCandidates = allExplicitSystemCC - allUsedInheritanceRels;
@@ -284,10 +296,11 @@ public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM
 	map [loc, set[loc]] classAndInterfaceContWithoutTypeVars = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface), _anItem.scheme != "java+typeVariable" });
 	map[loc, set[Modifier]] allFieldModifiers = toMap({<_aField, _aModifier> | <_aField, _aModifier>  <- projectM3@modifiers, isField(_aField)});
 	//iprintln(sort(projectM3@modifiers));
-	retRel += findConstantLocs(getConstantCandidates(classAndInterfaceContWithoutTypeVars, allFieldModifiers, projectM3), projectM3);
-	retRel += findMarkerInterfaces(getMarkerCandidates(interfaceContainmentWithoutTypeVars, projectM3), projectM3);	
-	retRel += findSuperRelations(projectM3);
-	retRel += findGenericUsages(projectM3);
+	retRel += getConstantLocs(getConstantCandidates(classAndInterfaceContWithoutTypeVars, allFieldModifiers, projectM3), projectM3);
+	retRel += getMarkerInterfaces(getMarkerCandidates(interfaceContainmentWithoutTypeVars, projectM3), projectM3);	
+	retRel += getSuperRelations(projectM3);
+	retRel += getGenericUsages(projectM3);
+	retRel += getFrameworkCases(projectM3);
 	return retRel;
 }
 

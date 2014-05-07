@@ -29,65 +29,6 @@ private rel [loc, loc] getAllSystemInhRelsCC_CI(rel [loc, loc] allInheritanceRel
 }
 
 
-private bool isPrivate(loc aMethod, map[loc, set[Modifier]] allModifiers) {
-	bool isPrivate = false;
-	set [Modifier] methodModifiers = aMethod in allModifiers ? allModifiers[aMethod] : {} ;
- 	if (!isEmpty ( {_aModifier | _aModifier <- methodModifiers , (_aModifier := \private()) } ) ) {
-		isPrivate = true;
-	}
-	return isPrivate;
-}
-
-
-private set [loc] getOneNotOverriddenMethod (	set [loc] parentMethods, set [loc] childMethods, 
-												map[loc, set[loc]] invertedOverridesMap, map [loc, set[Modifier]] allModifiers) {
-	// get one of the parent methods which are not overridden by the child, if any, otherwise return an epty set.
-	set [loc] retSet = {};
-	list [loc] parentMethodList = toList(parentMethods);
-	bool allOverridden = true; 
-	int listIndex = 0;
-	while ( (allOverridden ) && (listIndex < size(parentMethodList)) ) {
-		loc aParentMethod = parentMethodList[listIndex];
-		set [loc] overridingMethods = aParentMethod in invertedOverridesMap ? invertedOverridesMap[aParentMethod] : {};
-		set [loc] overridingChildMethods = childMethods & overridingMethods; 
-		if (isEmpty(overridingChildMethods)) {
-			if (!isPrivate(aParentMethod, allModifiers)) {
-				allOverridden = false;	
-				retSet += aParentMethod;
-			}
-		} 
-		else {
-			if (size (overridingChildMethods) > 1 ) {
-				throw "in getAllNotOverriddenMethods, size is greater than 1. Set is: <overridingChildMethods> for parent method: <aParentMethod>";
-			}
-		}
-		listIndex += 1;
-	}
-	return retSet;
-}
-
-
-public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getCandidatesExternalReuse(rel [loc, loc] allInheritanceRelations, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retRel = [];
-	rel [loc, loc] 				allSystemInhRelsCC_II 	= getAllSystemInhRelsCC_CI(allInheritanceRelations, projectM3);
-	map [loc, set[loc]] 		containmentMapMethods 	= toMap ({<_aClassOrInterface, _aMethod> | <_aClassOrInterface, _aMethod> <- projectM3@containment, isMethod(_aMethod), (isClass(_aClassOrInterface) || isInterface(_aClassOrInterface) ) });
-	map [loc, set [Modifier]] 	modifiersMap 			= toMap({<_aLoc, _aModifier> | <_aLoc, _aModifier>  <- projectM3@modifiers});
-	map [loc, set[loc]] 		invertedOverridesMap	= getInvertedOverrides(projectM3);
-	for ( <_child, _parent> <- allSystemInhRelsCC_II) {
-		set [loc] childMethods = _child in containmentMapMethods ? containmentMapMethods[_child] : {};
-		set [loc] parentMethods = _parent in  containmentMapMethods ? containmentMapMethods[_parent] : {};
-		set [loc] oneNotOverriddenMethodSet = getOneNotOverriddenMethod (parentMethods, childMethods, invertedOverridesMap, modifiersMap);
-		if (!isEmpty(oneNotOverriddenMethodSet )) {
-			retRel += <<_child, _parent>, EXTERNAL_REUSE_CANDIDATE_METHOD, getOneFrom(oneNotOverriddenMethodSet), DEFAULT_LOC>;
-		}
-	 } 
-	 // TODO: Until I get the answer from the authors, I do not do anything about field external reuse...
-	 // TODO: No, I decided to include field external reuse candidates already, independent from what the authors say...
-	 // TODO: Code this!
-	 return retRel;
-}
-
-
 public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMethodCall(Expression mCall, loc  classOfMethodCall, 
 																						map [loc, set[loc]] invertedClassContainment,  map[loc, set[loc]] declarationsMap,
 																						rel [loc, loc] allInheritanceRelations) {
@@ -101,11 +42,10 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 			if ((invokedMethod in invertedClassContainment) && (classOfReceiver != classOfMethodCall) 
 									&& isLocDefinedInProject(invokedMethod, declarationsMap) 
 								 	&& ! inheritanceRelationExists(classOfMethodCall, classOfReceiver, allInheritanceRelations)) {
-				// for external reuse, the invokedMethod should not be declared in the 
-				// class classOfReceiver
+				// for external reuse, the invokedMethod should not be declared in the class classOfReceiver
 				loc methodDefiningClass = getDefiningClassOfALoc(invokedMethod, invertedClassContainment);
 				if ( isClass(classOfReceiver) && (methodDefiningClass != classOfReceiver)) {
-						retList += <<classOfReceiver, methodDefiningClass>, EXTERNAL_REUSE_ACTUAL_VIA_METHOD_CALL, m2@src, invokedMethod>; 
+						retList += <<classOfReceiver, methodDefiningClass>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
 				}
 			} // if inheritanceRelationExists
    		} // case methodCall()
@@ -136,7 +76,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 		loc classOfQualifier = getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
 		loc classOfExpression = getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
 		if (classOfQualifier != classOfExpression) {
-			retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS, srcRef, accessedField>;
+			retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_VIA_FIELD_ACCESS, srcRef, accessedField>;
 			//println("Field access : <classOfQualifier> , <classOfExpression>, at: <srcRef>, field: <accessedField> ");
 		}
 	}
@@ -174,15 +114,9 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	}	// for each class in the project
 	for ( int i <- [0..size(allExternalReuseCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
-		resultRel += <aCase.iKey, EXTERNAL_REUSE_ACTUAL>;
+		resultRel += <aCase.iKey, EXTERNAL_REUSE>;
 	}
-	allCandExtReuseCases = getCandidatesExternalReuse(allInheritanceRelations, projectM3);
-	for ( int i <- [0..size(allCandExtReuseCases )]) { 
-		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allCandExtReuseCases[i];
-		resultRel += <aCase.iKey, EXTERNAL_REUSE_CANDIDATE>;
-	}
-	iprintToFile(actualExternalReuseLogFile, allExternalReuseCases);
-	iprintToFile(candidateExternalReuseLogFile,  allCandExtReuseCases);
+	iprintToFile(externalReuseLogFile, allExternalReuseCases);
 	return resultRel;
 }
 

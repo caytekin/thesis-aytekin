@@ -4,18 +4,18 @@ import lang::java::m3::TypeSymbol;
 
 
 public inheritanceType INTERNAL_REUSE = 0;
-public inheritanceType EXTERNAL_REUSE_ACTUAL = 1;
-public inheritanceType EXTERNAL_REUSE_CANDIDATE = 2;
-public inheritanceType SUBTYPE = 3;
-public inheritanceType DOWNCALL_ACTUAL = 4;
-public inheritanceType DOWNCALL_CANDIDATE = 5;
-public inheritanceType CONSTANT = 6;
-public inheritanceType MARKER = 7;
-public inheritanceType SUPER = 8;
-public inheritanceType GENERIC = 9;
-public inheritanceType CATEGORY = 10;
+public inheritanceType EXTERNAL_REUSE = 1;
+public inheritanceType SUBTYPE = 2;
+public inheritanceType DOWNCALL_ACTUAL = 3;
+public inheritanceType DOWNCALL_CANDIDATE = 4;
+public inheritanceType CONSTANT = 5;
+public inheritanceType MARKER = 6;
+public inheritanceType SUPER = 7;
+public inheritanceType GENERIC = 8;
+public inheritanceType CATEGORY = 9;
+public inheritanceType FRAMEWORK = 10;
 
-public inheritanceType EXTERNAL_REUSE = 11;
+
 public inheritanceType DOWNCALL = 12;
 
 
@@ -77,10 +77,8 @@ public inheritanceSubtype SUBTYPE_VIA_PARAMETER = 207;
 public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP = 208;
 
 
-public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_METHOD_CALL = 210;
-public inheritanceSubtype EXTERNAL_REUSE_ACTUAL_VIA_FIELD_ACCESS = 211;
-public inheritanceSubtype EXTERNAL_REUSE_CANDIDATE_METHOD = 212;
-public inheritanceSubtype EXTERNAL_REUSE_CANDIDATE_FIELD = 213;
+public inheritanceSubtype EXTERNAL_REUSE_VIA_METHOD_CALL = 210;
+public inheritanceSubtype EXTERNAL_REUSE_VIA_FIELD_ACCESS = 211;
 
 
 public inheritanceSubtype INTERNAL_REUSE_METHOD_LEVEL = 220;
@@ -118,8 +116,7 @@ public alias categorySibling = loc;
 public loc categoryLogFile = |file://c:/Users/caytekin/InheritanceLogs/Category.log|;
 public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
 public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
-public loc actualExternalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ActualExternalReuse.log|;
-public loc candidateExternalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/CandidateExternalReuse.log|;
+public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
 public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
 public loc superLogFile = |file://c:/Users/caytekin/InheritanceLogs/Super.log|;
 public loc thisChangingTypeCandFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeCand.log|;
