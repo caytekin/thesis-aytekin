@@ -6,7 +6,6 @@ import java.util.List;
 
 
 public class GenExRRunner {
-/*	
 	GenExRChild <C> exRunnerChild = new GenExRChild <C> ();
 	
 	void runIt() {
@@ -64,5 +63,4 @@ public class GenExRRunner {
 	}
 	
 	
-	*/
 }

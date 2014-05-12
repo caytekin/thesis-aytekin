@@ -4,7 +4,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 
 public class N {
-	/*
 	String theFieldOfN = "I am a field of N"; 
 
 	{
@@ -104,5 +103,4 @@ public class N {
 	int callMeWithInt(int intParameter) {
 		return intParameter++; 
 	}
-	*/ 
 }

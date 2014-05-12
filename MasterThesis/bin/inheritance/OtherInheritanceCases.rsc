@@ -24,21 +24,22 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 	for ( aField <- fieldsInLoc) {
 		set [Modifier] modifiers = aField in allFieldModifiers ? allFieldModifiers[aField] : {} ;
 		//println("Modifiers for field : <aField>  is : <modifiers>");
-		bool isFinal = false, isStatic = false;		
+		bool isFinal = false, isStatic = false, isPrivate = false;		
 		for (aModifier <- modifiers) {
 			switch (aModifier) {
+				case \private()  : isPrivate = true;
 				case static() 	: isStatic = true;
 				case final()	: isFinal = true; 
-			}
-		}
-		if (! (isFinal && isStatic) ) {
-			retBool = false;
-			break;
-		} 
-		else {
+			} // switch
+		}  // for 
+		if (!isPrivate && isFinal && isStatic) {
 			retBool = true;
 		}
-	}
+		else {
+			retBool = false;
+			break;
+		}
+	} // for 
 	//println("Ret bool is: <retBool>");
 	return retBool;
 }
@@ -249,8 +250,10 @@ private rel [inheritanceKey, inheritanceType] getFrameworkCases(M3 projectM3) {
 	set [loc] 		allTypesInProject 	= carrier(allInheritanceRels);
 	set [loc] 		allSystemTypes 		= getAllClassesAndInterfacesInProject(projectM3);
 	set [loc] 		allNonSystemTypes 	= allTypesInProject - allSystemTypes;
-	set [loc] 		childrenOfNonSystemTypes = {_child | <_child, _parent> <- allInheritanceRels, _parent in allNonSystemTypes};
-	retRel = {<<_child, _parent>, FRAMEWORK> | <_child, _parent> <- allInheritanceRels, _parent in childrenOfNonSystemTypes};
+	// we only want immediate parents
+	rel [loc, loc]  extendsAndImplementsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements} ;
+	set [loc] 		directChildrenOfNonSystemTypes = {_child | <_child, _parent> <- extendsAndImplementsRel, _parent in allNonSystemTypes};
+	retRel = {<<_child, _parent>, FRAMEWORK> | <_child, _parent> <- extendsAndImplementsRel, _parent in directChildrenOfNonSystemTypes};
 	println("FRAMEWORK CASES: ");
 	iprintln(sort(retRel));
 	return retRel;
@@ -267,7 +270,13 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [loc] allSystemInterfaces = getAllInterfacesInProject(projectM3);
 	set [inheritanceKey] allExplicitSystemCC = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemClasses};
 	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
-	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemInterfaces};
+	// interface extensions are put in @implements annotation by Rascal
+	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemInterfaces, _parent in allSystemInterfaces};
+
+	//println("Extends annotation: "); 	iprintln(sort(projectM3@extends));
+	//println("Implements annotation: "); iprintln(sort(projectM3@implements));	
+	//println("allSystemInterfaces:"); 	iprintln(sort(allSystemInterfaces));
+	//println("allExplicitSystemII"); 	iprintln(allExplicitSystemII);
 
 	// TODO : Think about DOWNCALL_CANDIDATE cases !!!
 	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, SUPER, GENERIC, FRAMEWORK} };	
@@ -277,10 +286,12 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [inheritanceKey] CICategoryCandidates = allExplicitSystemCI - allUsedInheritanceRels;
 	set [inheritanceKey] IICategoryCandidates = allExplicitSystemII - allUsedInheritanceRels;
 	
-	for (anExtendsCandidate <- (CCCategoryCandidates + IICategoryCandidates) ) {
+	//println("IICAtegoryCandidates:"); iprintln(IICategoryCandidates);
+	
+	for (anExtendsCandidate <- (CCCategoryCandidates ) ) {
 		categoryLog += getOneCategoryCase(anExtendsCandidate,  subtypeSet, invertedExtendsMap ); 
 	}
-	for (anImplementsCandidate <- CICategoryCandidates) {
+	for (anImplementsCandidate <- CICategoryCandidates + IICategoryCandidates) {
 		categoryLog += getOneCategoryCase(anImplementsCandidate,  subtypeSet, invertedImplementsMap); 
 	}
 

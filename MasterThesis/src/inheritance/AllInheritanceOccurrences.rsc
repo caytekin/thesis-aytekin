@@ -26,7 +26,7 @@ import inheritance::ThisChangingType;
 
 private map [inheritanceType, num] countResults(rel [inheritanceKey, inheritanceType] inheritanceResults) {
 	map [inheritanceType, num] resultMap = ();
-	for ( anInheritanceType <- [INTERNAL_REUSE..(CATEGORY+1)]) {
+	for ( anInheritanceType <- [INTERNAL_REUSE..(FRAMEWORK+1)]) {
 		int totalOccurrences = size({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType });
 		println("<getNameOfInheritanceType(anInheritanceType)>"); iprintln(sort({<child, parent> | <<child, parent>, iType> <- inheritanceResults, iType == anInheritanceType }));
 		println();
@@ -47,6 +47,7 @@ private set [loc] getAllExceptionClasses(rel [loc, loc] allInheritanceRelations)
 	println("Number of exception classes is: <size(retSet)>");
 	return retSet;
 }
+
 
 // return all non-framework (i. e. system) types which are not exceptions
 rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inheritanceKey, inheritanceType] allInheritanceCases, rel [loc, loc] allInheritanceRelations, M3 projectM3) {
@@ -131,11 +132,11 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	CCResultsMap += (perCCUsedOnlyInRe : calcPercentage(CCResultsMap[numCCUsedOnlyInRe], CCResultsMap[numCCUsed]));
 		
 			
-	set [inheritanceKey] allButSuper = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, CATEGORY} };
+	set [inheritanceKey] allButSuper = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, CATEGORY, FRAMEWORK} };
 	CCResultsMap += (numCCUnexplSuper: size({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == SUPER} - allButSuper));
 	CCResultsMap += (perCCUnexplSuper: calcPercentage(CCResultsMap[numCCUnexplSuper], CCResultsMap[numExplicitCC]));
 	
-	set [inheritanceKey] allButCategory = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER}};
+	set [inheritanceKey] allButCategory = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, FRAMEWORK}};
 	CCResultsMap += (numCCUnexplCategory : size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CATEGORY}  - allButCategory));
 	CCResultsMap += (perCCUnexplCategory: calcPercentage(CCResultsMap[numCCUnexplCategory ], CCResultsMap[numExplicitCC]));
 
@@ -155,7 +156,7 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	//println("NUMBER OF GENERIC CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == GENERIC} - allButGeneric )>");
 
 	println("CC UNKNOWN: ");
-	iprintln({<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- ccResults, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY}});
+	iprintln({<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- ccResults, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY, FRAMEWORK}});
 
 	return CCResultsMap;
 }
@@ -173,7 +174,7 @@ private void printCCResults(map [metricsType, num]  CCMetricResults, M3 projectM
 
 
 private void printResults(map[inheritanceType, num] totals ) {
-	for ( anInheritanceType <- [INTERNAL_REUSE..(CATEGORY+1)]) {
+	for ( anInheritanceType <- [INTERNAL_REUSE..(FRAMEWORK+1)]) {
 		println("NUMBER OF <getNameOfInheritanceType(anInheritanceType)> CASES: <totals[anInheritanceType]>");
 	}
 	println();
@@ -185,7 +186,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://jrat_0.6|;
+	loc projectLoc = |project://InheritanceSamples|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -259,18 +260,16 @@ public void runIt() {
 	println("EXTERNAL REUSE:");
 	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE}));
 
+	printLog(downcallLogFile, "DOWNCALL LOG:");
 
-	//printLog(categoryLogFile, "CATEGORY LOG: ");
-	//printLog(genericLogFile, "GENERIC LOG:");
-	printLog(subtypeLogFile, "SUBTYPE LOG");
-	printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
-	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG");
+	printLog(internalReuseLogFile, "INTERNAL REUSE LOG:");
+	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG:");
+	printLog(subtypeLogFile, "SUBTYPE LOG:");
 	printLog(thisChangingTypeCandFile, "THIS CHANGING TYPE CANDIDATES:");
 	printLog(thisChangingTypeOccurFile, "THIS CHANGING TYPE OCCURRENCES:");	
-	//printLog(internalReuseLogFile, "INTERNAL REUSE LOG");
-	printLog(downcallLogFile, "DOWNCALL LOG");
-	//printLog(superLogFile, "SUPER LOG:");
-	
-	
+
+	printLog(genericLogFile, "GENERIC LOG:");
+	printLog(superLogFile, "SUPER LOG:");
+	printLog(categoryLogFile, "CATEGORY LOG: ");	
 }
 
