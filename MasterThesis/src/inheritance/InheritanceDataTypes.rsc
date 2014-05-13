@@ -44,11 +44,11 @@ public metricsType numExplicitCI			= 1025;
 public metricsType numOnlyCISubtype			= 1026;
 public metricsType perOnlyCISubtype			= 1027;		// numOnlyCISubtype / numExplicitCI
 public metricsType numExplainedCI			= 1028;
-public metricsType perExplainedCI			= 1028;		// numExplainedCI / numExplicitCI
-public metricsType numCategoryExplCI		= 1029;
-public metricsType perCategoryExplCI		= 1030;		// numCategoryExplCI / numExplicitCI
-public metricsType numUnexplainedCI			= 1031;
-public metricsType perUnexplainedCI			= 1032;		// numUnexplainedCI / numExplicitCI
+public metricsType perExplainedCI			= 1029;		// numExplainedCI / numExplicitCI
+public metricsType numCategoryExplCI		= 1030;
+public metricsType perCategoryExplCI		= 1031;		// numCategoryExplCI / numExplicitCI
+public metricsType numUnexplainedCI			= 1032;
+public metricsType perUnexplainedCI			= 1033;		// numUnexplainedCI / numExplicitCI
 
 
 public metricsType numExplicitII			= 1040;

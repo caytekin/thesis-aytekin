@@ -9,7 +9,7 @@ import edu.uva.analysis.gensamples.st.ArrayListParent;
 public class ReturnInterfaceRunner {
 	
 	STClass fieldC = new STClass();
-	
+	/*
 	STClass returnAC() {
 		return new STClass();
 	}
@@ -69,4 +69,5 @@ public class ReturnInterfaceRunner {
 		}
 		else return new STClass();					// subtype, case 361, tested, working, 5-5-2014
 	}
+	*/
 }

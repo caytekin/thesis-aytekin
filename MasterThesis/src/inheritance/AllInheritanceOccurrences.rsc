@@ -100,6 +100,89 @@ num calcPercentage (num nominator, num denominator) {
 
 
 
+private map [metricsType, num] calculateIIResults(rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] inheritanceRelations, M3 projectM3) {
+	map [metricsType, num] IIResultsMap = ();
+
+	rel [inheritanceKey, inheritanceType] iiResults = {<<_child, _parent>, iKey> | <<_child, _parent>, iKey> <- inheritanceResults, isInterface(_child), isInterface(_parent)};
+	rel [loc, loc] iiRelations = { <_child, _parent> | <_child, _parent> <- inheritanceRelations, isInterface(_child), isInterface(_parent)};
+
+	IIResultsMap += (numExplicitII: size({<_child, _parent>| <_child, _parent>  <- iiRelations}));			
+
+	set [inheritanceKey] subtypeRels 			= {<_child, _parent> | <<_child, _parent> , _iType> <- iiResults, _iType == SUBTYPE};
+	IIResultsMap += (numIISubtype : size(subtypeRels));	
+	IIResultsMap += (perIISubtype : calcPercentage(IIResultsMap[numIISubtype ], IIResultsMap[numExplicitII]));	
+
+	set [inheritanceKey] onlyReuse	= {<_child, _parent> | <<_child, _parent> , _iType> <- iiResults, _iType == EXTERNAL_REUSE } - subtypeRels;
+	IIResultsMap += (numOnlyIIReuse : size(onlyReuse));	
+	IIResultsMap += (perOnlyIIReuse : calcPercentage(IIResultsMap[numOnlyIIReuse ], IIResultsMap[numExplicitII]));	
+
+
+	set [inheritanceKey] explainedIIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- iiResults, _iType in {FRAMEWORK, GENERIC, MARKER, CONSTANT }};
+	IIResultsMap += (numExplainedII : size(explainedIIRels - (subtypeRels + onlyReuse)));
+	IIResultsMap += (perExplainedII : calcPercentage(IIResultsMap[numExplainedII], IIResultsMap[numExplicitII]));
+
+	set [inheritanceKey] categoryIIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- iiResults, _iType == CATEGORY};
+	IIResultsMap += (numCategoryExplII: size(categoryIIRels - (explainedIIRels + subtypeRels + onlyReuse)));
+	IIResultsMap += (perCategoryExplII: calcPercentage(IIResultsMap[numCategoryExplII], IIResultsMap[numExplicitII]));
+	
+	set [inheritanceKey] allFoundUsages = {<_child, _parent> | <<_child, _parent> , _iType> <- iiResults};
+	IIResultsMap += (numUnexplainedII : size(iiRelations - allFoundUsages));
+	IIResultsMap += (perUnexplainedII : calcPercentage(IIResultsMap[numUnexplainedII], IIResultsMap[numExplicitII]));	
+
+	return IIResultsMap;	
+}
+
+private void printIIResults(map [metricsType, num]  IIMetricResults, M3 projectM3) {
+	println("RESULTS FOR II EDGES:");
+	println("------------------------------------------------");	
+	for ( anIIMetric <- [numExplicitII..perUnexplainedII + 1]) {
+		println("<getNameOfInheritanceMetric(anIIMetric)> 	: <IIMetricResults[anIIMetric]>");
+	}
+	println();
+}
+
+
+
+private map [metricsType, num] calculateCIResults(rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] inheritanceRelations, M3 projectM3) {
+	map [metricsType, num] CIResultsMap = ();
+
+	rel [inheritanceKey, inheritanceType] ciResults = {<<_child, _parent>, iKey> | <<_child, _parent>, iKey> <- inheritanceResults, isClass(_child), isInterface(_parent)};
+	rel [loc, loc] ciRelations = { <_child, _parent> | <_child, _parent> <- inheritanceRelations, isClass(_child), isInterface(_parent)};
+
+	CIResultsMap += (numExplicitCI: size({<_child, _parent>| <_child, _parent>  <- ciRelations}));			
+
+	set [inheritanceKey] subtypeRels 			= {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults, _iType == SUBTYPE};
+	CIResultsMap += (numOnlyCISubtype : size(subtypeRels));	
+	CIResultsMap += (perOnlyCISubtype: calcPercentage(CIResultsMap[numOnlyCISubtype], CIResultsMap[numExplicitCI]));	
+
+	set [inheritanceKey] explainedCIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults, _iType in {FRAMEWORK, GENERIC, MARKER, CONSTANT }};
+	CIResultsMap += (numExplainedCI : size(explainedCIRels - subtypeRels));
+	CIResultsMap += (perExplainedCI : calcPercentage(CIResultsMap[numExplainedCI], CIResultsMap[numExplicitCI]));
+
+	set [inheritanceKey] categoryCIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults, _iType == CATEGORY};
+	CIResultsMap += (numCategoryExplCI: size(categoryCIRels - (explainedCIRels + subtypeRels)));
+	CIResultsMap += (perCategoryExplCI: calcPercentage(CIResultsMap[numCategoryExplCI], CIResultsMap[numExplicitCI]));
+	
+	set [inheritanceKey] allFoundUsages = {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults};
+	CIResultsMap += (numUnexplainedCI : size(ciRelations - allFoundUsages));
+	CIResultsMap += (perUnexplainedCI : calcPercentage(CIResultsMap[numUnexplainedCI], CIResultsMap[numExplicitCI]));	
+
+	return CIResultsMap;	
+}
+
+
+private void printCIResults(map [metricsType, num]  CIMetricResults, M3 projectM3) {
+	println("RESULTS FOR CI EDGES:");
+	println("------------------------------------------------");	
+	for ( aCIMetric <- [numExplicitCI..perUnexplainedCI + 1]) {
+		println("<getNameOfInheritanceMetric(aCIMetric)> 	: <CIMetricResults[aCIMetric]>");
+	}
+	println();
+}
+
+
+
+
 private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritanceType] inheritanceResults, rel [loc, loc] inheritanceRelations, M3 projectM3) {
 	
 	map [metricsType, num] 		CCResultsMap 		= ();
@@ -141,22 +224,8 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	CCResultsMap += (perCCUnexplCategory: calcPercentage(CCResultsMap[numCCUnexplCategory ], CCResultsMap[numExplicitCC]));
 
 	set [inheritanceKey] allFoundUsages = {<_child, _parent> | <<_child, _parent> , _iType> <- ccResults};
-	//println("UNKNOWN RELATIONS LIST: "); iprintln(sort(ccRelations- allFoundUsages));
 	CCResultsMap += (numCCUnknown: size(ccRelations- allFoundUsages));
 	CCResultsMap += (perCCUnknown: calcPercentage(CCResultsMap[numCCUnknown], CCResultsMap[numExplicitCC]));
-
-	//set [inheritanceKey] allButConstant = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, GENERIC, CATEGORY} };
-	//println("NUMBER OF CONSTANT ONLY CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CONSTANT} - allButConstant )>");
-	//iprintln({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == CONSTANT} - allButConstant);
-
-	//set [inheritanceKey] allButMarker = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, CONSTANT, GENERIC, CATEGORY} };
-	//println("NUMBER OF MARKER CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == MARKER} - allButMarker )>");
-
-	//set [inheritanceKey] allButGeneric = {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, SUPER, MARKER, CONSTANT, CATEGORY} };
-	//println("NUMBER OF GENERIC CASES IS: <size( {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == GENERIC} - allButGeneric )>");
-
-	println("CC UNKNOWN: ");
-	iprintln({<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- ccResults, _iType notin {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL, CONSTANT, MARKER, GENERIC, SUPER, CATEGORY, FRAMEWORK}});
 
 	return CCResultsMap;
 }
@@ -186,7 +255,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://InheritanceSamples|;
+	loc projectLoc = |project://ExternalReuse|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -233,10 +302,20 @@ public void runIt() {
 	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
 	printCCResults(explicitCCMetricResults, projectM3);
 	
-	map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
-	println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
-	printCCResults(actualCCMetricResults, projectM3);
+	//map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
+	//println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
+	//printCCResults(actualCCMetricResults, projectM3);
+
+	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, explicitInhRelations, projectM3);
+	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
+	printCIResults(explicitCIMetricResults, projectM3);
 	
+
+	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, explicitInhRelations, projectM3);
+	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
+	printIIResults(explicitIIMetricResults, projectM3);
+
+
 	
 	//println("CONSTANTS:");
 	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));

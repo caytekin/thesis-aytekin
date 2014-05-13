@@ -62,7 +62,31 @@ public str getNameOfInheritanceMetric(metricsType iMetric) {
 		case numCCUnknown				: {return "numCCUnknown			";}
 		case perCCUnknown				: {return "perCCUnknown			";}		
 		
-		default 						: {return "NOT KNOWN: <iMetric>"; }
+		case numExplicitCI				: {return "numExplicitCI		";}			
+  		case numOnlyCISubtype			: {return "numOnlyCISubtype		";}
+  		case perOnlyCISubtype			: {return "perOnlyCISubtype		";}
+  		case numExplainedCI				: {return "numExplainedCI		";}
+  		case perExplainedCI				: {return "perExplainedCI		";}
+  		case numCategoryExplCI			: {return "numCategoryExplCI	";}
+ 		case perCategoryExplCI			: {return "perCategoryExplCI	";}
+  		case numUnexplainedCI			: {return "numUnexplainedCI		";}
+  		case perUnexplainedCI			: {return "perUnexplainedCI		";}
+  		
+  		
+  		case  numExplicitII				: {return "numExplicitII		";}
+		case  numIISubtype				: {return "numIISubtype			";}
+		case  perIISubtype				: {return "perIISubtype			";}
+		case  numOnlyIIReuse			: {return "numOnlyIIReuse		";}
+		case  perOnlyIIReuse			: {return "perOnlyIIReuse		";}
+		case  numExplainedII			: {return "numExplainedII		";}
+		case  perExplainedII			: {return "perExplainedII		";}
+		case  numCategoryExplII			: {return "numCategoryExplII	";}
+		case  perCategoryExplII			: {return "perCategoryExplII	";}
+		case  numUnexplainedII			: {return "numUnexplainedII		";}
+		case  perUnexplainedII			: {return "perUnexplainedII		";}
+  		
+		
+		default 						: {return "NOT KNOWN METRIC: <iMetric>"; }
  	}
 }
 

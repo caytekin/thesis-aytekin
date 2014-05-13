@@ -33,4 +33,8 @@ public class GenericRunner {
 
 	}
 	
+	void thirdMethod() {
+		AnotherInterface anotherInt = (AnotherInterface)(new Object());
+	}
+	
 }

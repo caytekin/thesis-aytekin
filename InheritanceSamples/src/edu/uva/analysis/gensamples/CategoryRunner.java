@@ -5,4 +5,6 @@ public class CategoryRunner {
 	void runCategory() {
 		CategoryParent <Shape>  aParent = new CategorySibling <Shape> ();
 	}
+	
+	
 }
