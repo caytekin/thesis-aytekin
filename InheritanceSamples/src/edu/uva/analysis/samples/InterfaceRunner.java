@@ -7,7 +7,20 @@ import java.util.Vector;
 import edu.uva.analysis.gensamples.*;
 
 
+
+
 public abstract class InterfaceRunner {
+	
+	public ChildInterface aci;
+	public ParentInterface api;
+
+	void exReuseIntrIntr() {
+		aci.parentInterfaceMethod1();
+		int i = aci.parentField;
+	}
+
+	
+	
 	abstract Object getObject() throws Exception;
 
 	final Object getApiObject() throws Exception{
@@ -61,5 +74,6 @@ public abstract class InterfaceRunner {
 		aList.add(aT);
 		S anS = (S)aList.get(0);
 	}
+	
 	
 }

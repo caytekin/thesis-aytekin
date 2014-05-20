@@ -203,6 +203,21 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 }
 
 
+private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol, loc forLoopRef, list [TypeSymbol] typeParameters) {
+	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	if (size(typeParameters) == 0) { retSymbol = OBJECT_TYPE_SYMBOL; }
+	else {
+		if (size(typeParameters) == 1)  { 
+			retSymbol = typeParameters[0]; 
+		}
+		else {
+			throw "More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>"; 
+		}	
+	}	
+	return retSymbol;
+}
+
+
 
 private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoop(TypeSymbol paramTypeSymbol, TypeSymbol collTypeSymbol, loc forLoopRef) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
@@ -212,12 +227,10 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 			compTypeSymbol = component;
 		}
 		case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
-			if (size(typeParameters) != 1) throw "More than one type parameter in class collection def: <collTypeSymbol>"; 
-			compTypeSymbol = typeParameters[0];
+			compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters);
 		}
 		case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
-			if (size(typeParameters) != 1) throw "More than one type parameter in interface collection def: <collTypeSymbol>"; 
-			compTypeSymbol = typeParameters[0];
+			compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters);
 		}
 	}
 	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
@@ -332,11 +345,12 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[TypeSymbol]] typesMap 						= toMap({<from, to> | <from, to> <- projectM3@types});
 	map [loc, set[loc]] 	invertedUnitContainment 			= getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set[loc]] 	invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment (projectM3);
 	rel [loc, loc] 			projectInhRels 						 = getInheritanceRelations(projectM3);
 	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(projectInhRels);
 	map [loc, set [loc]] 	invertedInheritanceRelsMap 			= toMap(invert(projectInhRels));		
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  

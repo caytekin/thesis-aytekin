@@ -13,4 +13,19 @@ public class InterfaceRunner {
 	void runInterface() {
 		ci.parentInterfaceMethod1();
 	}
+	
+	void fieldAccess() {
+		int i = ci.parentField; 
+	}
+	
+	void aCIMethodAccess() {
+		ParentImplementor pImpl = new ParentImplementor();
+		pImpl.parentInterfaceMethod1();
+	}
+	
+	void aCIFieldAccess() {
+		ParentImplementor pImpl2 = new ParentImplementor();
+		int anotherInt = pImpl2.parentField;
+	}
+
 }

@@ -18,34 +18,22 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
 
-
-private rel [loc, loc] getAllSystemInhRelsCC_CI(rel [loc, loc] allInheritanceRelations, M3 projectM3) {
-	rel [loc, loc] retRel = {};
-	set [loc] allSystemClasses = getAllClassesInProject(projectM3);
-	set [loc] allSystemInterfaces = getAllInterfacesInProject(projectM3);
-	retRel += {<_child, _parent> | <_child, _parent> <- allInheritanceRelations, _child in allSystemClasses, _parent in allSystemClasses};
-	retRel += {<_child, _parent> | <_child, _parent> <- allInheritanceRelations, _child in allSystemInterfaces, _parent in allSystemInterfaces};	
-	return retRel;
-}
-
-
 public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMethodCall(Expression mCall, loc  classOfMethodCall, 
-																						map [loc, set[loc]] invertedClassContainment,  map[loc, set[loc]] declarationsMap,
-																						rel [loc, loc] allInheritanceRelations) {
+																						map [loc, set[loc]] 	invClassAndInterfaceContainment,  
+																						map [loc, set[loc]] 	declarationsMap,
+																						rel [loc, loc] 			allInheritanceRelations) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	visit (mCall) {
 		case m2:\methodCall(_, receiver:_, _, _): {
 			loc invokedMethod = m2@decl;        			
-			loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-			// I am only interested in the classes and interfaces and not in enums, etc.
-			// I am not interested in this() and also fields of classOfMethodCall
-			if ((invokedMethod in invertedClassContainment) && (classOfReceiver != classOfMethodCall) 
+			loc classOrInterfaceOfReceiver = getClassOrInterfaceFromTypeSymbol(receiver@typ);
+			if ((invokedMethod in invClassAndInterfaceContainment) && (classOrInterfaceOfReceiver != classOfMethodCall) 
 									&& isLocDefinedInProject(invokedMethod, declarationsMap) 
-								 	&& ! inheritanceRelationExists(classOfMethodCall, classOfReceiver, allInheritanceRelations)) {
-				// for external reuse, the invokedMethod should not be declared in the class classOfReceiver
-				loc methodDefiningClass = getDefiningClassOfALoc(invokedMethod, invertedClassContainment);
-				if ( isClass(classOfReceiver) && (methodDefiningClass != classOfReceiver)) {
-						retList += <<classOfReceiver, methodDefiningClass>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
+								 	&& ! inheritanceRelationExists(classOfMethodCall, classOrInterfaceOfReceiver, allInheritanceRelations)) {
+				// for external reuse, the invokedMethod should not be declared in the class classOrInterfaceOfReceiver
+				loc methodDefiningClassOrInterface = getDefiningClassOrInterfaceOfALoc(invokedMethod, invClassAndInterfaceContainment);
+				if  (methodDefiningClassOrInterface != classOrInterfaceOfReceiver) {
+						retList += <<classOrInterfaceOfReceiver, methodDefiningClassOrInterface>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
 				}
 			} // if inheritanceRelationExists
    		} // case methodCall()
@@ -72,9 +60,9 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 			srcRef = fAccessStmt@src;			
 		}
 	}
-	if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap)) {  
-		loc classOfQualifier = getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
-		loc classOfExpression = getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
+	if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap) && isLocDefinedInClassOrInterface(accessedField, invClassAndInterfaceContainment)) {  
+		loc classOfQualifier 	= getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
+		loc classOfExpression 	= getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
 		if (classOfQualifier != classOfExpression) {
 			retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_VIA_FIELD_ACCESS, srcRef, accessedField>;
 			//println("Field access : <classOfQualifier> , <classOfExpression>, at: <srcRef>, field: <accessedField> ");
@@ -93,11 +81,12 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set [loc]] 	invertedClassContainment 	= toMap(invert({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner)}));
 	map [loc, set [loc]] 	invClassAndInterfaceContainment 	= getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set [loc]] 	invClassInterfaceMethodContainment  = getInvertedClassInterfaceMethodContainment(projectM3); 
 	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
 	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	for (oneClass <- allClassesInProject) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
         		case qName:\qualifiedName(_, _) : {
@@ -107,7 +96,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
         			allExternalReuseCases += getExternalReuseViaFieldAccess(fAccess, invClassAndInterfaceContainment, declarationsMap);
         		}
 				case m2:\methodCall(_, receiver:_, _, _): {
-					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invertedClassContainment, declarationsMap, allInheritanceRelations);
+					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations);
         		} // case methodCall()
         	} // visit()
 		}	// for each method in the class															

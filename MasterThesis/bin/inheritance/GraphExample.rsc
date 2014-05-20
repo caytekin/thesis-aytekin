@@ -3,6 +3,18 @@ module inheritance::GraphExample
 import analysis::graphs::Graph;
 import IO;
 
+
+private rel [loc, loc] getAllSystemInhRelsCC_CI(rel [loc, loc] allInheritanceRelations, M3 projectM3) {
+	rel [loc, loc] retRel = {};
+	set [loc] allSystemClasses = getAllClassesInProject(projectM3);
+	set [loc] allSystemInterfaces = getAllInterfacesInProject(projectM3);
+	retRel += {<_child, _parent> | <_child, _parent> <- allInheritanceRelations, _child in allSystemClasses, _parent in allSystemClasses};
+	retRel += {<_child, _parent> | <_child, _parent> <- allInheritanceRelations, _child in allSystemInterfaces, _parent in allSystemInterfaces};	
+	return retRel;
+}
+
+
+
 // This module stores the removed code which may be useful in the future 
 // for inheritance analysis.
 

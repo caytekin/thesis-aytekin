@@ -255,11 +255,11 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://ExternalReuse|;
+	loc projectLoc = |project://findbugs|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-
+/*
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
@@ -267,7 +267,7 @@ public void runIt() {
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
-	
+*/	
 	println("Starting with subtype cases at: <printTime(now())> ");
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	println("Subtype cases are done at <printTime(now())>...");	

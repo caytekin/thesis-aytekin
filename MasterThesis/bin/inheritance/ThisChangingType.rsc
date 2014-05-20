@@ -77,9 +77,9 @@ private set [loc]  getThisReferencesInMethod(loc aMethodOfAscClass, M3 projectM3
 } 
 
 
-private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] invertedClassAndInterfaceContainment, map [loc, set [loc]] invertedUnitContainment, 
+private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] invertedClassInterfaceMethodContainment, map [loc, set [loc]] invertedUnitContainment, 
 																													map [loc, set [loc]] declarationsMap) {
-	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
 	set [loc] retSet = {};
 	for (anAST <- ASTsOfOneClass ) {
 		retSet += getThisReferencesInAST(anAST);
@@ -101,6 +101,7 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 	map [loc, set[loc]] 		invertedContainment = getInvertedClassAndInterfaceContainment(projectM3);
 	map [loc, set[loc]]			methodClassContainment = toMap({<_aClass, _aMethod> | <_aClass, _aMethod> <- projectM3@containment, isClass(_aClass), isMethod(_aMethod)});
 	map [loc, set [loc]] 		invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set[loc]] 		invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment(projectM3);
 	map [loc, set[loc]] 		invertedUnitContainment = getInvertedUnitContainment(projectM3);
 	map [loc, set[loc]] 		declarationsMap =  toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	map[loc, set[loc]] 			extendsMap = toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
@@ -121,7 +122,7 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 				} // if
 			}	// for aMethodOfAscClass
 			// look at the initializers of ascending class.
-			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
 			set [loc] candidateInitializerReferences = candidateClassReferences - allCandidateRefsInMethods;
 			for (anInitRef <- candidateInitializerReferences) {
 				candidateLog += <<descClass, ascClass>, <ascClass, anInitRef>>;

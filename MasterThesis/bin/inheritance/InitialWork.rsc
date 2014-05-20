@@ -196,9 +196,11 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://VerySmallProject|);
+	M3 projectM3 = getM3Model(|project://colt-1.2.0|);
 	println("Extends annotation"); iprintln(sort(projectM3@extends));
+	println("Size of extends annotation is: <size(projectM3@extends)>");
 	println("Implements annotation"); iprintln(sort(projectM3@implements));
+	println("Size of implements annotation: <size(projectM3@implements)>");
 	
 	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
 	//getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
@@ -244,7 +246,6 @@ public void runInitialWork() {
 	////println("Inverted containment entry for <classLoc> is: <invertedClassAndInterfaceContainment[classLoc]>");	
 	//map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
 	//println("The parent of the class <classLoc> is: <classLoc.parent>. The grand parent of the class is <classLoc.parent.parent>");
-	 //iprintln(getASTsOfAClass(classLoc, invertedClassAndInterfaceContainment, invertedUnitContainment , declarationsMap));
 	//listNewObjectCalls(m3Model);
 	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
 	//println(methodContainment);

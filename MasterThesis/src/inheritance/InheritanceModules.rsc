@@ -156,19 +156,19 @@ private loc getFileOfCompilationUnit(loc aUnit, map[loc, set[loc]] declarationsM
 }
 
 
-public bool isInnerClass(loc aClass, map [loc, set[loc]] invertedClassAndInterfaceContainment) {
-	bool retBool = aClass in invertedClassAndInterfaceContainment ? true : false;
+public bool isInnerClass(loc aClass, map [loc, set[loc]] invertedClassInterfaceMethodContainment) {
+	bool retBool = aClass in invertedClassInterfaceMethodContainment ? true : false;
 	return retBool;
 }
 
 
 
-public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassAndInterfaceContainment,
+public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassInterfaceMethodContainment,
 														map [loc, set[loc]] invertedUnitContainment , 
 													   	map [loc, set[loc]] declarationsMap) {
 	list [Declaration]  astsOfAClass = [];
 	// Inner classes are NOT included here, they are already included in the outer classes AST
-	if ( !isInnerClass(aClass, invertedClassAndInterfaceContainment) ) {
+	if ( !isInnerClass(aClass, invertedClassInterfaceMethodContainment) ) {
 		loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment );
 		loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
 		Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
@@ -192,6 +192,19 @@ public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] inver
 public map [loc, set [loc]] getInvertedOverrides(M3 projectM3) {
 	return toMap(invert({<_childMethod, _parentMethod> | <_childMethod, _parentMethod> <- projectM3@methodOverrides}));
 }
+
+
+public map [loc, set[loc]] getInvertedClassInterfaceMethodContainment(M3 projectM3) {
+	map [loc, set [loc]] retMap = ();
+	rel [loc, loc] containmentRel = {<_container, _dLoc> | <_container, _dLoc> <- projectM3@containment, isClass(_container) || isInterface(_container) || _container.scheme == "java+anonymousClass" || isMethod(_container) };
+	if (!isEmpty(containmentRel)) {
+		retMap = toMap(invert(containmentRel));
+	}
+	return retMap;
+}
+
+
+
 
 
 public map [loc, set[loc]] getInvertedClassAndInterfaceContainment(M3 projectM3) {
@@ -306,6 +319,12 @@ public bool isLocDefinedInProject(loc locPar, map [loc, set[loc]] declarationsMa
 }
 
 
+public bool isLocDefinedInClassOrInterface(loc locPar, map [loc, set[loc]] invClassAndInterfaceContainment) {
+	bool retBool = (locPar in invClassAndInterfaceContainment) ? true : false;
+	return retBool;
+}
+
+
 public rel [loc, loc] getNonFrameworkInheritanceRels(rel [loc, loc] inheritanceRels, M3 projectM3) {
 	set [loc] allTypesInM3 = {decl | <decl, prjct> <- projectM3@declarations, 
 														isClass(decl) || isInterface(decl)};
@@ -348,10 +367,10 @@ public set [loc]  getAllClassesAndInterfacesInProject(M3 projectM3) {
 }
 
 
-public bool inheritanceRelationExists(loc class1, loc class2, rel [loc, loc] allInheritanceRelations) {
+public bool inheritanceRelationExists(loc classOrInterface1, loc classOrInterface2, rel [loc, loc] allInheritanceRelations) {
 	set [loc] relationSet = {child	| <child, parent> <- allInheritanceRelations, 
-													(class1 == child && class2 == parent) ||
-													(class1 == parent && class2 == parent) }; 
+													(classOrInterface1 == child && classOrInterface2 == parent) ||
+													(classOrInterface1 == parent && classOrInterface2 == parent) }; 
 	return !isEmpty(relationSet);
 }
 
@@ -493,9 +512,9 @@ list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymb
 }
 
 
-map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters) {
+map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters, loc stmtLoc) {
 	map [loc, TypeSymbol] retMap = ();
-	if (size(typeVariables) != size(typeParameters)) throw "Size of two list differ! Type variables: <typeVariables>, type parameters: <typeParameters> ";
+	if (size(typeVariables) != size(typeParameters)) throw "Size of two lists differ! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>";
 	for (int i <- [0..size(typeVariables)] ) {
 		retMap += (typeVariables[i] : typeParameters[i]);
 	}
@@ -570,7 +589,7 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
 			//println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
 			// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
-			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters);
+			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters, methodOrConstExpr@src);
 			//println("Type variable map: "); iprintln(typeVariableMap);
 			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
 			//println("Resolved type symbol is: <resolvedTypeSymbol>" );

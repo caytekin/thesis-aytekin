@@ -7,4 +7,8 @@ public class DowncallChild extends DowncallParent implements ConstantInterface {
 		
 	}
 	
+	void x() {
+		p();		// This is also a downcall... Yes, it is tested and caught as a downcall. 19-5-2014
+	}
+	
 }

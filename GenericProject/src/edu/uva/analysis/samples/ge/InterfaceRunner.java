@@ -6,6 +6,14 @@ import java.util.Vector;
 
 
 public abstract class InterfaceRunner {
+	
+	public ParentInterface api;
+	public ChildInterface aci;
+	
+	void genericII() {
+		Object o = new Object();
+		api = (ParentInterface)o;
+	}
 
 	
 	void castOfInterface() {

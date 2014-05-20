@@ -23,7 +23,6 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 	bool retBool = false;
 	for ( aField <- fieldsInLoc) {
 		set [Modifier] modifiers = aField in allFieldModifiers ? allFieldModifiers[aField] : {} ;
-		//println("Modifiers for field : <aField>  is : <modifiers>");
 		bool isFinal = false, isStatic = false, isPrivate = false;		
 		for (aModifier <- modifiers) {
 			switch (aModifier) {
@@ -40,7 +39,6 @@ public bool areAllFieldsConstants(set [loc] fieldsInLoc, map[loc, set[Modifier]]
 			break;
 		}
 	} // for 
-	//println("Ret bool is: <retBool>");
 	return retBool;
 }
 
@@ -50,9 +48,6 @@ public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInt
 	bool retBool = false;
 	set [loc] everythingInLoc = aLoc in classAndInterfaceContWithoutTypeVars ? classAndInterfaceContWithoutTypeVars[aLoc] : {} ;
 	set [loc] fieldsInLoc = {_aField | _aField  <- everythingInLoc, isField(_aField)};
-	//println("classAndInterfaceContWithoutTypeVars:  <classAndInterfaceContWithoutTypeVars>");
-	//println("For location: <aLoc>, everythingInLoc is: <everythingInLoc>"); 
-	//println("For location: <aLoc>, fieldsInLoc is: <fieldsInLoc>"); 	
 	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, allFieldModifiers)) {
 		retBool = true;
 	}
@@ -65,7 +60,6 @@ public set [loc] getConstantCandidates(map[loc, set [loc]] classAndInterfaceCont
 	list [loc] allClassesAndInterfaces = sort(getAllClassesAndInterfacesInProject(projectM3));
 	for (aLoc <- allClassesAndInterfaces ) {
 		if (containsOnlyConstantFields(aLoc, classAndInterfaceContWithoutTypeVars, allFieldModifiers)) {
-			//println("A constant candidate: <aLoc>");
 			retSet += aLoc;
 		}
 	}
@@ -89,7 +83,6 @@ public rel [inheritanceKey,inheritanceType] getConstantLocs(set [loc] candidateL
 		set [loc] allParentsOfLoc = {parent | <child, parent> <- allInheritanceRels, aLoc == child};
 		if (isEmpty(allParentsOfLoc) || (areAllParentsInCandidateList(allParentsOfLoc, candidateLocs))) {
 			retRel += {<<child, parent>, CONSTANT> | <child, parent> <- allInheritanceRels, aLoc == parent};
-			//println("A constant case is found!!!! Parent: <aLoc>");
 		}
 	}
 	return retRel;
@@ -124,8 +117,15 @@ public loc getImmediateParentOfAClass(loc childClass, map [loc, set[loc]] extend
 	if (size(parentSet) == 1) {
 		retClass = getOneFrom(parentSet);
 	}
-	else {
-		throw("The number of parents of the class <childclass> is different from one in getImmediateClassOfAClass()");
+	else 
+	{
+		if (size(parentSet) == 0) {
+			// there is no explicitly defined parent, but there is a super call, then the immediate parent is Object.
+			retClass = OBJECT_CLASS;
+		}
+		else {
+			throw("The number of parents of the class <childClass> is different from one in getImmediateParentOfAClass(). Size: <size(parentSet)>, parent set: <parentSet>");
+		}
 	} 
 	return retClass;
 }
@@ -271,22 +271,15 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [inheritanceKey] allExplicitSystemCC = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemClasses};
 	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
 	// interface extensions are put in @implements annotation by Rascal
+	// TODO: When issue #579 is solved, I should change the @implements to @extends.
 	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemInterfaces, _parent in allSystemInterfaces};
 
-	//println("Extends annotation: "); 	iprintln(sort(projectM3@extends));
-	//println("Implements annotation: "); iprintln(sort(projectM3@implements));	
-	//println("allSystemInterfaces:"); 	iprintln(sort(allSystemInterfaces));
-	//println("allExplicitSystemII"); 	iprintln(allExplicitSystemII);
-
-	// TODO : Think about DOWNCALL_CANDIDATE cases !!!
-	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL_ACTUAL, CONSTANT, MARKER, SUPER, GENERIC, FRAMEWORK} };	
+	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL_ACTUAL, DOWNCALL_CANDIDATE, CONSTANT, MARKER, SUPER, GENERIC, FRAMEWORK} };	
 	set [inheritanceKey] subtypeSet = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE };
 	
 	set [inheritanceKey] CCCategoryCandidates = allExplicitSystemCC - allUsedInheritanceRels;
 	set [inheritanceKey] CICategoryCandidates = allExplicitSystemCI - allUsedInheritanceRels;
 	set [inheritanceKey] IICategoryCandidates = allExplicitSystemII - allUsedInheritanceRels;
-	
-	//println("IICAtegoryCandidates:"); iprintln(IICategoryCandidates);
 	
 	for (anExtendsCandidate <- (CCCategoryCandidates ) ) {
 		categoryLog += getOneCategoryCase(anExtendsCandidate,  subtypeSet, invertedExtendsMap ); 
@@ -306,7 +299,6 @@ public rel [inheritanceKey,inheritanceType] getOtherInheritanceCases(M3 projectM
 	map [loc, set[loc]] interfaceContainmentWithoutTypeVars = toMap({<_anInterface, _anItem> |<_anInterface, _anItem> <- projectM3@containment, isInterface(_anInterface), _anItem.scheme != "java+typeVariable"});	
 	map [loc, set[loc]] classAndInterfaceContWithoutTypeVars = toMap ({<_classOrInterface, _anItem> | <_classOrInterface, _anItem> <- projectM3@containment, isClass(_classOrInterface) || isInterface(_classOrInterface), _anItem.scheme != "java+typeVariable" });
 	map[loc, set[Modifier]] allFieldModifiers = toMap({<_aField, _aModifier> | <_aField, _aModifier>  <- projectM3@modifiers, isField(_aField)});
-	//iprintln(sort(projectM3@modifiers));
 	retRel += getConstantLocs(getConstantCandidates(classAndInterfaceContWithoutTypeVars, allFieldModifiers, projectM3), projectM3);
 	retRel += getMarkerInterfaces(getMarkerCandidates(interfaceContainmentWithoutTypeVars, projectM3), projectM3);	
 	retRel += getSuperRelations(projectM3);

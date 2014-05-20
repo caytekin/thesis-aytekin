@@ -18,7 +18,7 @@ import inheritance::InheritanceDataTypes;
 import inheritance::InheritanceModules;
 
 
-private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	rel [loc, loc, loc, loc] downcallCandidates, 
+private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	loc refToDowncall, rel [loc, loc, loc, loc] downcallCandidates, 
 																				rel [loc, loc] allInheritanceRels, map[loc, set[loc]] extendsMap) {
 	bool retBool = false;
 	loc theIssuerMethod= DEFAULT_LOC, descDowncalledMethod = DEFAULT_LOC;
@@ -27,6 +27,9 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	re
 																		classOfReceiver == _descClass ||
 																		classOfReceiver in getDescendantsOfAClass(_descClass, allInheritanceRels)
 																		};
+	//println();
+	//println("Downcall set:");																		
+	//iprintln(<sort(downcallSet)>);
 	if (size(downcallSet) >= 1) {
 		tuple [loc _ascClass, loc _descClass, loc _ascIssuerMethod, loc _descDowncalledMethod] downcallCase = getOneFrom(downcallSet);
 		theIssuerMethod = downcallCase._ascIssuerMethod;
@@ -37,6 +40,7 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	re
 			list [loc] ascendantsInOrder = getAscendantsInOrder(classOfReceiver, extendsMap);
 			for ( aNode <- ascendantsInOrder) {
 				set [loc] anotherDowncallSet = {_descDowncalledMethod | <_ascClass, _descClass, _ascIssuerMethod, _descDowncalledMethod> <- downcallSet, 
+																_ascIssuerMethod == invokedMethod,		// added on 19-5-2014
 																_descClass == aNode};
 				if (size(anotherDowncallSet) == 1) {
 					descDowncalledMethod = getOneFrom(anotherDowncallSet);
@@ -44,7 +48,12 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	re
 				}
 				else {
 					if (size(anotherDowncallSet) > 1) {
-						throw "Size of Another downcallset is greater than one. anotherDowncallSet : <anotherDowncallSet>";
+						// There are more than one descDowncalledmethod's. I put an arbitrarily slected one to the log
+						descDowncalledMethod = getOneFrom(anotherDowncallSet);
+						break;
+						//
+						//println("Problem with downcall at: <refToDowncall>. invokedMethod: <invokedMethod>, classOfReceiver: <classOfReceiver>, theIssuerMethod: <theIssuerMethod >");
+						//throw "Size of Another downcallset is greater than one. anotherDowncallSet : <anotherDowncallSet>";
 					}
 				}
 			}		
@@ -84,6 +93,7 @@ private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invert
 public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3) {
 	// Downcall is only possible between class class edges, by definition.
 	map [loc, set[loc]] 	invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set[loc]] 	invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment(projectM3);
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	rel [loc, loc] 			allInheritanceRels 			= getNonFrameworkInheritanceRels(getInheritanceRelations(projectM3), projectM3);
@@ -94,13 +104,13 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassAndInterfaceContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case mCall1:\methodCall(_, receiver:_, _, _): {
 					loc invokedMethod = mCall1@decl;
 					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, downcallCandidates, allInheritanceRels, extendsMap);
+					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall1@src, downcallCandidates, allInheritanceRels, extendsMap);
 					if (downcallResult.downcallBool) {
 						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment )>, <mCall1@src, invokedMethod, downcallResult.descDCallMeth>>;
 					}	
@@ -108,7 +118,7 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 				case mCall2:\methodCall(_,_,_) : {
 					loc invokedMethod = mCall2@decl;
 					loc classOfReceiver = oneClass;
-					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, downcallCandidates, allInheritanceRels, extendsMap);					
+					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall2@src, downcallCandidates, allInheritanceRels, extendsMap);					
 					if (downcallResult.downcallBool) {
 						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment )>, <mCall2@src, invokedMethod, downcallResult.descDCallMeth>>;
 					}	
