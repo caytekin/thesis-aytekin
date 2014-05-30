@@ -81,6 +81,7 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 // we not only get explicit inheritance relations (defined in the code with extends or impl.) , but also implicit ones (grand children, etc.)
 // also, for downcall and expternal reuse, we look at the actual usage (i.e. there is an actual method call) and we exclude candidates, 
 // which can have potential downcall and external usage.
+/*
 private rel [inheritanceKey, inheritanceType] getActualResults (rel [inheritanceKey, inheritanceType] inheritanceResults) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
 	rel [inheritanceKey, inheritanceType] actualDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == DOWNCALL_ACTUAL};
@@ -90,7 +91,7 @@ private rel [inheritanceKey, inheritanceType] getActualResults (rel [inheritance
 	retRel = others + actualDowncalls + actualExtReuse;
 	return retRel;
 }
-
+*/
 
 num calcPercentage (num nominator, num denominator) {
 	num retValue = 0;
@@ -155,7 +156,7 @@ private map [metricsType, num] calculateCIResults(rel [inheritanceKey, inheritan
 	CIResultsMap += (numOnlyCISubtype : size(subtypeRels));	
 	CIResultsMap += (perOnlyCISubtype: calcPercentage(CIResultsMap[numOnlyCISubtype], CIResultsMap[numExplicitCI]));	
 
-	set [inheritanceKey] explainedCIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults, _iType in {FRAMEWORK, GENERIC, MARKER, CONSTANT }};
+	set [inheritanceKey] explainedCIRels = {<_child, _parent> | <<_child, _parent> , _iType> <- ciResults, _iType in {FRAMEWORK, GENERIC, MARKER, CONSTANT, EXTERNAL_REUSE }};
 	CIResultsMap += (numExplainedCI : size(explainedCIRels - subtypeRels));
 	CIResultsMap += (perExplainedCI : calcPercentage(CIResultsMap[numExplainedCI], CIResultsMap[numExplicitCI]));
 
@@ -255,11 +256,11 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://findbugs|;
+	loc projectLoc = |project://DowncallProject|;
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-/*
+
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
@@ -267,7 +268,7 @@ public void runIt() {
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
-*/	
+
 	println("Starting with subtype cases at: <printTime(now())> ");
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	println("Subtype cases are done at <printTime(now())>...");	
@@ -292,28 +293,11 @@ public void runIt() {
 	rel [inheritanceKey, inheritanceType] filteredInheritanceCases = getFilteredInheritanceCases(allInheritanceCases, allInheritanceRelations, projectM3);
 
 	rel [inheritanceKey, inheritanceType] explicitResults = getExplicitResults(filteredInheritanceCases, projectM3);
-	rel [inheritanceKey, inheritanceType] actualResults = getActualResults(filteredInheritanceCases);	
+	//rel [inheritanceKey, inheritanceType] actualResults = getActualResults(filteredInheritanceCases);	
 	
 	rel [loc, loc] systemInhRelations = getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	
 	rel [loc, loc] explicitInhRelations = getExplicitInhRelations(systemInhRelations, projectM3);
-
-	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, explicitInhRelations, projectM3);
-	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
-	printCCResults(explicitCCMetricResults, projectM3);
-	
-	//map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
-	//println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
-	//printCCResults(actualCCMetricResults, projectM3);
-
-	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, explicitInhRelations, projectM3);
-	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
-	printCIResults(explicitCIMetricResults, projectM3);
-	
-
-	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, explicitInhRelations, projectM3);
-	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
-	printIIResults(explicitIIMetricResults, projectM3);
 
 
 	
@@ -350,5 +334,23 @@ public void runIt() {
 	printLog(genericLogFile, "GENERIC LOG:");
 	printLog(superLogFile, "SUPER LOG:");
 	printLog(categoryLogFile, "CATEGORY LOG: ");	
+
+
+
+
+
+	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, explicitInhRelations, projectM3);
+	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, explicitInhRelations, projectM3);
+	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, explicitInhRelations, projectM3);
+	
+	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
+	printCCResults(explicitCCMetricResults, projectM3);
+	printCIResults(explicitCIMetricResults, projectM3);
+	printIIResults(explicitIIMetricResults, projectM3);
+
+	//map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
+	//println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
+	//printCCResults(actualCCMetricResults, projectM3);
+
 }
 

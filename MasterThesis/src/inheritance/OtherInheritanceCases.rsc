@@ -254,8 +254,8 @@ private rel [inheritanceKey, inheritanceType] getFrameworkCases(M3 projectM3) {
 	rel [loc, loc]  extendsAndImplementsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements} ;
 	set [loc] 		directChildrenOfNonSystemTypes = {_child | <_child, _parent> <- extendsAndImplementsRel, _parent in allNonSystemTypes};
 	retRel = {<<_child, _parent>, FRAMEWORK> | <_child, _parent> <- extendsAndImplementsRel, _parent in directChildrenOfNonSystemTypes};
-	println("FRAMEWORK CASES: ");
-	iprintln(sort(retRel));
+	//println("FRAMEWORK CASES: ");
+	//iprintln(sort(retRel));
 	return retRel;
 }
 
@@ -270,9 +270,7 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 	set [loc] allSystemInterfaces = getAllInterfacesInProject(projectM3);
 	set [inheritanceKey] allExplicitSystemCC = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemClasses, _parent in allSystemClasses};
 	set [inheritanceKey] allExplicitSystemCI = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemClasses, _parent in allSystemInterfaces};
-	// interface extensions are put in @implements annotation by Rascal
-	// TODO: When issue #579 is solved, I should change the @implements to @extends.
-	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@implements, _child in allSystemInterfaces, _parent in allSystemInterfaces};
+	set [inheritanceKey] allExplicitSystemII = {<_child, _parent> | <_child, _parent> <- projectM3@extends, _child in allSystemInterfaces, _parent in allSystemInterfaces};
 
 	set [inheritanceKey] allUsedInheritanceRels = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE, DOWNCALL_ACTUAL, DOWNCALL_CANDIDATE, CONSTANT, MARKER, SUPER, GENERIC, FRAMEWORK} };	
 	set [inheritanceKey] subtypeSet = {<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE };

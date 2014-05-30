@@ -196,7 +196,7 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://colt-1.2.0|);
+	M3 projectM3 = getM3Model(|project://Subtype|);
 	println("Extends annotation"); iprintln(sort(projectM3@extends));
 	println("Size of extends annotation is: <size(projectM3@extends)>");
 	println("Implements annotation"); iprintln(sort(projectM3@implements));
@@ -204,240 +204,59 @@ public void runInitialWork() {
 	
 	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
 	//getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
-	
-	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/er/GenExRRunner/anotherMethod()|); 
-
-	//TypeSymbol myTypeSymbol = class(|java+class:///java.lang.Object|, []);
-	//println("myTypeSymbol is: <myTypeSymbol>");
-	//println("Method invocation annotation:");
-	//iprintln(sort(projectM3@methodInvocation));
-	//println();
-	//println("Field access annotation:");
-	//iprintln(sort(projectM3@fieldAccess));	
-	//set [loc] methodInvokingVariables = {_invoker | <_invoker, _invoked> <- projectM3@methodInvocation, isVariable(_invoker)};
-	//println("Method invoking variables: "); iprintln(methodInvokingVariables); println();
-	//rel [loc, loc] methodsOfVariables = {<_container, _contained> | <_container, _contained> <- projectM3@containment, _contained in methodInvokingVariables};
-	//println("Variables and the methods which contain those variables:");
-	//iprintln(methodsOfVariables );
-	
-	
-	//println("Types annotation");
-	//searchForComplexTypes(projectM3);
-	//iprintln(sort(projectM3@types));
-	//map [loc, set [Modifier]] modifierMap = toMap(projectM3@modifiers);
-	//set [Modifier] const1Mods = modifierMap[|java+field:///edu/uva/analysis/samples/ConstantClass/constant1|];
-	//if (!isEmpty ( {_aModifier | _aModifier <- const1Mods, (_aModifier := \private()) } ) ) {
-	//	println("It is private");
-	//;} 
-	
-	 //println();
-	 //getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/gensamples/GenericRunner/enhancedForSample()|); 
-
-
-	//iprintln(projectM3@containment);
-	//iprintln(projectM3@types);
-	//loc classLoc = |java+class:///edu/uva/analysis/samples/Var1ArgsRunner|;
-	//println("Classes or interfaces containing: <classLoc>");
-	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc, isClass(_owner) || isInterface(_owner)});
-	//println("Classes or interfaces containing: <classLoc.parent>");
-	//iprintln({_owner | <_owner, _aClass> <- projectM3@containment, _aClass == classLoc.parent, isClass(_owner) || isInterface(_owner)});	
-	//map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
-	//map [loc, set[loc]] invertedClassAndInterfaceContainment = getInvertedClassAndInterfaceContainment(projectM3);
-	////println("Inverted containment entry for <classLoc> is: <invertedClassAndInterfaceContainment[classLoc]>");	
-	//map [loc, set[loc]] declarationsMap = toMap({<_compUnit, _file> | <_compUnit, _file> <- projectM3@declarations});
-	//println("The parent of the class <classLoc> is: <classLoc.parent>. The grand parent of the class is <classLoc.parent.parent>");
-	//listNewObjectCalls(m3Model);
-	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _classOrInt == |java+class:///edu/uva/analysis/samples/A|};
-	//println(methodContainment);
-	//rel [loc, loc] methodContainment = {<_classOrInt, _method >| <_classOrInt, _method> <- m3Model@containment, _method == |java+method:///org/shiftone/jrat/core/RuntimeContextImpl/registerForShutdown()/$anonymous1/shutdown()|};
-	//println("Method containment: ");
-	//iprintln(sort(methodContainment));
-	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/ThisChangingTypeParent/subtypeViaConstructorCall()|);
-	//getInfoForClass(m3Model, |java+class:///edu/uva/analysis/samples/ThisChangingTypeParent|);
-	//println("Staring with constants at: <now()>");
-	//println("Inheritance relations with constant attribute are: ");
-	//iprintln(findConstantLocs(getConstantCandidates(m3Model), m3Model)) ;
-	//println("Finished with constants at: <now()>");
-	
-	                       //<|java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/samples/N/extReuse2222()|);
-	//getInfoForMethod(m3Model, |java+method:///edu/uva/analysis/gensamples/Canvas/drawAll(java.util.List)|);	
-	//getInfoForMethod(m3Model, |java+constructor:///edu/uva/analysis/samples/Sub1/Sub1(int)|);	
-	//iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/G|, m3Model));
-	//iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/GrandChild|, m3Model));	
-	//iprintln(getAscendantsInOrder(|java+class:///edu/uva/analysis/samples/Parent|, m3Model));		
-	//findDownCalls(m3Model);
 }
 
 
-
-private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
-	println("Called method is: <methodCallExpr@decl>");
-	println("Where in source is it called: <methodCallExpr@src>");
-	list [Expression] args= [];
-	list [TypeSymbol] passedArgList = [], declaredArgList = [];
-	//text(methodCallExpr);
-	visit (methodCallExpr)  {
-		case m1:\methodCall(_,_,myArgs:_) : {
-			//println("I am here with 3 args");
-			args = myArgs;
-		}
-		case m2:\methodCall(_,receiver:_,_,myArgs:_) : {
-			//println("I am here with 4 args");
-			//println("Is receiver this: <isReceiverThis(receiver)>");
-			//text(m2);
-			//args = myArgs;
-			;
-		}
+private Expression createMethodCallFromConsCall(Statement consCall) {
+	Expression retExp;
+	list [Expression] arguments = [];
+	visit (consCall) {
+	     case consCall1:\constructorCall(_, args:_): {
+        //       (bool isSuper, list[Expression] arguments)
+			arguments = args; 
+        }
+        case consCall2:\constructorCall(_, expr:_, args:_): {
+        //       (bool isSuper, Expression expr, list[Expression] arguments)
+			arguments = args; 
+        }
 	}
-	////println("Passed arguments are: ");
-	////iprintln(args);	
-	//println("Passed argument type symbols are: ");
-	//for ( int i <- [0..(size(args))]) passedArgList += args[i]@typ;
-	//iprintln(passedArgList);
-	//println("Declared argument type symbols are: ");
-	//declaredArgList = getDeclaredParameterTypes (methodCallExpr@decl, projectModel);
-	//iprintln(declaredArgList);
-	//for (int i <- [0..size(args)]) {
-	//	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedArgList[i], declaredArgList[i]);
-	//	if (result.isSubtypeRel) {
-	//		println("Yes! A subtype relation! At location: <methodCallExpr@src>");
-	//		println("	Between child: <result.iKey.child> and parent <result.iKey.parent>. ");
-	//	}
-	//}
+	retExp = methodCall(true, " ", arguments);
+	retExp@decl = |java+constructor:///|;	// Waiting for Rascal fix 575.
+	return retExp;
 }
-
-
-
-
-
-private M3 getM3Model(loc projectLoc) {
-	println("Starting with M3 creation at <now()>");
-	M3 inheritanceM3 = createM3FromEclipseProject(projectLoc);
-	println("Created M3 at <now()>");	
-	int totalClasses = size ( {<aType> | <aType,_> <- inheritanceM3@declarations, isClass(aType) || isInterface(aType) } );
-	println("Total number of classes and interfaces in M3 are: <totalClasses>");
-	//print ("Extends relation (from loc, to loc): "); iprintln(inheritanceM3@extends);
-	//print ("Implements relation (from loc, to loc): "); iprintln(inheritanceM3@implements);
-	//print ("Method overrides: "); iprintln(inheritanceM3@methodOverrides);
-	//print ("Method invocation: "); 
-	//iprintln({<from, to> | <from, to> <- inheritanceM3@methodInvocation , from == |java+method:///edu/uva/analysis/samples/N/extReuse()|});
-	//print ("Field access: "); 
-	//iprintln({<from, to> | <from, to> <- inheritanceM3@fieldAccess , from == |java+method:///edu/uva/analysis/samples/N/extReuse()|});
-	
-	//println("******************************************************************************");
-	//print ("Method invocation for variables only:");
-	//iprintln({<from, to> |<from, to> <- inheritanceM3@methodInvocation, from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow| ||
-																		//from == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow| ||
-																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aCGlow| ||
-																		//to == |java+variable:///edu/uva/analysis/samples/N/extReuse()/aGGlow|  });
-	//print ("Containment: "); iprintln({<dClass, dField> | <dClass, dField> <- inheritanceM3@containment,
-	//															dField == |java+field:///edu/uva/analysis/samples/P/intFieldParent|}); 
-	//print ("Field access: "); iprintln(inheritanceM3@fieldAccess );
-	//print("Declaration: "); iprintln(sort({<decl, prjct> | <decl, prjct> <- inheritanceM3@declarations}));
-	//print ("Types: "); iprintln(sort({<from, to> | <from, to> <- inheritanceM3@types,
-	//													from == |java+method:///edu/uva/analysis/samples/SubtypeRunner/aSubtypeViaReturnType()|}));
-	//println("******************************************************************************");
-	//print("Type dependency: "); 
-	//rel [loc, loc] subtypeAssignmentTypeDep = { <from, to> | <from, to> <- inheritanceM3@typeDependency,
-	//															isVariable(from),
-	//															isClass(to) || isInterface(to) 
-	//										  };
-
-	//println("M3 Field Modifiers");
-	//println("--------------------------------------------------------------------------");
-	//lrel [loc, Modifier] myModifiers = sort({<from, to> | <from, to> <-inheritanceM3@modifiers,
-	//																	isField(from)});
-	//iprintln(myModifiers);																		
-	//println("M3 Field Modifiers put in a map:");
-	//map[loc definition, set[Modifier] modifier] modifiersPerField = index(myModifiers);
-	//println("--------------------------------------------------------------------------");
-	//iprintln(modifiersPerField);	
-	//println(sort(subtypeAssignmentTypeDep));
-							//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP| ||
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP2| ||
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/anotherSubtypeViaAssignment()/anSP444| ||								
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anotherParent| ||
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aList| ||
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/anSP33| ||
-								//from == |java+variable:///edu/uva/analysis/samples/SubtypeRunner/subtypeViaAssignment()/aChild|  }; 
-	//println("All type definitions for variables:");
-	//iprintln(sort(subtypeAssignmenttypeDep));	
-	//map [loc, set[loc]]	mapTypeDep = toMap(subtypeAssignmentTypeDep);
-	////(fruit : fruits[fruit] | fruit <- fruits, size(fruit) <= 5);
-	//set [loc] allSubtypeVars =  {typeDep | typeDep <- mapTypeDep, size(mapTypeDep[typeDep]) >= 2};				
-	//map [loc, set [loc] ] varsAndClasses = (typeDep : mapTypeDep[typeDep] | typeDep <- mapTypeDep, size(mapTypeDep[typeDep]) >= 2);
-	//for (loc x <- varsAndClasses) {
-	//	println("Variable: <x>");
-	//	println("has <size(varsAndClasses[x])> Classes: <varsAndClasses[x]>");
-	//}
-	//iprintToFile(|file://c:/Users/caytekin/InheritanceLogs/trial1.log|, inheritanceM3@typeDependency);
-	//println("All type definitions for variables with two classes:");
-	//iprintln(varsAndClasses);	
-	//println("Overrides:");
-	//iprintln(inheritanceM3@methodOverrides);
-	return inheritanceM3;
-}
-
-public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
-	TypeSymbol returnSymbol; 
-	visit (aType) {
-		case sType: \simpleType(typeExpr) : {
-			returnSymbol =  typeExpr@typ;
-		}
- 	}
- 	return returnSymbol;
-}
-
-
-private set [inheritanceKey] subtypeEnhancedForLoop(TypeSymbol paramTypeSymbol, TypeSymbol collTypeSymbol) {
-	set [inheritanceKey] retSet = {};
-	TypeSymbol compTypeSymbol = DEFAULT_TYPE_SYMBOL;
-	switch (collTypeSymbol) {
-		case anArray:\array(TypeSymbol component, int dimension) : {
-			compTypeSymbol = component;
-		}
-		case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
-			if (size(typeParameters) != 1) throw "More than one type parameter in class collection def: <collTypeSymbol>"; 
-			compTypeSymbol = typeParameters[0];
-		}
-		case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
-			if (size(typeParameters) != 1) throw "More than one type parameter in interface collection def: <collTypeSymbol>"; 
-			compTypeSymbol = typeParameters[0];
-		}
-	}
-	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
-		if (result.isSubtypeRel) { retSet += result.iKey; }
-	}	
-	return retSet;
-}
-
-
 
 
 private void getInfoForMethod(M3 projectModel, loc methodName) {
 //|java+method:///edu/uva/analysis/samples/H/k(edu.uva.analysis.samples.P)|
 	methodAST = getMethodASTEclipse(methodName, model = projectModel);
 	// println("Method AST is: <methodAST>");
-	text(methodAST);
+	//text(methodAST);
 	visit(methodAST) {
+        case consCall1:\constructorCall(_, arguments:_): {
+			Expression e = createMethodCallFromConsCall(consCall1);
+			println("Method arguments: "); iprintln(e.arguments);
+        }
+        case consCall2:\constructorCall(_, expr:_, arguments:_): {
+			Expression e = createMethodCallFromConsCall(consCall2);
+			println("Method arguments: "); iprintln(e.arguments);
+        }
+
 		case m1:\methodCall(_,_, args) : {
 			//text(m1);
 		;}
 		case m2:\methodCall(_, receiver:_, _, args): {
-			println("Receivers type symbol is: <receiver@typ>");
-			println("Arguments are:");
-			iprintln(args);
+			//println("Receivers type symbol is: <receiver@typ>");
+			//println("Arguments are:");
+			//iprintln(args);
 			
 		;}
 		case enhFor:\foreach(Declaration parameter, Expression collection, Statement body) : {
 			//text(enhFor);
-			println("Parameter type symbol is: <parameter@typ>");
-			println("Collection type symbol is: <collection@typ>");
-			println("SUBTYPE LIST OF ENHANCED FOR LOOP:");
-			iprintln(subtypeEnhancedForLoop(parameter@typ, collection@typ));
-		}
+			//println("Parameter type symbol is: <parameter@typ>");
+			//println("Collection type symbol is: <collection@typ>");
+			//println("SUBTYPE LIST OF ENHANCED FOR LOOP:");
+			//iprintln(subtypeEnhancedForLoop(parameter@typ, collection@typ));
+		;}
 		case newObject1:\newObject(Type \type, list[Expression] args) : {
 			//text(newObject1);
 		;}
@@ -562,20 +381,6 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 			//println(super1); 
 			;
         }
-        case consCall1:\constructorCall(_, arguments:_): {
-        //       (bool isSuper, list[Expression] arguments)
-            print("constructor call 1: ");
-			println("arguments: <arguments> "); 
-			//;
-        }
-        case consCall2:\constructorCall(_, expr:_, arguments:_): {
-        //       (bool isSuper, Expression expr, list[Expression] arguments)
-            print("constructor call 2: ");
-			println("expr: <expr> "); 
-			println("arguments: <arguments> "); 
-
-			;
-        }
         
         case methodDecl : \method(methType, _, _, _, _) :{
         	//println("Declared return type symbol of method is: <getTypeSymbolFromSimpleType(methType)>");
@@ -597,6 +402,103 @@ private void getInfoForMethod(M3 projectModel, loc methodName) {
 	} // visit
 }
 
+
+
+
+private void dealWithMethodCall(Expression methodCallExpr, M3 projectModel) {
+	println("Called method is: <methodCallExpr@decl>");
+	println("Where in source is it called: <methodCallExpr@src>");
+	list [Expression] args= [];
+	list [TypeSymbol] passedArgList = [], declaredArgList = [];
+	//text(methodCallExpr);
+	visit (methodCallExpr)  {
+		case m1:\methodCall(_,_,myArgs:_) : {
+			//println("I am here with 3 args");
+			args = myArgs;
+		}
+		case m2:\methodCall(_,receiver:_,_,myArgs:_) : {
+			//println("I am here with 4 args");
+			//println("Is receiver this: <isReceiverThis(receiver)>");
+			//text(m2);
+			//args = myArgs;
+			;
+		}
+	}
+	////println("Passed arguments are: ");
+	////iprintln(args);	
+	//println("Passed argument type symbols are: ");
+	//for ( int i <- [0..(size(args))]) passedArgList += args[i]@typ;
+	//iprintln(passedArgList);
+	//println("Declared argument type symbols are: ");
+	//declaredArgList = getDeclaredParameterTypes (methodCallExpr@decl, projectModel);
+	//iprintln(declaredArgList);
+	//for (int i <- [0..size(args)]) {
+	//	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedArgList[i], declaredArgList[i]);
+	//	if (result.isSubtypeRel) {
+	//		println("Yes! A subtype relation! At location: <methodCallExpr@src>");
+	//		println("	Between child: <result.iKey.child> and parent <result.iKey.parent>. ");
+	//	}
+	//}
+}
+
+
+
+private M3 getM3Model(loc projectLoc) {
+	println("Starting with M3 creation at <now()>");
+	M3 inheritanceM3 = createM3FromEclipseProject(projectLoc);
+	println("Created M3 at <now()>");	
+	int totalClasses = size ( {<aType> | <aType,_> <- inheritanceM3@declarations, isClass(aType) || isInterface(aType) } );
+	println("Total number of classes and interfaces in M3 are: <totalClasses>");
+	return inheritanceM3;
+}
+
+//public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
+//	TypeSymbol returnSymbol; 
+//	visit (aType) {
+//		case sType: \simpleType(typeExpr) : {
+//			returnSymbol =  typeExpr@typ;
+//		}
+// 	}
+// 	return returnSymbol;
+//}
+//
+
+//private set [inheritanceKey] subtypeEnhancedForLoop(TypeSymbol paramTypeSymbol, TypeSymbol collTypeSymbol) {
+//	set [inheritanceKey] retSet = {};
+//	TypeSymbol compTypeSymbol = DEFAULT_TYPE_SYMBOL;
+//	switch (collTypeSymbol) {
+//		case anArray:\array(TypeSymbol component, int dimension) : {
+//			compTypeSymbol = component;
+//		}
+//		case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
+//			if (size(typeParameters) != 1) throw "More than one type parameter in class collection def: <collTypeSymbol>"; 
+//			compTypeSymbol = typeParameters[0];
+//		}
+//		case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
+//			if (size(typeParameters) != 1) throw "More than one type parameter in interface collection def: <collTypeSymbol>"; 
+//			compTypeSymbol = typeParameters[0];
+//		}
+//	}
+//	if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+//		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(paramTypeSymbol, compTypeSymbol);
+//		if (result.isSubtypeRel) { retSet += result.iKey; }
+//	}	
+//	return retSet;
+//}
+//
+
+
+private void changeMap(map [int, int] aMap) {
+	aMap += (3:4);
+}
+
+
+public void tryAChange() {
+	map [int, int] myMap = (1:1);
+	println("My map before method call is: <myMap>");
+	changeMap(myMap);
+	println("My map after method call is: <myMap>"); 
+}
 
 
 

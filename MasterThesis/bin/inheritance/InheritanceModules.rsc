@@ -514,9 +514,23 @@ list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymb
 
 map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters, loc stmtLoc) {
 	map [loc, TypeSymbol] retMap = ();
-	if (size(typeVariables) != size(typeParameters)) throw "Size of two lists differ! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>";
-	for (int i <- [0..size(typeVariables)] ) {
-		retMap += (typeVariables[i] : typeParameters[i]);
+	list [TypeSymbol] completeTypeParameters = typeParameters;
+	if (size(typeVariables) != size(typeParameters)) {
+		if (size(typeVariables) > size(typeParameters)) {
+			// this is OK, Java allows instantiation with absent type parameters, we will fill the rest of the typeParameters with Object type symbol
+			int numOfElementsToAdd = size(typeVariables) - size(typeParameters);
+			for (int i <- [0..numOfElementsToAdd]) {
+				completeTypeParameters += OBJECT_TYPE_SYMBOL;
+			}
+			println("Less type parameters than type variables! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>");
+			;
+		}
+		else {
+			throw "More type parameters than type variables! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>";
+		}
+	}
+	for (int i <- [0..size(completeTypeParameters)] ) {
+		retMap += (typeVariables[i] : completeTypeParameters[i]);
 	}
 	return retMap;
 }
@@ -652,6 +666,26 @@ public TypeSymbol getDeclaredReturnTypeSymbolOfMethod(loc methodLoc, map [loc, s
 		}
 	} // visit
 	return retSymbol;
+}
+
+
+public Expression createMethodCallFromConsCall(Statement consCall) {
+	Expression retExp;
+	list [Expression] arguments = [];
+	visit (consCall) {
+	     case consCall1:\constructorCall(_, args:_): {
+        //       (bool isSuper, list[Expression] arguments)
+			arguments = args; 
+        }
+        case consCall2:\constructorCall(_, expr:_, args:_): {
+        //       (bool isSuper, Expression expr, list[Expression] arguments)
+			arguments = args; 
+        }
+	}
+	retExp = methodCall(true, " ", arguments);
+	retExp@decl = consCall@decl;	
+	retExp@src 	= consCall@src; 
+	return retExp;
 }
 
 

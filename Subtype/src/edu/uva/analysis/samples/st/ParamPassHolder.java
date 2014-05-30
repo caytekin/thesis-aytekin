@@ -30,9 +30,9 @@ public class ParamPassHolder {
 		
 	}
 
-	ParamPassHolder (NestedChild <P> aParam) {
-		
-	}
+//	ParamPassHolder (NestedChild <P> aParam) {
+//		
+//	}
 	
 	ParamPassHolder (NestedParent aParam) {
 		

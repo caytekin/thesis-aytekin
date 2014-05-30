@@ -3,7 +3,7 @@ package edu.uva.analysis.samples.st;
 import edu.uva.analysis.gensamples.st.ArrayListChild;
 
 public class ForEachRunner {
-	
+	/*
 	void theRunner() {
 
 		 int[] numbers = {1,2,3,4,5,6,7,8,9,10};
@@ -38,5 +38,5 @@ public class ForEachRunner {
 		
          }
 	}
-
+*/
 }

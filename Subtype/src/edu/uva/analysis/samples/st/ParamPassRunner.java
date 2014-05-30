@@ -8,7 +8,7 @@ import edu.uva.analysis.gensamples.st.ArrayListGrandChild;
 import edu.uva.analysis.gensamples.st.ArrayListParent;
 
 public class ParamPassRunner {
-	
+	/*
 	C fieldC = new C();
 	
 	C returnAC() {
@@ -44,9 +44,10 @@ public class ParamPassRunner {
 		
 	}
 	
-	/*
+	
 	
 	void runParamPass() {
+		
 		ParamPassHolder h = new ParamPassHolder();
 		acceptCastParent(new CastChild());				// subtype, case 201, tested, working OK, 2-5-2014
 		h.acceptP(new C());								// subtype, case 202, tested, working OK, 2-5-2014
@@ -64,27 +65,29 @@ public class ParamPassRunner {
 		acceptNested(new ArrayListChild <NestedChild <P>> ()); // subtype, case 212, tested, working OK, 2-5-2014
 		ArrayListChild <NestedChild <P>> aChildList = new ArrayListChild <NestedChild <P>> ();
 		acceptNestedParent(aChildList.get(0));					// subtype, case 213, tested, working OK, 2-5-2014
-		acceptNestedWOParam(new NestedParent ()); 				// subtype, case 214, tested, NOT WORKING, 2-5-2014
+		
+		acceptNestedWOParam(new NestedChild ()); 				// subtype, case 214, tested, Working OK, 22-5-2014
 		acceptManyParameters(new C(), new CastChild(), new ArrayListChild <NestedChild <P>> ()); 	// subtype, case 215, tested, working OK, 2-5-2014
-																									// subtype, case 222, tested, working OK, 2-5-2014
+																									 subtype, case 222, tested, working OK, 2-5-2014
 																									// subtype, case 223, tested, working OK, 2-5-2014
 	}
 	
 	void createParamPass() {
+		
 		ParamPassHolder h1 = new ParamPassHolder(new CastChild());	// subtype, case 216, tested, working OK, 2-5-2014
 		ParamPassHolder h2 = new ParamPassHolder(new ArrayListChild<CastChild> ());	// subtype, case 217, tested, working OK, 2-5-2014
 		ParamPassHolder h3 = new ParamPassHolder(new ArrayListGrandChild <NestedChild <P>> ());	// subtype, case 218, tested, working OK, 2-5-2014
 		ParamPassHolder h4 = new ParamPassHolder(new NestedGrandChild <P> ()); 	// subtype, case 219, tested, working OK, 2-5-2014
-		ParamPassHolder h5 = new ParamPassHolder(new NestedParent ()); 			// subtype, case 220, tested, NOT WORKING, 2-5-2014
+		ParamPassHolder h5 = new ParamPassHolder(new NestedChild ()); 			// subtype, case 220, tested, working, 22-5-2014
 		ParamPassHolder h6 = new ParamPassHolder(new C(), new CastChild (), new ArrayListChild<NestedChild <P>> ());		// subtype, case 221, tested, working OK, 2-5-2014
 																															// subtype, case 224, tested, working OK, 2-5-2014
 																															// subtype, case 225, tested, working OK, 2-5-2014
 	}
 	
-	*/
+	
 	
 	void varArgsTesting() {
-		/*
+		
 		ParamPassHolder pph = new ParamPassHolder(new CastChild(), new CastChild(), new CastParent()) ;			// subtype, case 235, 	tested, working, 5-5-2014
 																												// subtype, case 236,	tested, working, 5-5-2014
 																												// no subtype, case 237,	tested, working, 5-5-2014
@@ -103,7 +106,7 @@ public class ParamPassRunner {
 																														// subtype, case 246,,		tested, working, 5-5-2014
 																														// no subtype, case 247,,		tested, working, 5-5-2014
 																														// no subtype, case 248,,		tested, working, 5-5-2014
-	*/ 
-	}
 	
+	}
+	*/
 }

@@ -1,7 +1,7 @@
 package edu.uva.analysis.gensamples.st;
 
 public class InterfaceRunner {
-
+/*
 	ParentInterface pi;
 	ChildInterface ci;
 	GrandChildInterface gci;
@@ -31,5 +31,5 @@ public class InterfaceRunner {
 		
 	}
 	
-	
+	*/
 }

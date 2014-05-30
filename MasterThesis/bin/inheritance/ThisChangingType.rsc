@@ -161,6 +161,49 @@ private rel [inheritanceKey, thisChangingTypeOccurrence] getOccurrenceItems(Expr
 }
 
 
+rel [inheritanceKey, thisChangingTypeOccurrence] getAnOccurrenceFromMethodCall(	rel [loc, loc, loc] candidates, 			loc invokedMethod, 
+																				map [loc, set[loc]] methodAndDescClasses, 	loc receivingClass, 
+																				loc srcRef) {
+	rel [inheritanceKey, thisChangingTypeOccurrence] retOccurrence = {};
+	if (invokedMethod in methodAndDescClasses) {
+		set [loc] candDescClasses = methodAndDescClasses[invokedMethod];
+		if (receivingClass in candDescClasses) {
+			loc ascClass = getAscClassFromDescAndMethod(invokedMethod, receivingClass, candidates);
+			retOccurrence += <<receivingClass, ascClass>, <srcRef, invokedMethod>>;
+		}
+	}
+	return retOccurrence;
+}
+
+
+
+rel [inheritanceKey, thisChangingTypeOccurrence] getThisChangingTypeOccurencesFromTheChild(rel [loc, loc, loc] candidates, M3 projectM3) {
+	rel [inheritanceKey, thisChangingTypeOccurrence] occurrenceLog = {};
+	map [loc, set[loc]] 	methodAndDescClasses 					= toMap({<calledMethod, descClass> | <descClass, ascClass, calledMethod> <- candidates, isMethod(calledMethod)});
+	set [loc] 				allClassesInProject 					= getAllClassesInProject(projectM3);
+	map [loc, set[loc]] 	invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment (projectM3);
+	map [loc, set[loc]] 	invertedUnitContainment 				= getInvertedUnitContainment(projectM3);
+	map [loc, set [loc]] 	declarationsMap 						= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	for (oneClass <- allClassesInProject ) {
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap);
+		for (oneAST <- ASTsOfOneClass) {
+			visit(oneAST) {
+				case  methExpr2:\methodCall(_,_, _) : {
+					occurrenceLog += getAnOccurrenceFromMethodCall(candidates, methExpr2@decl, methodAndDescClasses, oneClass, methExpr2@src);
+				}
+				case consCall1:\constructorCall(_, _, _) : {
+					occurrenceLog += getAnOccurrenceFromMethodCall(candidates, consCall1@decl, methodAndDescClasses, oneClass, consCall1@src);
+				}
+    			case consCall2:\constructorCall(_, _) : {
+					occurrenceLog += getAnOccurrenceFromMethodCall(candidates, consCall2@decl, methodAndDescClasses, oneClass, consCall2@src);			
+    			}
+        	} // visit()
+		} // for oneAST
+	} // for oneClass
+	return occurrenceLog;
+}
+
+
 
 private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] candidates, M3 projectM3) {
 	rel [inheritanceKey, thisChangingTypeOccurrence] occurrenceLog = {};
@@ -174,16 +217,13 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 		visit (aProjectAST) {
 			case methExpr1:\methodCall(_,receiver,_,_) : {
 			// \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments)
-   				loc invokedMethod = methExpr1@decl;
    				loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-   				if (invokedMethod in methodAndDescClasses) {
-   					set [loc] candDescClasses = methodAndDescClasses[invokedMethod];
-   					if (classOfReceiver in candDescClasses) {
-   						loc ascClass = getAscClassFromDescAndMethod(invokedMethod, classOfReceiver, candidates);
-   						occurrenceLog += <<classOfReceiver, ascClass>, <methExpr1@src, invokedMethod>>;
-   					}
-   				}
-			} // case \methodCall
+				occurrenceLog += getAnOccurrenceFromMethodCall(candidates, methExpr1@decl, methodAndDescClasses, classOfReceiver, methExpr1@src);
+   			} // case \methodCall
+			case methExpr2:\methodCall(_,_,_) : {
+			//\methodCall(bool isSuper, str name, list[Expression] arguments)
+				// This is handled separately in getThisChangingTypeOccurencesFromTheChild
+			;}
 			case newObject1:\newObject(Type oType:\type, list[Expression] expArgs) : {
 				occurrenceLog += getOccurrenceItems(newObject1, oType, initializerThisRefClasses, initializerThisRefChildren);
 			}
@@ -198,6 +238,7 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 			}
 		}
 	}	
+	occurrenceLog += getThisChangingTypeOccurencesFromTheChild(candidates, projectM3) ;
 	retSet = { <_descClass, _ascClass> | <<_descClass, _ascClass>, <_srcRef, _methodOrClass>> <- occurrenceLog };
 	iprintToFile(thisChangingTypeOccurFile, occurrenceLog);	
 	return retSet;

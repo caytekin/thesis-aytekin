@@ -63,16 +63,37 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	lo
 	return <retBool, descDowncalledMethod>;
 }
 
+// Here I will add a method to anlayze only the initializers in the classes.
+// They may also issue calls to the overridden methods in children and they will be therefore included in the downcall candidates.
+// I am here ------>>>>>>>     30-5-2014 
+// Steps to follow:
+// 1.) get the extended class pairs : <descClass, ascClass>
+// 2.) For each such class pair get the methods overridden by the descClass (overriddenMethods)
+// 3.) For each ascClass do the following 
+// 		3.1.) get the ASTs of each class,
+// 		3.2.) visit them to get the initializers only in AST declaration initializer(Statement initializerBody)
+// 		3.3.) Then visit each initializer to get the methodCall()'s, if the called method is in the overriddenMethods, then this is a downcall candidate.
+private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, set[loc]] invertedClassAndInterfaceContainment , M3 projectM3) {
+	rel [loc ascendingClass, loc descendingClass, loc initializer, loc descDowncalledMethod] initializerCandidates = {};
+	rel [loc, loc] inhClassPairs 		= { <_descClass, _ascClass> <- getInheritanceRelations(projectM3), isClass(_descClass), isClass(_ascClass)};
+	set [loc] 	   allAscendingClasses	= {_ascClass, <_descClass, _ascClass> <- inhClassPairs};
+	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
+	
+	//public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassInterfaceMethodContainment,
+	//													map [loc, set[loc]] invertedUnitContainment , 
+	//												   	map [loc, set[loc]] declarationsMap) {
+}
+
 
 private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invertedClassAndInterfaceContainment , M3 projectM3) {
-	// TODO: Think about how to deal with constructors...
+	// Constructors are also included in the candidate analysis.
 	rel [loc ascendingClass, loc descendingClass, loc ascIssureMethod, loc descDowncalledMethod] downcallCandidates = {};
-	set [loc] allMethodsInProject = {definedMethod | <definedMethod, project> <- projectM3@declarations, isMethod(definedMethod)};
-	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
+	set [loc] 				allMethodsInProject 		= {definedMethod | <definedMethod, project> <- projectM3@declarations, isMethod(definedMethod)};
+	rel [loc, loc] 			allOverriddenMethods 		= {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	for (<descMeth, ascMeth> <- allOverriddenMethods) {
-		loc ascClass 		= getDefiningClassOrInterfaceOfALoc(ascMeth, invertedClassAndInterfaceContainment );
-		loc descClass 		= getDefiningClassOrInterfaceOfALoc(descMeth, invertedClassAndInterfaceContainment );
+		loc ascClass 				= getDefiningClassOrInterfaceOfALoc(ascMeth, invertedClassAndInterfaceContainment );
+		loc descClass 				= getDefiningClassOrInterfaceOfALoc(descMeth, invertedClassAndInterfaceContainment );
 		set [loc] methodsInAscClass = ascClass in  containmentMapForMethods ? containmentMapForMethods[ascClass] : {};
 		for (issuerMethod <- methodsInAscClass) {
 			methodAST = getMethodASTEclipse(issuerMethod, model = projectM3);	

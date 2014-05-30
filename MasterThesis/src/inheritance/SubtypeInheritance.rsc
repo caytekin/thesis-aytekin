@@ -384,14 +384,13 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
 				}
 				case consCall1:\constructorCall(bool isSuper, list[Expression] arguments) : {
-					println("Conscall1 : at <consCall1@src>");
-					println("Arguments: <arguments>");
-//					allSubtypeCases += getSubtypeViaParameterPassing(consCall1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
+					Expression consCallExpr1 = createMethodCallFromConsCall(consCall1);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
 				}
 				case consCall2:\constructorCall(bool isSuper, Expression expr, list[Expression] arguments) : {
 					// TODO: When does this ever happen? I need a Java example for this...
-					println("Conscall2 : at <consCall2@src>");
-//					allSubtypeCases += getSubtypeViaParameterPassing(consCall2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
+					Expression consCallExpr2 = createMethodCallFromConsCall(consCall2);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
 				}
 				
         	} // visit()
