@@ -1,0 +1,596 @@
+\documentclass{uvamscse}
+\title{Master Thesis Title}
+\author{Cigdem Aytekin}
+\authemail{cigdem.aytekin2@student.uva.nl}
+\supervisor{Tijs van der Storm}
+\host{CWI - Centrum voor Wiskunde en Informatica, \url{http://www.cwi.nl}}
+\date{\today}
+\abstract{
+This is the abstract
+}
+\begin{document}
+
+\maketitle
+
+
+\chapter{Problem Statement and Motivation}
+This chapter will provide an introduction.
+
+\section{Java Inheritance}
+
+
+\section{The Reasons for Conducting a Replication}
+
+
+
+\chapter{The Original Study}
+\section{Overview}
+
+Ewan Tempero, Hong Yul Yang and James Noble have published the article "What Programmers Do With Java?" in European Conference on Object Oriented Programming (ECOOP) in 2013 \cite{DBLP:conf/ecoop/TemperoYN13}. The aim of our work is to replicate the study on which their article is based. In this chapter, we explain the original study. After giving a short introduction, we present the research questions, artefacts, limitations and the results of the original study. The detailed explanation of the definitions used in the inheritance model is essential for understanding the original study, and therefore it deserves a chapter of its own (ref. xxxxxxx to definition chapter). 
+
+Tempero et al. conducted research about Java inheritance before this study as well. Their previous inheritance research concentrated on the existing inheritance relationships in Java projects [reference: xxxxxx]. This study is different in the sense that they wanted to find out for which purposes inheritance was actually used in Java this time. In their words: "having made the decision to use inheritance at the design level, what benefits follow from the use of inheritance?" 
+
+The difference between defining an inheritance relationship and actually using the inheritance relationship in Java can be explained with the following example. Consider two classes P and Q. If Q is defined as a subclass of P, then we talk about an inheritance relationship between P and Q. If, however, a method is defined in P and is not overridden in Q (say, method p()) is actually called on an object of type Q, we talk about an inheritance usage because then we see that a piece of code which is defined in P is actually re-used on an object of type Q.
+
+The authors make three contributions with their study. First of all, they introduce a model which represents the usage of Java inheritance. Secondly, they make their data sets and their results available for other research. Finally, they present their study results which imply that inheritance is used quite considerably in open source Java projects, especially for subtyping and what they call external reuse. 
+
+
+\section{Research Questions}
+
+The following are the research questions of the original study:
+
+\begin{description}
+\item [Research Question 1 (RQ1):] To what extent is late-bound self-reference relied on in the designs of Java Systems? (The terms late-bound self-reference and downcall are synonyms in the study and are defined in [xxxxxxxxxxxxxx])
+
+\item [Research Question 2 (RQ2):] To what extent is inheritance used in Java in order to express a subtype relationship that is necessary to design?
+
+\item[Research Question 3 (RQ3):] To what extent can inheritance be replaced by composition?
+
+\item[Research Question 4 (RQ4):] What other inheritance idioms are in common use in Java systems? 
+\end{description}
+
+
+
+
+
+\section{Artefacts}
+The authors make use of the following artefacts:
+
+\begin{description}
+
+\item[Qualitas Corpus] 
+The Qualitas Corpus is a curated collection of software systems intended to be used for empirical studies of code artefacts \cite{QualitasCorpus:APSEC:2010}. In the original study, 93 different Open Source Java projects are used for the code analysis from the 20101126 release of the Qualitas Corpus. The authors also made a longitudinal study on two projects: ant (20 releases in total, from release 1.1 to 1.8.1) and freecol (23 releases in total, from 0.3.0 to 0.9.4). Corpus website is: \cite{QualitasCorpusWeb}
+
+The Corpus consists of both byte codes and source codes of the projects.
+
+\item[Qualitas.class Corpus]
+Some effort is needed to create the compiled versions of Java source code from Qualitas Corpus. Terra et al. conducted a study \cite{qualitas.class} and made their results available in the website: \cite{qualitas.classCorpusWeb}
+
+This is not the original part of the study and should be moved to the replication part!!!!!!!!!!!!!!!
+
+
+\item[Study Results Web Page]
+In addition to the results documented in their article, authors also have placed a package of detailed information on a web site \cite{InheritanceUseWeb}. They document here the definitions, edge attributes and metrics they have used for the study as well as the results of their measurements on the Corpus projects. The [definitions chapter] documents this information in detail.
+
+\item[Communication with the Authors] 
+During the replication study some questions have arisen about the original study. We have communicated with the authors via e-mail, and our final results are also dependent on their answers as well as the other artefacts. Especially, the correspondence between the metrics from the Inheritance Use Website \cite{InheritanceUseWeb} and the results in the article \cite{QualitasCorpus:APSEC:2010} have become clear after mailing with the authors. The e-mails are available  
+
+This is not the original part of the study and should be moved to the replication part!!!!!!!!!!!!!!!
+
+
+\end{description}
+
+\section{Limitations of the Original Study}
+The limitations of the original study are as follows: 
+\begin{itemize}
+\item The study is limited to Java classes and interfaces, exceptions, enums and annotations are excluded,
+\item The third party libraries are not analysed,
+\item The edges between system types and non-system types are not modelled,
+\item Heuristics are used when defining framework and generics attributes,
+\item The authors use the Java byte code as input to their analysis tool, byte code may in some cases incorrectly map to source code,
+\item They do make static code analysis and this may have impact on their down call results, the results may be overstating the reality
+\end{itemize}
+
+
+
+\section{Results}
+
+\begin{description}
+\item [For Research Question 1:] They conclude that late-bound self-reference plays a significant role in the systems we studied - around a third (median 34 \%) of CC edges involve down calls.
+
+\item [For Research Question 2:] At least two thirds of all inheritance edges are used as subtypes in the program, the inheritance for subtyping is not rare.
+
+\item[For Research Question 3:] The authors found that 22 \% or more edges use external re-use (without subtyping) and 2 \% or more use internal re-use (without subtyping or external reuse). They conclude that this result introduces opportunities to replace inheritance with composition. 
+
+
+\item[Research Question 4 (RQ4):] They report quite a few other uses of Java inheritance (constant, generic, marker, framework, category and super), however the results show that big majority of edges (87 \%) in their Corpus can already be explained with one of the subtype, external re-use, internal re-use uses 
+
+\end{description}
+
+
+
+
+
+
+
+\chapter{Definitions}
+Definitions are very important for this study. They are used extensively in the metrics and to be able to interpret them correctly, understanding of the metrics is essential. 
+
+The authors of the original study model inheritance relationships in a graph. The child parent types are modelled as edges of the graph and the authors also talk about the different attributes of the edges (like a CC edge, or a subtype edge, etc.). Although this is a good way of modelling inheritance, we preferred to refer to an edge as an ordered relationship between two types: <child, parent>. The reasons for this choice are discussed in the [xxxxxxxxxx] section.
+
+When we use \emph{type} in a definition, it may be a Java class or a Java interface.  If a definition is only meaningful for a class or an interface, however, we use specifically \emph{class} or \emph{interface}.
+
+
+\section{System type}
+\begin{multicols}{2}
+A system type is created for the system under investigation. A non-system type or an external type, on the other hand, is used in the system, but is not defined in the system. In the example, the class G is a system type and ArrayList is a non-system type.
+\columnbreak
+\begin{verbatim}
+import java.util.ArrayList;  
+    
+public class G extends ArrayList { }
+\end{verbatim}
+\end{multicols}
+
+
+\section{User defined attribute}
+\begin{multicols}{2}
+The child parent pair in an inheritance relationship has user defined attribute if both of child and parent are system types. In the example, pair <Q,P> has user defined attribute, while pair <L, ArrayList> has not.
+\columnbreak
+\begin{verbatim}
+class P{ }
+class Q extends P {  }
+   
+import java.util.ArrayList;
+class L extends ArrayList;
+\end{verbatim}
+\end{multicols}
+
+
+
+\section{CC, CI and II attributes}
+\begin{multicols}{2}
+The child parent pair in an inheritance relationship in Java can have one of the three attributes: CC (Class Class) - both child and parent are classes, CI (Class Interface) - child is a class and parent is an interface or II (Interface Interface) - both child and parent are interfaces. In the example, the pair <Q,P> has the CC attribute and the pair <Q,I> has the CI attribute.
+\columnbreak
+\begin{verbatim}
+interface I {}
+class P{ }
+class Q extends P 
+        implements I {}  
+\end{verbatim}
+\end{multicols}
+
+
+\section{Explicit attribute}
+\begin{multicols}{2}
+The inheritance relationship is described directly in the code. In the example, pairs <C, P> and <G, C> have explicit attribute. <G,C> however, does not have explicit attribute. Although there is an inheritance relationship between G and C, it is implied and not defined explicitly in the program.
+\columnbreak
+\begin{verbatim}
+class P{ }
+class C extends P { } 
+class G extends C {  } 
+\end{verbatim}
+\end{multicols}
+
+
+
+
+\section{Internal Reuse}
+\begin{multicols}{2}
+Internal reuse happens when a child type calls a method or accesses a field of its parent type. 
+\columnbreak
+\begin{verbatim}
+public class P {
+    public int pField = 0;
+    void p() {
+    }
+}
+public class Q extends P {
+    void q() {
+        p();         // via method call
+        pField = 1;  // via field access
+    }
+}
+\end{verbatim}
+\end{multicols}
+
+
+
+\section{External Reuse}
+\begin{multicols} {2}
+External reuse is like internal reuse, except for that the access to a method or a field happens not within the child type itself, but it happens in another type, on an object of child type. According to original study, the class in which the external reuse occurs may not have any inheritance relationship with the child or parent type.
+\columnbreak
+\begin{verbatim}
+public class P {
+    public int pField = 0;
+    void p() {
+    }
+}
+public class Q extends P {
+}
+public class E {
+    void e() {
+        Q aQ = new Q();
+        aQ.p();          // via method call
+        aQ.pField = 1;   // via field access
+    }
+}
+\end{verbatim}
+\end{multicols}
+
+
+\section{Subtype}
+\begin{multicols} {2}
+Subtype usage happens when an object of child type is supplied where an  object of parent type is expected Subtype usage can occur in four occasions: when assigning object(s), during parameter passing, when returning an object in a method or casting an object to another type. Contrary to internal and external reuse, the place where the subtyping occurs is not of any importance in subtyping. Note that enhanced for loop in Java is also like an assignment statement and therefore should be included in the analysis.
+
+There are two interesting cases of subtyping usage in Java (sideways cast and this changing type) and they are defined separately in the subsections below.
+
+\columnbreak
+\begin{verbatim}
+public class T {
+}
+public class S extends T {
+}
+    
+import java.util.ArrayList;
+public class X {
+    S anS;
+    void a(T aT) {
+    }
+    T b() {
+        return anS; // return statement
+    }
+    void x() {
+        T aT = new S();        // assignment
+        a(anS);                // parameter passing
+        T anotherT = (T)anS;   // casting
+        ArrayList<S> aList = new ArrayList<S>();
+        for (T anE : aList) {  // enhanced for loop
+            // ...
+        }
+    }
+}
+
+\end{verbatim}
+\end{multicols}
+
+\subsection{Sideways Casting}
+\begin{multicols} {2}
+Sideways casting is an interesting case which results in subtype usage between a class and two interfaces. The example is taken as is from the original study.
+\columnbreak
+\begin{verbatim}
+public interface SidewaysA { }
+public interface SidewaysB { }
+public class SidewaysC implements SidewaysA, 
+                                  SidewaysB { }
+public class Sideways {
+    public void demo(SidewaysA sa) {
+        SidewaysB sb = (SidewaysB) sa;
+    }
+}
+\end{verbatim}
+\end{multicols}
+
+\subsection{This Changing Type}
+\begin{multicols} {2}
+Another instance of subtype usage in Java occurs when \texttt{this} reference causes a type change. In the example, when class C is instantiated, the initializer of its parent class is called. The constructor of class A expects a parameter of type P, but this reference in the \texttt{new A(this)} statement will be of type C this time.
+
+\columnbreak
+\begin{verbatim}
+public class P {
+    private A anA = new A (this);
+}
+public class C extends P {
+}
+\end{verbatim}
+\end{multicols}
+
+\section{Downcall}
+\begin{multicols} {2}
+The terms downcall and late-bound self-reference have the same meaning in the original study. Downcall refers to the case when a method in the parent type (parent-method) makes a call to another method (child-method) which is overridden by the child type. When an object of child type calls the parent-method, the child-method of the child type will be executed. This case is called \textit{down}call, because a child type is found under the parent type in the inheritance hierarchy.
+\columnbreak
+\begin{verbatim}
+public class P {
+    void p() {
+        q();
+    }
+    void q() {
+    }
+}
+public class Q extends P {
+    void q() {
+    }
+}
+public class D {
+    void d() {
+        Q aQ = new Q();
+        aQ.p();     // when p() is executed,
+                    //  Q#q() is called
+    }               // instead of P#q()
+}
+\end{verbatim}
+\end{multicols}
+
+\section{Other Uses of Inheritance}
+Next to reuse, subtype and downcall, the authors also defined other uses of inheritance: Category, Constants, Framework, Generic, Marker and Super.
+
+\subsection{Category}
+\begin{multicols} {2}
+Category inheritance relationship is defined for the child parent pairs which can not be placed under any other inheritance definition. In this case, we search for a sibling of the child which has a subtype relationship with the parent. If we can find such a sibling, we assume that the parent is used as a category class, and the child is placed under it for conceptual reasons. In the example shown, S has subtype relationship with P, and C and S are siblings. If no other inheritance usage is found between C and P, then their relationship is classified as category. 
+\columnbreak
+\begin{verbatim}
+public class P { }
+public class C extends P { }
+public class S extends P { }
+public class R {
+    void r() {
+    	// subtype usage btw. S and P
+        P aP = new S();  
+    }          
+}
+\end{verbatim}
+\end{multicols}
+       
+\subsection{Constants}
+\begin{multicols} {2}
+A child parent pair has constants attribute if the parent only contains constant fields (i.e., fields with \texttt{static final} attribute). The parent should either have no grandparents or if it has grandparents, the pair parent grandparent should also have constants attribute. In the example, B A pair has constants attribute.
+\columnbreak
+\begin{verbatim}
+public class A {
+    public static final String c = ""; 
+    static final boolean b = true;		
+    static final double d = 2.2;		
+    static final float f = 3.3f;		
+}
+public class B extends A { }
+\end{verbatim}
+\end{multicols}
+
+\subsection{Framework}
+\begin{multicols} {2}
+A child parent pair will have the framework attribute if it does not have one of the external reuse, internal reuse, subtype or downcall attributes and the parent is a descendant of a third party type. In the example, H G pair has Framewrok attribute.
+\columnbreak
+\begin{verbatim}
+import java.util.ArrayList;
+public class G extends ArrayList { }
+   
+public class H extends G { }
+\end{verbatim}
+\end{multicols}
+
+\subsection{Generic}
+\begin{multicols} {2}
+Generic attribute is used for the child parent (for example : child type R, and parent type S) pairs which adhere to the following:
+\begin{enumerate}
+  \item S is parent of R.
+  \item R has at least one more parent, say, T.
+  \item There is an explicit cast from java.lang.Object to S. 
+  \item There is a subtype relationship between R and java.lang.Object
+\end{enumerate}
+I again take the example from the original study.
+\columnbreak
+\begin{verbatim}
+    List list = new Vector();
+    T aT = new R();
+    list.add(aT);
+    S anS = (S)list.get(0);
+\end{verbatim}
+\end{multicols}
+
+
+\subsection{Marker}
+\begin{multicols} {2}
+Marker usage for a child parent pair occurs when a parent has nothing declared in it. Moreover, just like the constants definition, the parent should either have no parents itself, or if it has parents, parent grandparent pairs should all have marker attribute. Parent should be defined as an interface and child may be a class or an interface. 
+\columnbreak
+\begin{verbatim}
+public interface H { }
+   
+public class G implements H {
+    void g() { }
+}
+\end{verbatim}
+\end{multicols}
+
+\subsection{Super}
+\begin{multicols} {2}
+A child parent pair will qualify for super attribute if a constructor of child type explicitly invokes a constructor of parent type via \texttt{super} call.
+\columnbreak
+\begin{verbatim}
+public class L {
+    public L() {
+    }
+}
+public class K extends L {
+    public K () {
+   	    super();
+   	}
+}
+\end{verbatim}
+\end{multicols}
+
+
+\chapter{Metrics}
+The metrics are explained elaborately in the website of the original study \cite{InheritanceUseWeb}  The classifications used in the published article are based on these metrics. For example, Figure 12 of the article depicts different uses of inheritance on CC edges. The abbreviations INO, EX-ST and ST do correspond to three CC metrics respectively (numCCUsedOnlyInRe, numCCExreuseNoSubtype, perCCSubtype). Although most of the time it was possible to infer these correspondences from the abbreviations, we also e-mailed the authors to acquire the exact relationship between the metrics and the abbreviations. These correspondences are explained in section \ref{Correspondence}
+
+
+
+
+\section{Class Class (CC) Metrics}
+The metrics about CC (Class Class) inheritance relations are explained in table \ref{table:CCMetrics}. For all metrics it holds that the child parent pair should have explicit and user defined attributes.
+
+\begin{table} [h!]
+\begin{flushleft}
+\begin{tabular}[c]{| p{40mm} | p{110mm} |}
+  \hline
+  \texttt{numExplicitCC} &  Number of CC pairs.\\
+  \hline  
+  \texttt{numCCUsed} &  Number of CC pairs for which some subtype, internal reuse or external reuse was	seen. \\
+  \texttt{perCCUsed} &  \texttt{numCCUsed / numExplicitCC}.\\
+  \hline
+  \texttt{numCCDC} 	 &   Number of CC pairs for which downcall use was seen.\\
+  \texttt{perCCDC}   &   \texttt{numCCDC / numCCUsed} \\
+  \hline
+  \texttt{numCCSubtype} &  Number of CC pairs for which subtype use was seen \\
+  \texttt{perCCSubtype} &  \texttt{numCCSubtype / numCCUsed} \\
+  \hline
+  \texttt{numCCExreuseNoSubtype} &  Number of CC pairs which do not have the subtype attribute, but which do have the external reuse attribute. \\
+  \texttt{perCCExreuseNoSubtype} & \texttt{numCCExreuseNoSubtype / numCCUsed}  \\
+  \hline
+  \texttt{numCCUsedOnlyInRe} & Number of CC pairs which have neither the subtype nor the external reuse attribute, but which do have the internal reuse attribute. \\
+  \texttt{perCCUsedOnlyInRe} &   \texttt{numCCUsedOnlyInRe / numCCUsed} \\
+  \hline
+  \texttt{numCCUnexplSuper} & Number of CC edges which do have super use and do not have any other types of inheritance usage. \\
+  \texttt{perCCUnexplSuper} & 	\texttt{numCCUnexplSuper / numExplicitCC } \\
+  \hline 
+  \texttt{numCCUnexplCategory} & Number of CC edges which do have category use and do not have any other types of inheritance usage. \\
+  \texttt{perCCUnexplCategory} & 	\texttt{numCCUnexplCategory / numExplicitCC } \\
+  \hline 
+  \texttt{numCCUnknown} & Number of CC edges which do have an inheritance relationship, but which do not have any of the inheritance attributes defined. \\
+  \texttt{perCCUnknown} & 	\texttt{numCCUnexplCategory / numExplicitCC } \\
+  \hline 
+\end{tabular}
+\end{flushleft}
+\caption{Class Class Metrics}
+\label{table:CCMetrics}
+\end{table}
+
+
+
+
+\section{Class Interface (CI) Metrics}
+Table \ref{table:CIMetrics} explains the metrics about CI (Class Interface) inheritance relations. Just like CC metrics, for all CI metrics it holds that the child parent pair should have explicit and user defined attributes.
+
+\begin{table} [h!]
+\begin{flushleft}
+\begin{tabular}[c]{| p{40mm} | p{110mm} |}
+  \hline
+  \texttt{numExplicitCI} &  Number of CI pairs.\\
+  \hline  
+  \texttt{numOnlyCISubtype} &  Number of CI pairs for which subtype use was seen \\
+  \texttt{perOnlyCISubtype} &  \texttt{numOnlyCISubtype/ numExplicitCI} \\
+  \hline
+  \texttt{numExplainedCI} & Number of CI edges which do not have subtype or category inheritance use but do have some other attribute (one of framework, generic, marker or constants). \\
+  \texttt{perExplainedCI} & 	\texttt{numExplainedCI/ numExplicitCI} \\
+  \hline 
+  \texttt{numCategoryExplCI} & Number of CI edges which do have category use and do not have any other types of inheritance usage. \\
+  \texttt{perCategoryExplCI} & 	\texttt{numCategoryExplCI/ numExplicitCI} \\
+  \hline 
+  \texttt{numUnexplainedCI} & Number of CI edges which do have an inheritance relationship, but which do not have any of the inheritance attributes defined. \\
+  \texttt{perUnexplainedCI} & 	\texttt{numUnexplainedCI/ numExplicitCI } \\
+  \hline 
+\end{tabular}
+\end{flushleft}
+\caption{Class Interface Metrics}
+\label{table:CIMetrics}
+\end{table}
+
+
+\section{Interface Interface (II) Metrics}
+II (Interface Interface) metrics are depicted in table \ref{table:IIMetrics}. Just like CC and CI metrics, only the pairs which are explicit and user defined are taken into account.
+
+\begin{table} [h!]
+\begin{flushleft}
+\begin{tabular}[c]{| p{40mm} | p{110mm} |}
+  \hline
+  \texttt{numExplicitII} &  Number of II pairs.\\
+  \hline  
+  \texttt{numIISubtype} &  Number of II pairs for which subtype use was seen \\
+  \texttt{perIISubtype} &  \texttt{numIISubtype/ numExplicitII} \\
+  \hline
+  \texttt{numExplainedII} & Number of II edges which do not have subtype or category inheritance use but do have some other attribute (one of framework, generic, marker or constants). \\
+  \texttt{perExplainedII} & 	\texttt{numExplainedII/ numExplicitII} \\
+  \hline 
+  \texttt{numCategoryExplII} & Number of II edges which do have category use and do not have any other types of inheritance usage. \\
+  \texttt{perCategoryExplII} & 	\texttt{numCategoryExplII/ numExplicitII} \\
+  \hline 
+  \texttt{numUnexplainedII} & Number of II edges which do have an inheritance relationship, but which do not have any of the inheritance attributes defined. \\
+  \texttt{perUnexplainedII} & 	\texttt{numUnexplainedII/ numExplicitII} \\
+  \hline 
+\end{tabular}
+\end{flushleft}
+\caption{Interface Interface Metrics}
+\label{table:IIMetrics}
+\end{table}
+
+
+\section{Correspondence between the metrics and article results} \label{Correspondence}
+The correspondence between the inheritance metrics used in the study and the abbreviations used in the published article are shown in table \ref{table:CorrespondenceT} 
+\begin{table} [h!]
+\begin{flushleft}
+\begin{tabular}[t]{| p{40mm} | p{50mm} | p{50mm} | }
+  \hline
+  In article figures: &  Term in the article & Name of the metric \\
+  \hline
+  \hline
+  Fig. 10 and 11 \newline CC Downcalls & Downcall proportion  &  \texttt{perCCDC} \\
+  \hline  
+  Fig. 12 and 15 \newline CC Usages & INO \newline EX-ST \newline ST & \texttt{perCCUsedOnlyInRe} \newline \texttt{perCCExReuseNoSubtype} \newline \texttt{perCCSubtype} \\
+  \hline 
+  Fig. 13 and 16 \newline CI usages & UNK \newline ORG \newline SUS \newline ST & \texttt{perUnexplainedCI} \newline  \texttt{perCategoryExplCI} \newline  \texttt{perExplainedCI} \newline  \texttt{perOnlyCISubtype}\\ 
+  \hline
+  Fig. 14 \newline II usages & UNK \newline ORG \newline SUS \newline RE-ST \newline ST & \texttt{perUnexplainedII} \newline  \texttt{perCategoryExplII} \newline  \texttt{perExplainedII} \newline  \texttt{perOnlyIIReuse} \newline
+  \texttt{perOnlyIISubtype} \\ 
+  \hline
+  Fig. 17 \newline Other CC Usages & UNK \newline ORG \newline SUP & \texttt{perCCUnknown} \newline \texttt{perCCUnexplCategory} \newline \texttt{perCCUnexplSuper} \\
+  \hline 
+\end{tabular}
+\end{flushleft}
+\caption{Correspondence between the terms used in the article and the metrics used in the study.}
+\label{table:CorrespondenceT}
+\end{table}
+
+
+
+
+
+
+
+
+
+\chapter{Replication Study}
+
+\section{Research Questions}
+
+\section{Differences in the study set-up}
+
+\section{Anlayisis Challenges}
+
+\section{Results}
+
+
+
+
+\chapter{Comparison of Original Study with Replication Study}
+
+\section{Comparison of Results}
+
+
+
+
+\chapter{Discussion}
+
+\section{Limitations of the Study}
+
+\section{Threats to Validity}
+
+\section{Lessons Learned}
+
+\section{Future Work}
+
+
+
+
+
+\chapter{Conclusion}
+
+This is my thesis.
+
+\chapter{Literature}\label{sec:biblio}
+{%\tiny
+\bibliographystyle{alphaurl}
+\bibliography{thesis}
+}
+
+
+
+\end{document}

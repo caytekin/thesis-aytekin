@@ -1,0 +1,48 @@
+\contentsline {chapter}{Abstract}{3}{chapter*.1}
+\contentsline {chapter}{\numberline {1}Problem Statement and Motivation}{4}{chapter.1}
+\contentsline {section}{\numberline {1.1}Java Inheritance}{4}{section.1.1}
+\contentsline {section}{\numberline {1.2}The Reasons for Conducting a Replication}{4}{section.1.2}
+\contentsline {chapter}{\numberline {2}The Original Study}{5}{chapter.2}
+\contentsline {section}{\numberline {2.1}Overview}{5}{section.2.1}
+\contentsline {section}{\numberline {2.2}Research Questions}{5}{section.2.2}
+\contentsline {section}{\numberline {2.3}Artefacts}{6}{section.2.3}
+\contentsline {section}{\numberline {2.4}Limitations of the Original Study}{6}{section.2.4}
+\contentsline {section}{\numberline {2.5}Results}{6}{section.2.5}
+\contentsline {chapter}{\numberline {3}Definitions}{8}{chapter.3}
+\contentsline {section}{\numberline {3.1}System type}{8}{section.3.1}
+\contentsline {section}{\numberline {3.2}User defined attribute}{8}{section.3.2}
+\contentsline {section}{\numberline {3.3}CC, CI and II attributes}{8}{section.3.3}
+\contentsline {section}{\numberline {3.4}Explicit attribute}{9}{section.3.4}
+\contentsline {section}{\numberline {3.5}Internal Reuse}{9}{section.3.5}
+\contentsline {section}{\numberline {3.6}External Reuse}{9}{section.3.6}
+\contentsline {section}{\numberline {3.7}Subtype}{9}{section.3.7}
+\contentsline {subsection}{\numberline {3.7.1}Sideways Casting}{10}{subsection.3.7.1}
+\contentsline {subsection}{\numberline {3.7.2}This Changing Type}{10}{subsection.3.7.2}
+\contentsline {section}{\numberline {3.8}Downcall}{10}{section.3.8}
+\contentsline {section}{\numberline {3.9}Other Uses of Inheritance}{11}{section.3.9}
+\contentsline {subsection}{\numberline {3.9.1}Category}{11}{subsection.3.9.1}
+\contentsline {subsection}{\numberline {3.9.2}Constants}{11}{subsection.3.9.2}
+\contentsline {subsection}{\numberline {3.9.3}Framework}{11}{subsection.3.9.3}
+\contentsline {subsection}{\numberline {3.9.4}Generic}{11}{subsection.3.9.4}
+\contentsline {subsection}{\numberline {3.9.5}Marker}{12}{subsection.3.9.5}
+\contentsline {subsection}{\numberline {3.9.6}Super}{12}{subsection.3.9.6}
+\contentsline {chapter}{\numberline {4}Metrics}{13}{chapter.4}
+\contentsline {section}{\numberline {4.1}Class Class (CC) Metrics}{13}{section.4.1}
+\contentsline {section}{\numberline {4.2}Class Interface (CI) Metrics}{14}{section.4.2}
+\contentsline {section}{\numberline {4.3}Interface Interface (II) Metrics}{14}{section.4.3}
+\contentsline {section}{\numberline {4.4}Correspondence between the metrics and article results}{14}{section.4.4}
+\contentsline {chapter}{\numberline {5}Replication Study}{16}{chapter.5}
+\contentsline {section}{\numberline {5.1}Research Questions}{16}{section.5.1}
+\contentsline {section}{\numberline {5.2}Differences in the study set-up}{16}{section.5.2}
+\contentsline {section}{\numberline {5.3}Anlayisis Challenges}{16}{section.5.3}
+\contentsline {section}{\numberline {5.4}Results}{16}{section.5.4}
+\contentsline {chapter}{\numberline {6}Comparison of Original Study with Replication Study}{17}{chapter.6}
+\contentsline {section}{\numberline {6.1}Comparison of Results}{17}{section.6.1}
+\contentsline {chapter}{\numberline {7}Discussion}{18}{chapter.7}
+\contentsline {section}{\numberline {7.1}Limitations of the Study}{18}{section.7.1}
+\contentsline {section}{\numberline {7.2}Threats to Validity}{18}{section.7.2}
+\contentsline {section}{\numberline {7.3}Lessons Learned}{18}{section.7.3}
+\contentsline {section}{\numberline {7.4}Future Work}{18}{section.7.4}
+\contentsline {chapter}{\numberline {8}Conclusion}{19}{chapter.8}
+\contentsline {chapter}{\numberline {9}Literature}{20}{chapter.9}
+\contentsline {chapter}{Bibliography}{21}{chapter*.2}

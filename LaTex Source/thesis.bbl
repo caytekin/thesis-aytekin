@@ -1,0 +1,69 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{JBB{\etalchar{+}}93}
+
+\bibitem[Car10]{Carver10}
+Jeffrey~C. Carver.
+\newblock {Towards Reporting Guidelines for Experimental Replications: A
+  Proposal}.
+\newblock In {\em {Proceedings of the International Workshop on Replication in
+  Empirical Software Engineering Research}}, RESER, May 2010.
+
+\bibitem[GJ08]{GruneJacobs}
+Dick Grune and C.~J.~H. Jacobs.
+\newblock {\em {Parsing Techniques: A Practical Guide}}.
+\newblock Monographs in Computer Science. Springer, 2 edition, 2008.
+\newblock URL: \url{http://www.cs.vu.nl/~dick/PT2Ed.html}.
+
+\bibitem[JBB{\etalchar{+}}93]{JohnsonBBCGW93}
+Ralph~E. Johnson, Kent Beck, Grady Booch, William~R. Cook, Richard~P. Gabriel,
+  and Rebecca Wirfs-Brock.
+\newblock {How to Get a Paper Accepted at OOPSLA}.
+\newblock In Timlynn Babitsky and Jim Salmons, editors, {\em Proceedings of the
+  Eighth Annual Conference on Object-Oriented Programming Systems, Languages
+  and Applications}, OOPSLA, pages 429--436. ACM, 1993.
+
+\bibitem[KLV05]{GrammarwareAgenda}
+Paul Klint, Ralf L{\"a}mmel, and Chris Verhoef.
+\newblock {Toward an Engineering Discipline for Grammarware}.
+\newblock {\em ACM Transactions on Software Engineering Methodology (TOSEM)},
+  14(3):331--380, 2005.
+
+\bibitem[MR13]{MeyerovichR2013}
+Leo~A. Meyerovich and Ariel~S. Rabkin.
+\newblock {Empirical Analysis of Programming Language Adoption}.
+\newblock In {\em Proceedings of the 2013 ACM SIGPLAN International Conference
+  on Object Oriented Programming Systems Languages and Applications}, OOPSLA,
+  pages 1--18. ACM, 2013.
+\newblock \href {http://dx.doi.org/10.1145/2509136.2509515}
+  {\path{doi:10.1145/2509136.2509515}}.
+
+\bibitem[Par08]{ANTLR}
+Terence Parr.
+\newblock {ANTLR---ANother Tool for Language Recognition}.
+\newblock Toolkit website, 2008.
+\newblock URL: \url{http://antlr.org}.
+
+\bibitem[Rek92]{Rekers92}
+J.~Rekers.
+\newblock {\em {Parser Generation for Interactive Environments}}.
+\newblock PhD thesis, University of Amsterdam, 1992.
+\newblock URL: \url{http://homepages.cwi.nl/~paulk/dissertations/Rekers.pdf}.
+
+\bibitem[vW65]{Wijngaarden65}
+Adriaan van Wijngaarden.
+\newblock {Orthogonal Design and Description of a Formal Language}.
+\newblock {MR 76}, SMC, October 1965.
+\newblock URL:
+  \url{http://www.fh-jena.de/~kleine/history/languages/VanWijngaarden-MR76.pdf}.
+
+\bibitem[Zay13]{Micropatterns2013}
+Vadim Zaytsev.
+\newblock {Micropatterns in Grammars}.
+\newblock In Martin Erwig, Richard~F. Paige, and Eric~Van Wyk, editors, {\em
+  {Proceedings of the Sixth International Conference on Software Language
+  Engineering (SLE 2013)}}, volume 8225 of {\em LNCS}, pages 117--136,
+  Switzerland, October 2013. Springer International Publishing.
+\newblock \href {http://dx.doi.org/10.1007/978-3-319-02654-1_7}
+  {\path{doi:10.1007/978-3-319-02654-1_7}}.
+
+\end{thebibliography}

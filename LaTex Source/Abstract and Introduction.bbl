@@ -1,0 +1,52 @@
+\newcommand{\etalchar}[1]{$^{#1}$}
+\begin{thebibliography}{TMVB13b}
+
+\bibitem[TAD{\etalchar{+}}08]{QualitasCorpusWeb}
+Ewan Tempero, Craig Anslow, Jens Dietrich, Ted Han, Jing Li, Markus Lumpe,
+  Hayden Melton, and James Noble.
+\newblock {Qualitas Corpus Homepage}.
+\newblock Curated Collection of Software Systems, 2008.
+\newblock URL: \url{http://www.qualitascorpus.com/}.
+
+\bibitem[TAD{\etalchar{+}}10]{QualitasCorpus:APSEC:2010}
+Ewan Tempero, Craig Anslow, Jens Dietrich, Ted Han, Jing Li, Markus Lumpe,
+  Hayden Melton, and James Noble.
+\newblock Qualitas corpus: A curated collection of java code for empirical
+  studies.
+\newblock In {\em 2010 Asia Pacific Software Engineering Conference
+  (APSEC2010)}, pages 336--345, December 2010.
+\newblock \href {http://dx.doi.org/10.1109/APSEC.2010.46}
+  {\path{doi:10.1109/APSEC.2010.46}}.
+
+\bibitem[TMVB13a]{qualitas.classCorpusWeb}
+Ricardo Terra, Luis~Fernando Miranda, Marco~Tulio Valente, and Roberto~S.
+  Bigonha.
+\newblock {Qualitas.class Corpus}.
+\newblock Qualitas.class Corpus (A Compiled Version of Qualitas Corpus), 2013.
+\newblock URL: \url{http://java.labsoft.dcc.ufmg.br/qualitas.class/index.html}.
+
+\bibitem[TMVB13b]{qualitas.class}
+Ricardo Terra, Luis~Fernando Miranda, Marco~Tulio Valente, and Roberto~S.
+  Bigonha.
+\newblock {Q}ualitas.class {C}orpus: A compiled version of the {Q}ualitas
+  {C}orpusxxx.
+\newblock {\em Software Engineering Notes}, 38(5):1--4, 2013.
+\newblock \href {http://dx.doi.org/10.1145/2507288.2507314}
+  {\path{doi:10.1145/2507288.2507314}}.
+
+\bibitem[TYN08]{InheritanceUseWeb}
+Ewan~D. Tempero, Hong~Yul Yang, and James Noble.
+\newblock {Inheritance Use Data}.
+\newblock Inheritance Use Data, 2008.
+\newblock URL:
+  \url{https://www.cs.auckland.ac.nz/~ewan/qualitas/studies/inheritance/}.
+
+\bibitem[TYN13]{DBLP:conf/ecoop/TemperoYN13}
+Ewan~D. Tempero, Hong~Yul Yang, and James Noble.
+\newblock What programmers do with inheritance in java.
+\newblock In Giuseppe Castagna, editor, {\em ECOOP}, volume 7920 of {\em
+  Lecture Notes in Computer Science}, pages 577--601. Springer, 2013.
+\newblock \href {http://dx.doi.org/10.1007/978-3-642-39038-8_24}
+  {\path{doi:10.1007/978-3-642-39038-8_24}}.
+
+\end{thebibliography}
