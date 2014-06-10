@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.10.27)  5 JUN 2014 16:52
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.10.27)  10 JUN 2014 16:22
 entering extended mode
 **Abstract*and*Introduction.tex
 
@@ -384,22 +384,22 @@ Package float Warning: Can't redefine counter variable for sourcecode. on input
 )
 ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\Abstract and Introduction
 .aux")
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 11.
-LaTeX Font Info:    ... okay on input line 11.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 12.
+LaTeX Font Info:    ... okay on input line 12.
  ("C:\Program Files\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
 \scratchcounter=\count125
@@ -423,7 +423,7 @@ File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
 )
 Package color Info: Driver file: pdftex.def on input line 130.
 )
-Package hyperref Info: Link coloring ON on input line 11.
+Package hyperref Info: Link coloring ON on input line 12.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\hyperref\nameref.sty"
 Package: nameref 2010/04/30 v2.40 Cross-referencing by name of section
@@ -433,15 +433,15 @@ Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
 \c@section@level=\count131
 )
-LaTeX Info: Redefining \ref on input line 11.
-LaTeX Info: Redefining \pageref on input line 11.
-LaTeX Info: Redefining \nameref on input line 11.
-LaTeX Font Info:    Try loading font information for U+msa on input line 13.
+LaTeX Info: Redefining \ref on input line 12.
+LaTeX Info: Redefining \pageref on input line 12.
+LaTeX Info: Redefining \nameref on input line 12.
+LaTeX Font Info:    Try loading font information for U+msa on input line 14.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsa.fd"
 File: umsa.fd 2009/06/22 v3.00 AMS symbols A
 )
-LaTeX Font Info:    Try loading font information for U+msb on input line 13.
+LaTeX Font Info:    Try loading font information for U+msb on input line 14.
 
 ("C:\Program Files\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
@@ -449,10 +449,10 @@ File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 <uva.pdf, id=5, 401.5pt x 401.5pt>
 File: uva.pdf Graphic file (type pdf)
  <use uva.pdf>
-Package pdftex.def Info: uva.pdf used on input line 13.
+Package pdftex.def Info: uva.pdf used on input line 14.
 (pdftex.def)             Requested size: 48.00024pt x 48.0pt.
 
-Overfull \vbox (15.60004pt too high) detected at line 13
+Overfull \vbox (15.60004pt too high) detected at line 14
  []
 
 [0
@@ -473,140 +473,154 @@ Chapter 2.
 [5
 
 ]
-Overfull \hbox (0.56345pt too wide) in paragraph at lines 76--77
+Overfull \hbox (0.56345pt too wide) in paragraph at lines 77--78
 []\OT1/cmr/m/n/10 During the repli-ca-tion study some ques-tions have arisen ab
 out
  []
 
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 86.
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 87.
 ("C:\Program Files\MiKTeX 2.9\tex\latex\base\omscmr.fd"
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 86.
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 87.
  [6] [7]
 Chapter 3.
 [8
 
 ]
-Overfull \hbox (10.74803pt too wide) in paragraph at lines 218--218
+Overfull \hbox (10.74803pt too wide) in paragraph at lines 224--224
 []        \OT1/cmtt/m/n/10 aQ.p();          // via method call[] 
  []
 
 
-Overfull \hbox (15.99799pt too wide) in paragraph at lines 218--218
+Overfull \hbox (15.99799pt too wide) in paragraph at lines 224--224
 []        \OT1/cmtt/m/n/10 aQ.pField = 1;   // via field access[] 
  []
 
 [9]
-Overfull \hbox (15.99799pt too wide) in paragraph at lines 254--254
+Overfull \hbox (15.99799pt too wide) in paragraph at lines 260--260
 []        \OT1/cmtt/m/n/10 T aT = new S();        // assignment[] 
  []
 
 
-Overfull \hbox (52.74767pt too wide) in paragraph at lines 254--254
+Overfull \hbox (52.74767pt too wide) in paragraph at lines 260--260
 []        \OT1/cmtt/m/n/10 a(anS);                // parameter passing[] 
  []
 
 
-Overfull \hbox (0.24812pt too wide) in paragraph at lines 254--254
+Overfull \hbox (0.24812pt too wide) in paragraph at lines 260--260
 []        \OT1/cmtt/m/n/10 T anotherT = (T)anS;   // casting[] 
  []
 
 
-Overfull \hbox (36.9978pt too wide) in paragraph at lines 254--254
+Overfull \hbox (36.9978pt too wide) in paragraph at lines 260--260
 []        \OT1/cmtt/m/n/10 ArrayList<S> aList = new ArrayList<S>();[] 
  []
 
 
-Overfull \hbox (52.74767pt too wide) in paragraph at lines 254--254
+Overfull \hbox (52.74767pt too wide) in paragraph at lines 260--260
 []        \OT1/cmtt/m/n/10 for (T anE : aList) {  // enhanced for loop[] 
  []
 
 
-Overfull \hbox (15.99799pt too wide) in paragraph at lines 271--271
+Overfull \hbox (15.99799pt too wide) in paragraph at lines 277--277
 []\OT1/cmtt/m/n/10 public class SidewaysC implements SidewaysA,[] 
  []
 
 
-Overfull \hbox (31.74785pt too wide) in paragraph at lines 271--271
+Overfull \hbox (31.74785pt too wide) in paragraph at lines 277--277
 []                                  \OT1/cmtt/m/n/10 SidewaysB { }[] 
  []
 
 
-Overfull \hbox (15.99799pt too wide) in paragraph at lines 311--311
+Overfull \hbox (15.99799pt too wide) in paragraph at lines 317--317
 []        \OT1/cmtt/m/n/10 aQ.p();     // when p() is executed,[] 
  []
 
 [10]
-Underfull \hbox (badness 10000) in paragraph at lines 367--368
+Underfull \hbox (badness 10000) in paragraph at lines 373--374
 []\OT1/cmr/m/n/10 There is an ex-plicit cast from
  []
 
-[11] [12]
+[11]
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[12] [13]
 Chapter 4.
 
-Overfull \hbox (10.79132pt too wide) in paragraph at lines 423--452
+Overfull \hbox (10.79132pt too wide) in paragraph at lines 476--505
 []  
  []
 
-
-Overfull \hbox (10.79132pt too wide) in paragraph at lines 465--482
-[]  
- []
-
-[13
+[14
 
 ]
-Overfull \hbox (10.79132pt too wide) in paragraph at lines 493--510
+Overfull \hbox (10.79132pt too wide) in paragraph at lines 518--535
+[]  
+ []
+
+
+Overfull \hbox (10.79132pt too wide) in paragraph at lines 546--563
 []  
  []
 
 
 LaTeX Warning: `!h' float specifier changed to `!ht'.
 
-[14] [15]
+[15] [16]
 Chapter 5.
-[16
-
-]
-Chapter 6.
 [17
 
 ]
+Overfull \hbox (10.2025pt too wide) in paragraph at lines 643--644
+[]\OT1/cmr/m/n/10 For each Java project
+ []
+
+[18] [19]
+Chapter 6.
+[20
+
+]
 Chapter 7.
-[18
+[21
 
 ]
 Chapter 8.
-[19
-
-]
-Chapter 9.
 
 ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\Abstract and Introduction
-.bbl" [20
+.bbl" [22
 
-]) [21
+]) [23
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 596.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 596.
+Underfull \hbox (badness 1067) in paragraph at lines 755--757
+\OT1/cmr/m/n/10 7.5.1 jmeter-2.5.1 jmoney-0.4.4 joggplayer-1.1.4s jparse-0.96 j
+pf-1.5.1 jrat-1.0-beta1 jre-1.6.0
+ []
+
+
+LaTeX Warning: `!h' float specifier changed to `!ht'.
+
+[24] [25]
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 811.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 811.
 
 ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\Abstract and Introduction
 .aux")
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 596.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 596.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 596.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 811.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 811.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 811.
  ) 
 Here is how much of TeX's memory you used:
- 7761 strings out of 494045
- 106319 string characters out of 3148377
- 200455 words of memory out of 3000000
- 10894 multiletter control sequences out of 15000+200000
+ 7781 strings out of 494045
+ 106636 string characters out of 3148377
+ 202534 words of memory out of 3000000
+ 10902 multiletter control sequences out of 15000+200000
  9185 words of font info for 35 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
- 36i,12n,26p,740b,544s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 36i,12n,26p,1604b,544s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx10.pfb><C:/Pr
 ogram Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Program Fi
 les/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmcsc10.pfb><C:/Program Files/MiK
@@ -614,10 +628,11 @@ TeX 2.9/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Program Files/MiKTeX 2.9/f
 onts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 /public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/
 amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
-/cm/cmtt10.pfb>
-Output written on "Abstract and Introduction.pdf" (22 pages, 190417 bytes).
+/cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/symbols
+/msam10.pfb>
+Output written on "Abstract and Introduction.pdf" (26 pages, 219102 bytes).
 PDF statistics:
- 287 PDF objects out of 1000 (max. 8388607)
- 85 named destinations out of 1000 (max. 500000)
+ 335 PDF objects out of 1000 (max. 8388607)
+ 97 named destinations out of 1000 (max. 500000)
  6 words of extra memory for PDF output out of 10000 (max. 10000000)
 

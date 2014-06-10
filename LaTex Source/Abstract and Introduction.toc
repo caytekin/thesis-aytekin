@@ -7,7 +7,8 @@
 \contentsline {section}{\numberline {2.2}Research Questions}{5}{section.2.2}
 \contentsline {section}{\numberline {2.3}Artefacts}{6}{section.2.3}
 \contentsline {section}{\numberline {2.4}Limitations of the Original Study}{6}{section.2.4}
-\contentsline {section}{\numberline {2.5}Results}{6}{section.2.5}
+\contentsline {section}{\numberline {2.5}Analysis Challenges of the Original Study}{6}{section.2.5}
+\contentsline {section}{\numberline {2.6}Results}{7}{section.2.6}
 \contentsline {chapter}{\numberline {3}Definitions}{8}{chapter.3}
 \contentsline {section}{\numberline {3.1}System type}{8}{section.3.1}
 \contentsline {section}{\numberline {3.2}User defined attribute}{8}{section.3.2}
@@ -26,23 +27,27 @@
 \contentsline {subsection}{\numberline {3.9.4}Generic}{11}{subsection.3.9.4}
 \contentsline {subsection}{\numberline {3.9.5}Marker}{12}{subsection.3.9.5}
 \contentsline {subsection}{\numberline {3.9.6}Super}{12}{subsection.3.9.6}
-\contentsline {chapter}{\numberline {4}Metrics}{13}{chapter.4}
-\contentsline {section}{\numberline {4.1}Class Class (CC) Metrics}{13}{section.4.1}
-\contentsline {section}{\numberline {4.2}Class Interface (CI) Metrics}{14}{section.4.2}
-\contentsline {section}{\numberline {4.3}Interface Interface (II) Metrics}{14}{section.4.3}
-\contentsline {section}{\numberline {4.4}Correspondence between the metrics and article results}{14}{section.4.4}
-\contentsline {chapter}{\numberline {5}Replication Study}{16}{chapter.5}
-\contentsline {section}{\numberline {5.1}Research Questions}{16}{section.5.1}
-\contentsline {section}{\numberline {5.2}Differences in the study set-up}{16}{section.5.2}
-\contentsline {section}{\numberline {5.3}Anlayisis Challenges}{16}{section.5.3}
-\contentsline {section}{\numberline {5.4}Results}{16}{section.5.4}
-\contentsline {chapter}{\numberline {6}Comparison of Original Study with Replication Study}{17}{chapter.6}
-\contentsline {section}{\numberline {6.1}Comparison of Results}{17}{section.6.1}
-\contentsline {chapter}{\numberline {7}Discussion}{18}{chapter.7}
-\contentsline {section}{\numberline {7.1}Limitations of the Study}{18}{section.7.1}
-\contentsline {section}{\numberline {7.2}Threats to Validity}{18}{section.7.2}
-\contentsline {section}{\numberline {7.3}Lessons Learned}{18}{section.7.3}
-\contentsline {section}{\numberline {7.4}Future Work}{18}{section.7.4}
-\contentsline {chapter}{\numberline {8}Conclusion}{19}{chapter.8}
-\contentsline {chapter}{\numberline {9}Literature}{20}{chapter.9}
-\contentsline {chapter}{Bibliography}{21}{chapter*.2}
+\contentsline {section}{\numberline {3.10}Inheritance Usage vs. CC, CI and II Relationships}{12}{section.3.10}
+\contentsline {chapter}{\numberline {4}Metrics}{14}{chapter.4}
+\contentsline {section}{\numberline {4.1}Class Class (CC) Metrics}{14}{section.4.1}
+\contentsline {section}{\numberline {4.2}Class Interface (CI) Metrics}{15}{section.4.2}
+\contentsline {section}{\numberline {4.3}Interface Interface (II) Metrics}{15}{section.4.3}
+\contentsline {section}{\numberline {4.4}Correspondence between the metrics and article results}{15}{section.4.4}
+\contentsline {chapter}{\numberline {5}Replication Study}{17}{chapter.5}
+\contentsline {section}{\numberline {5.1}Research Questions}{17}{section.5.1}
+\contentsline {section}{\numberline {5.2}Differences in the Study Set-up}{18}{section.5.2}
+\contentsline {section}{\numberline {5.3}Analysis Challenges of the Replication Study}{19}{section.5.3}
+\contentsline {subsection}{\numberline {5.3.1}Generics in Java}{19}{subsection.5.3.1}
+\contentsline {subsection}{\numberline {5.3.2}Type Analysis of Generics}{19}{subsection.5.3.2}
+\contentsline {section}{\numberline {5.4}Limitations and Scope}{19}{section.5.4}
+\contentsline {section}{\numberline {5.5}Results of the Replication Study}{19}{section.5.5}
+\contentsline {chapter}{\numberline {6}Comparison of Original Study with Replication Study}{20}{chapter.6}
+\contentsline {section}{\numberline {6.1}Comparison of Results}{20}{section.6.1}
+\contentsline {chapter}{\numberline {7}Discussion}{21}{chapter.7}
+\contentsline {section}{\numberline {7.1}Limitations of the Study}{21}{section.7.1}
+\contentsline {section}{\numberline {7.2}Threats to Validity}{21}{section.7.2}
+\contentsline {section}{\numberline {7.3}Lessons Learned}{21}{section.7.3}
+\contentsline {section}{\numberline {7.4}Future Work}{21}{section.7.4}
+\contentsline {chapter}{\numberline {8}Conclusion}{22}{chapter.8}
+\contentsline {chapter}{Bibliography}{23}{chapter*.2}
+\contentsline {section}{\numberline {.1}\\Appendix A - Analysed Projects}{24}{section.Alph0.1}

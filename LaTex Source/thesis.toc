@@ -19,4 +19,5 @@
 \contentsline {section}{\numberline {3.5}Technical reports}{9}{section.3.5}
 \contentsline {section}{\numberline {3.6}Wikipedia}{10}{section.3.6}
 \contentsline {section}{\numberline {3.7}Anything else}{10}{section.3.7}
-\contentsline {chapter}{Bibliography}{11}{chapter*.2}
+\contentsline {section}{\numberline {.1}\\Appendix A - Analysed Projects}{11}{section.Alph0.1}
+\contentsline {chapter}{Bibliography}{12}{appendix*.2}

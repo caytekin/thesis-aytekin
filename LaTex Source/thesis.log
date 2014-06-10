@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.10.27)  5 JUN 2014 13:39
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9 64-bit) (preloaded format=pdflatex 2012.10.27)  10 JUN 2014 10:01
 entering extended mode
 **thesis.tex
 ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\thesis.tex"
@@ -472,19 +472,19 @@ LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 Chapter 1.
 [3
 
-] <figures/title1.pdf, id=78, 597.50829pt x 845.0471pt>
+] <figures/title1.pdf, id=81, 597.50829pt x 845.0471pt>
 File: figures/title1.pdf Graphic file (type pdf)
 
 <use figures/title1.pdf>
 Package pdftex.def Info: figures/title1.pdf used on input line 129.
 (pdftex.def)             Requested size: 110.0pt x 155.5705pt.
- <figures/title2.pdf, id=79, 597.50829pt x 845.0471pt>
+ <figures/title2.pdf, id=82, 597.50829pt x 845.0471pt>
 File: figures/title2.pdf Graphic file (type pdf)
 
 <use figures/title2.pdf>
 Package pdftex.def Info: figures/title2.pdf used on input line 131.
 (pdftex.def)             Requested size: 110.0pt x 155.5705pt.
- <figures/title3.pdf, id=80, 597.50829pt x 845.0471pt>
+ <figures/title3.pdf, id=83, 597.50829pt x 845.0471pt>
 File: figures/title3.pdf Graphic file (type pdf)
 
 <use figures/title3.pdf>
@@ -515,22 +515,22 @@ Underfull \hbox (badness 10000) in paragraph at lines 277--278
 Chapter 3.
 [8
 
-] [9] ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\thesis.bbl"
-[10]) [11
+] [9] [10] ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\thesis.bbl"
+[11]) [12
 
 ]
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 487.
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 487.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 494.
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 494.
  ("C:\Users\caytekin\Master Thesis\Thesis\LaTex Source\thesis.aux")
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 487.
-Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 487.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 487.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 494.
+Package atveryend Info: Empty hook `AtEndAfterFileList' on input line 494.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 494.
  ) 
 Here is how much of TeX's memory you used:
- 7757 strings out of 494045
- 106090 string characters out of 3148377
- 196650 words of memory out of 3000000
- 10919 multiletter control sequences out of 15000+200000
+ 7760 strings out of 494045
+ 106128 string characters out of 3148377
+ 196713 words of memory out of 3000000
+ 10920 multiletter control sequences out of 15000+200000
  11505 words of font info for 44 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
  36i,12n,26p,347b,396s stack positions out of 5000i,500n,10000p,200000b,50000s
@@ -543,9 +543,9 @@ onts/type1/public/amsfonts/cm/cmr7.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1
 amsfonts/cm/cmti10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts
 /cm/cmtt10.pfb><C:/Program Files/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmtt
 8.pfb>
-Output written on thesis.pdf (12 pages, 515055 bytes).
+Output written on thesis.pdf (13 pages, 516372 bytes).
 PDF statistics:
- 289 PDF objects out of 1000 (max. 8388607)
- 49 named destinations out of 1000 (max. 500000)
+ 297 PDF objects out of 1000 (max. 8388607)
+ 51 named destinations out of 1000 (max. 500000)
  21 words of extra memory for PDF output out of 10000 (max. 10000000)
 

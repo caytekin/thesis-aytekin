@@ -6,7 +6,8 @@
 \host{CWI - Centrum voor Wiskunde en Informatica, \url{http://www.cwi.nl}}
 \date{\today}
 \abstract{
-This is the abstract
+Inheritance is an important mechanism in object oriented languages. Quite some research effort is invested in inheritance until now. Most of the research work about inheritance (if not all) is done about the inheritance relationship between the classes. There is also some debate about if inheritance is good or bad, or how much inheritance is useful. Tempero et al. raised another important question about inheritance. Given the inheritance relationships defined, they wanted to know how much of these relationships were actually used in the system. To answer this question, they developed a model for inheritance usage in Java and analysed the byte code of 93 Open Source Java projects from Qualitas Corpus. The conclusion of the study was that inheritance was actually used a lot in these projects - in about two thirds of the cases for subtyping and about 22 percent of the cases for (what they call) external reuse. Moreover, they found out that downcall (late-bound self-reference) was also used quite frequently, about a third of inheritance relationships included downcall usage. They also report that there are other usages of inheritance, but these are not significant. 
+In this study, we replicate the study of Tempero et al. using Rascal meta-programming language. We use the inheritance model of the original study and also the open source projects from Qualitas Corpus, but we analyse the Java source code instead of the byte code. Our study is still in progress and therefore we do not report any results at the moment.
 }
 \begin{document}
 
@@ -35,19 +36,19 @@ The difference between defining an inheritance relationship and actually using t
 The authors make three contributions with their study. First of all, they introduce a model which represents the usage of Java inheritance. Secondly, they make their data sets and their results available for other research. Finally, they present their study results which imply that inheritance is used quite considerably in open source Java projects, especially for subtyping and what they call external reuse. 
 
 
-\section{Research Questions}
+\section{Research Questions} \label{OriginalRQuestions}
 
-The following are the research questions of the original study:
+The following are the research questions of the original study (They are named ORQ (Original Research Question) to distinguish them from the research questions of the replication study.):
 
-\begin{description}
-\item [Research Question 1 (RQ1):] To what extent is late-bound self-reference relied on in the designs of Java Systems? (The terms late-bound self-reference and downcall are synonyms in the study and are defined in [xxxxxxxxxxxxxx])
 
-\item [Research Question 2 (RQ2):] To what extent is inheritance used in Java in order to express a subtype relationship that is necessary to design?
-
-\item[Research Question 3 (RQ3):] To what extent can inheritance be replaced by composition?
-
-\item[Research Question 4 (RQ4):] What other inheritance idioms are in common use in Java systems? 
-\end{description}
+\begin{flushleft}
+\begin{tabular}[t]{ p{20mm} p{110mm} }
+  \bf{ORQ1:} &  To what extent is late-bound self-reference relied on in the designs of Java Systems? (The terms late-bound self-reference and downcall are synonyms in the study and are defined in [xxxxxxxxxxxxxx]) \\
+  \bf{ORQ2:} &  To what extent is inheritance used in Java in order to express a subtype relationship that is necessary to design? \\
+  \bf{ORQ3:} &  To what extent can inheritance be replaced by composition? \\
+  \bf{ORQ4:} &  What other inheritance idioms are in common use in Java systems? \\
+\end{tabular}
+\end{flushleft}
 
 
 
@@ -92,18 +93,23 @@ The limitations of the original study are as follows:
 \end{itemize}
 
 
+\section{Analysis Challenges of the Original Study} \label{OriginalChallenges}
+TO DO !!!!!!!!!!!!!!!!
 
-\section{Results}
+
+
+
+\section{Results} \label{OriginalResults}
 
 \begin{description}
-\item [For Research Question 1:] They conclude that late-bound self-reference plays a significant role in the systems we studied - around a third (median 34 \%) of CC edges involve down calls.
+\item [For Research Question 1:] They conclude that late-bound self-reference plays a significant role in the systems they studied - around a third (median 34 \%) of CC edges involve down calls.
 
 \item [For Research Question 2:] At least two thirds of all inheritance edges are used as subtypes in the program, the inheritance for subtyping is not rare.
 
 \item[For Research Question 3:] The authors found that 22 \% or more edges use external re-use (without subtyping) and 2 \% or more use internal re-use (without subtyping or external reuse). They conclude that this result introduces opportunities to replace inheritance with composition. 
 
 
-\item[Research Question 4 (RQ4):] They report quite a few other uses of Java inheritance (constant, generic, marker, framework, category and super), however the results show that big majority of edges (87 \%) in their Corpus can already be explained with one of the subtype, external re-use, internal re-use uses 
+\item[Research Question 4:] They report quite a few other uses of Java inheritance (constant, generic, marker, framework, category and super), however the results show that big majority of edges (87 \%) in their Corpus can already be explained with one of the subtype, external re-use, internal re-use uses 
 
 \end{description}
 
@@ -116,7 +122,7 @@ The limitations of the original study are as follows:
 \chapter{Definitions}
 Definitions are very important for this study. They are used extensively in the metrics and to be able to interpret them correctly, understanding of the metrics is essential. 
 
-The authors of the original study model inheritance relationships in a graph. The child parent types are modelled as edges of the graph and the authors also talk about the different attributes of the edges (like a CC edge, or a subtype edge, etc.). Although this is a good way of modelling inheritance, we preferred to refer to an edge as an ordered relationship between two types: <child, parent>. The reasons for this choice are discussed in the [xxxxxxxxxx] section.
+The authors of the original study model inheritance relationships in a graph. The descendant ascendant types are modelled as edges of the graph and the authors also talk about the different attributes of the edges (like a CC edge, or a subtype edge, etc.). Although this is a good way of modelling inheritance, we preferred to refer to an edge as an ordered relationship between two types: <descendant, ascendant>. The reasons for this choice are discussed in the [xxxxxxxxxx] section.
 
 When we use \emph{type} in a definition, it may be a Java class or a Java interface.  If a definition is only meaningful for a class or an interface, however, we use specifically \emph{class} or \emph{interface}.
 
@@ -135,7 +141,7 @@ public class G extends ArrayList { }
 
 \section{User defined attribute}
 \begin{multicols}{2}
-The child parent pair in an inheritance relationship has user defined attribute if both of child and parent are system types. In the example, pair <Q,P> has user defined attribute, while pair <L, ArrayList> has not.
+The descendant ascendant pair in an inheritance relationship has user defined attribute if both of descendant and ascendant are system types. In the example, pair <Q,P> has the user defined attribute, while pair <L, ArrayList> has not.
 \columnbreak
 \begin{verbatim}
 class P{ }
@@ -150,7 +156,7 @@ class L extends ArrayList;
 
 \section{CC, CI and II attributes}
 \begin{multicols}{2}
-The child parent pair in an inheritance relationship in Java can have one of the three attributes: CC (Class Class) - both child and parent are classes, CI (Class Interface) - child is a class and parent is an interface or II (Interface Interface) - both child and parent are interfaces. In the example, the pair <Q,P> has the CC attribute and the pair <Q,I> has the CI attribute.
+The descendant-ascendant pair in an inheritance relationship in Java can have one of the three attributes: CC (Class Class) - both descendant and ascendant are classes, CI (Class Interface) - descendant is a class and ascendant is an interface or II (Interface Interface) - both descendant and ascendant are interfaces. In the example, the pair <Q,P> has the CC attribute and the pair <Q,I> has the CI attribute.
 \columnbreak
 \begin{verbatim}
 interface I {}
@@ -163,7 +169,7 @@ class Q extends P
 
 \section{Explicit attribute}
 \begin{multicols}{2}
-The inheritance relationship is described directly in the code. In the example, pairs <C, P> and <G, C> have explicit attribute. <G,C> however, does not have explicit attribute. Although there is an inheritance relationship between G and C, it is implied and not defined explicitly in the program.
+The inheritance relationship is described directly in the code. In the example, pairs <C, P> and <G, C> have explicit attribute. <G,C> however, does not have explicit attribute. Although there is an inheritance relationship between G and C, it is only implied, and not defined explicitly in the program.
 \columnbreak
 \begin{verbatim}
 class P{ }
@@ -177,7 +183,7 @@ class G extends C {  }
 
 \section{Internal Reuse}
 \begin{multicols}{2}
-Internal reuse happens when a child type calls a method or accesses a field of its parent type. 
+Internal reuse happens when a descendant type calls a method or accesses a field of its ascendant type. 
 \columnbreak
 \begin{verbatim}
 public class P {
@@ -198,7 +204,7 @@ public class Q extends P {
 
 \section{External Reuse}
 \begin{multicols} {2}
-External reuse is like internal reuse, except for that the access to a method or a field happens not within the child type itself, but it happens in another type, on an object of child type. According to original study, the class in which the external reuse occurs may not have any inheritance relationship with the child or parent type.
+External reuse is like internal reuse, except for that the access to a method or a field happens not within the descendant type itself, but it happens in another type, on an object of descendant type. According to the original study, the class in which the external reuse occurs may not have any inheritance relationship with the descendant or ascendant type.
 \columnbreak
 \begin{verbatim}
 public class P {
@@ -221,7 +227,7 @@ public class E {
 
 \section{Subtype}
 \begin{multicols} {2}
-Subtype usage happens when an object of child type is supplied where an  object of parent type is expected Subtype usage can occur in four occasions: when assigning object(s), during parameter passing, when returning an object in a method or casting an object to another type. Contrary to internal and external reuse, the place where the subtyping occurs is not of any importance in subtyping. Note that enhanced for loop in Java is also like an assignment statement and therefore should be included in the analysis.
+Subtype usage happens when an object of descendant type is supplied where an object of ascendant type is expected. Subtype usage can occur in four occasions: when assigning object(s), during parameter passing, when returning an object in a method or casting an object to another type. Contrary to internal and external reuse, the place where the subtyping occurs is not of any importance here. Note that enhanced for loop in Java is also like an assignment statement and therefore should be included in the analysis.
 
 There are two interesting cases of subtyping usage in Java (sideways cast and this changing type) and they are defined separately in the subsections below.
 
@@ -273,7 +279,7 @@ public class Sideways {
 
 \subsection{This Changing Type}
 \begin{multicols} {2}
-Another instance of subtype usage in Java occurs when \texttt{this} reference causes a type change. In the example, when class C is instantiated, the initializer of its parent class is called. The constructor of class A expects a parameter of type P, but this reference in the \texttt{new A(this)} statement will be of type C this time.
+Another instance of subtype usage in Java occurs when \texttt{this} reference causes a type change. In the example, when class C is instantiated, the initializer of its ascendant class is called. The constructor of class A expects a parameter of type P, but this reference in the \texttt{new A(this)} statement will be of type C this time.
 
 \columnbreak
 \begin{verbatim}
@@ -287,7 +293,7 @@ public class C extends P {
 
 \section{Downcall}
 \begin{multicols} {2}
-The terms downcall and late-bound self-reference have the same meaning in the original study. Downcall refers to the case when a method in the parent type (parent-method) makes a call to another method (child-method) which is overridden by the child type. When an object of child type calls the parent-method, the child-method of the child type will be executed. This case is called \textit{down}call, because a child type is found under the parent type in the inheritance hierarchy.
+The terms downcall and late-bound self-reference have the same meaning in the original study. Downcall refers to the case when a method in the ascendant type (ascendant-method) makes a call to another method (descendant-method) which is overridden by the descendant type. When an object of descendant type calls the ascendant-method, the descendant-method of the descendant type will be executed. This case is called \textit{down}call, because a descendant type is found under the ascendant type in the inheritance hierarchy.
 \columnbreak
 \begin{verbatim}
 public class P {
@@ -316,7 +322,7 @@ Next to reuse, subtype and downcall, the authors also defined other uses of inhe
 
 \subsection{Category}
 \begin{multicols} {2}
-Category inheritance relationship is defined for the child parent pairs which can not be placed under any other inheritance definition. In this case, we search for a sibling of the child which has a subtype relationship with the parent. If we can find such a sibling, we assume that the parent is used as a category class, and the child is placed under it for conceptual reasons. In the example shown, S has subtype relationship with P, and C and S are siblings. If no other inheritance usage is found between C and P, then their relationship is classified as category. 
+Category inheritance relationship is defined for the descendant ascendant pairs which can not be placed under any other inheritance definition. (We should also note that for this definition, ascendant type should be direct ascendant of the descendant type, i.e. no types are defined between the two types in the inheritance hierarchy.) In this case, we search for a sibling of the descendant which has a subtype relationship with the ascendant. If we can find such a sibling, we assume that the ascendant is used as a category class, and the descendant is placed under it for conceptual reasons. In the example shown, S has subtype relationship with P, and C and S are siblings. If no other inheritance usage is found between C and P, then their relationship is classified as category. 
 \columnbreak
 \begin{verbatim}
 public class P { }
@@ -333,7 +339,7 @@ public class R {
        
 \subsection{Constants}
 \begin{multicols} {2}
-A child parent pair has constants attribute if the parent only contains constant fields (i.e., fields with \texttt{static final} attribute). The parent should either have no grandparents or if it has grandparents, the pair parent grandparent should also have constants attribute. In the example, B A pair has constants attribute.
+A descendant ascendant pair has constants attribute if the ascendant only contains constant fields (i.e., fields with \texttt{static final} attribute). The ascendant should either have no ascendant it self or if it has ascendants, the pair ascendant-(grand)ascendant should also have constants attribute. In the example, B A pair has constants attribute.
 \columnbreak
 \begin{verbatim}
 public class A {
@@ -348,7 +354,7 @@ public class B extends A { }
 
 \subsection{Framework}
 \begin{multicols} {2}
-A child parent pair will have the framework attribute if it does not have one of the external reuse, internal reuse, subtype or downcall attributes and the parent is a descendant of a third party type. In the example, H G pair has Framewrok attribute.
+A descendant-ascendant pair will have the framework attribute if it does not have one of the external reuse, internal reuse, subtype or downcall attributes and the ascendant is a direct descendant of a third party type. Moreover, the first type should be direct descendant of the second type. In the example, H G pair has Framewrok attribute.
 \columnbreak
 \begin{verbatim}
 import java.util.ArrayList;
@@ -360,9 +366,9 @@ public class H extends G { }
 
 \subsection{Generic}
 \begin{multicols} {2}
-Generic attribute is used for the child parent (for example : child type R, and parent type S) pairs which adhere to the following:
+Generic attribute is used for the descendant ascendant (for example : descendant type R, and ascendant type S) pairs which adhere to the following:
 \begin{enumerate}
-  \item S is parent of R.
+  \item S is parent of R. (i.e. S is direct ascendant of R.)
   \item R has at least one more parent, say, T.
   \item There is an explicit cast from java.lang.Object to S. 
   \item There is a subtype relationship between R and java.lang.Object
@@ -380,7 +386,7 @@ I again take the example from the original study.
 
 \subsection{Marker}
 \begin{multicols} {2}
-Marker usage for a child parent pair occurs when a parent has nothing declared in it. Moreover, just like the constants definition, the parent should either have no parents itself, or if it has parents, parent grandparent pairs should all have marker attribute. Parent should be defined as an interface and child may be a class or an interface. 
+Marker usage for a descendant-ascendant pair occurs when an ascendant has nothing declared in it. Moreover, just like the constants definition, the ascendant should either have no ascendants itself, or if it has ascendants, ascendant-(grand)ascendant pairs should all have marker attribute. Ascendant should be defined as an interface and descendant may be a class or an interface. 
 \columnbreak
 \begin{verbatim}
 public interface H { }
@@ -393,7 +399,7 @@ public class G implements H {
 
 \subsection{Super}
 \begin{multicols} {2}
-A child parent pair will qualify for super attribute if a constructor of child type explicitly invokes a constructor of parent type via \texttt{super} call.
+A descendant-ascendant pair will qualify for super attribute if a constructor of descendant type explicitly invokes a constructor of ascendant type via \texttt{super} call.
 \columnbreak
 \begin{verbatim}
 public class L {
@@ -409,6 +415,53 @@ public class K extends L {
 \end{multicols}
 
 
+\section{Inheritance Usage vs. CC, CI and II Relationships}
+It is useful to see which kind of inheritance usage can occur in which kind of type pairs. For example, subtype usage can be seen in all class-class, class-interface and interface-interface relationships. Downcall is only defined for CC relations, whereas the ascendant type in the marker usage can only be an interface. The table \ref{table:CC_CI_II_Usages} lists the possible combinations:
+
+In the scope of the replication study: I do not implement Internal Reuse CI and II, Subtype-This Changing Type CI and Category II. Outside of scope !!!!!!!!!!!!!!!!!!!! Do not forget to write that down.
+
+
+
+\begin{table} [h!]
+\begin{center}
+\begin{tabular}[t]{| p{40mm} | c | c |c | }
+  \hline
+    & CC & CI & II \\
+  \hline
+  \hline
+Internal Reuse & \checkmark & \checkmark & \checkmark \\ 
+  \hline  
+External Reuse & \checkmark & \checkmark & \checkmark \\ 
+  \hline 
+Subtype - General  & \checkmark & \checkmark & \checkmark \\ 
+  \hline 
+Subtype - Sideways Casting & X & \checkmark & \checkmark \\
+  \hline 
+Subtype - This Changing Type & \checkmark & \checkmark & X \\
+  \hline 
+Downcall & \checkmark & X & X \\
+  \hline
+Category & \checkmark & \checkmark & \checkmark \\ 
+  \hline
+Constants & \checkmark & \checkmark & \checkmark \\ 
+  \hline
+Framework & \checkmark & \checkmark & \checkmark \\ 
+  \hline
+Generic & \checkmark & \checkmark & \checkmark \\ 
+  \hline
+Marker & X & \checkmark & \checkmark \\ 
+  \hline
+Super & \checkmark & X & X \\ 
+  \hline 
+\end{tabular}
+\end{center}
+\caption{Possible inheritance usages in class-class, class-interface and interface-interface pairs.}
+\label{table:CC_CI_II_Usages}
+\end{table}
+  
+
+
+
 \chapter{Metrics}
 The metrics are explained elaborately in the website of the original study \cite{InheritanceUseWeb}  The classifications used in the published article are based on these metrics. For example, Figure 12 of the article depicts different uses of inheritance on CC edges. The abbreviations INO, EX-ST and ST do correspond to three CC metrics respectively (numCCUsedOnlyInRe, numCCExreuseNoSubtype, perCCSubtype). Although most of the time it was possible to infer these correspondences from the abbreviations, we also e-mailed the authors to acquire the exact relationship between the metrics and the abbreviations. These correspondences are explained in section \ref{Correspondence}
 
@@ -416,7 +469,7 @@ The metrics are explained elaborately in the website of the original study \cite
 
 
 \section{Class Class (CC) Metrics}
-The metrics about CC (Class Class) inheritance relations are explained in table \ref{table:CCMetrics}. For all metrics it holds that the child parent pair should have explicit and user defined attributes.
+The metrics about CC (Class Class) inheritance relations are explained in table \ref{table:CCMetrics}. For all metrics it holds that the descendant ascendant pair should have explicit and user defined attributes.
 
 \begin{table} [h!]
 \begin{flushleft}
@@ -458,7 +511,7 @@ The metrics about CC (Class Class) inheritance relations are explained in table 
 
 
 \section{Class Interface (CI) Metrics}
-Table \ref{table:CIMetrics} explains the metrics about CI (Class Interface) inheritance relations. Just like CC metrics, for all CI metrics it holds that the child parent pair should have explicit and user defined attributes.
+Table \ref{table:CIMetrics} explains the metrics about CI (Class Interface) inheritance relations. Just like CC metrics, for all CI metrics it holds that the descendant ascendant pair should have explicit and user defined attributes.
 
 \begin{table} [h!]
 \begin{flushleft}
@@ -543,19 +596,122 @@ The correspondence between the inheritance metrics used in the study and the abb
 
 
 
-
-
-
-
 \chapter{Replication Study}
+Our study has two objectives: firstly, to replicate the original study (replication) and secondly, to find out if a correlation between the project size and inheritance usage exists (extension). The same inheritance usage model from the original article is used in the second part of the study. Most of the time and effort is invested in the replication study. 
+
+In this chapter, the replication study is explained in detail. Research questions are introduced first, followed by an explanation of the study set-up, especially how it differs from the original study. Then we explain the challenges we faced during the replication study, we faced with some different challenges, mainly because we analyse the source code, and Tempero et al. analyse the byte code. Their challenges were discussed in section \ref{OriginalChallenges}. Finally the results of the replication study are reported.
+
+We found it useful to add another chapter for solely discussing the difference between two studies. Such a comparison will inevitably contain information which is already given previously. It is, however, very useful to bring information from the two studies together side by side, because it is a very comprehensible way of discussing the differences between two studies.
+
+
+
 
 \section{Research Questions}
+The research questions for the replication are based on the results of the original study which were discussed in section \ref{OriginalResults}. For all of the four questions, we look if our analysis produce comparable results. We will ask the following question for the four results which are reported by Tempero et al.:
 
-\section{Differences in the study set-up}
+\begin{flushleft}
+\begin{tabular}[t]{ p{20mm} p{110mm} }
+  \bf{RQ1:} &  How do our results differ from the original study in downcalls? \\
+  \bf{RQ2:} &  How do our results differ from the original study in subtype inheritance usage? \\
+  \bf{RQ3:} &  How do our results differ from the original study in external reuse? \\
+  \bf{RQ4:} &  How do our results differ from the original study in other uses of inheritance?\\
+\end{tabular}
+\end{flushleft}
 
-\section{Anlayisis Challenges}
+Our research questions for the extension will be about the size of the project and different usages of inheritance. Just like the previous four questions, they are based on the four research questions of the original article \ref{OriginalRQuestions}
 
-\section{Results}
+\begin{flushleft}
+\begin{tabular}[t]{ p{20mm} p{110mm} }
+  \bf{RQ5:} &  Is there a correlation between the size of the project and the number of descendant ascendant type pairs which use downcall? \\
+  \bf{RQ6:} &  Is there a correlation between the size of the project and the number of descendant ascendant type pairs which have subtype relationship? \\
+  \bf{RQ7:} &  Is there a correlation between the size of the project and the number of descendant ascendant type pairs which make use of external reuse?\\
+  \bf{RQ8:} &  Is there a correlation between the size of the project and other uses of inheritance? \\
+\end{tabular}
+\end{flushleft}
+
+
+\section{Differences in the Study Set-up}
+\begin{description}
+
+\item[Source code versus byte code:] The biggest difference between the original and replication studies is about the input to analysis work. Tempero et al. used the byte code of Java open source systems, while we do our analysis on Java source code. The fact that the byte code does not always directly map on to source code, although in very rare cases, may cause some differences. This is discussed in detail in the original article, in Analysis Challenges section. We do not think that this will cause a big difference between their and our results, because it happens very rarely. 
+
+An interesting difference between the byte and source codes arises when generics are used. The Java compiler applies type erasure to generic types and it also translates Java varargs to arrays. In the byte code, this \emph{pre-processing} is already applied. In the source code, however a different approach should be used when searching for the type information of generics. This approach presented a challenge in our study and is described in detail in the section \ref{ReplicationChallenges}.
+
+Until this point, we've been talking about the differences between two different representations of the same code, i.e. differences between a Java class file (for example A.class) and a Java source file (A.java) of the same Java class A. There may also be some differences between what is included in a Java project (which set of classes and interfaces) in the byte code distribution and in the source code distribution. This potential difference may cause significant differences on the results and is discussed in detail in the following paragraph.
+
+
+\item[Differences between the content of the byte code and the source code:] For each Java project included in Qualitas Corpus, two different distributions exist: binary form and source form. Authors explain in detail how they have obtained the byte and source forms in "Criteria for Inclusion in Qualitas Corpus" section in the web site of Qualitas Corpus \cite{QualitasCorpusWeb}. They made the decision to take both distributions separately, and made the assumption that binary form would contain the compiled version of the source code. This assumption, however, is not validated. It may very well be possible that different set of classes or interfaces are included in binary and source forms. One may rightfully expect that many classes and interfaces would be included in both of the forms, however, there may be differences between the two.
+
+We expect that this difference may cause the biggest differences in the results, since the set of analysed types will be different in the original study and in the replication study.
+
+\item[Qualitas Corpus vs. Qualitas.class Corpus:] The byte codes projects analysed in the original study are taken from the Qualitas Corpus \cite{QualitasCorpus:APSEC:2010}. We needed the source code of the same projects. These are available in the Qualitas Corpus. However, acquiring the source code is not always enough for a successful compilation of the code. We are using the meta-programming language Rascal, and our Rascal program requires that the source is successfully compiled. As explained by Terra et al. in \cite{qualitas.class}, sometimes there is additional work needed for a successful compilation: for example, the dependencies of the Java projects need to be resolved. Terra et al. already studied on this and made a compiled version of the Qualitas Corpus: Qualitas.class Corpus. The compiled projects are available from their website \cite{qualitas.classCorpusWeb}. 
+
+The original study used the 20101126 release of the Qualitas Corpus and covers in total 93 projects. To be able to keep our input projects as close as possible to the original study, we first wanted to use the same versions of the projects analysed in the original study. Because of the time limitations, however, we decided to use the versions in the Qualitas.class Corpus. 66 projects have the same versions of the original study, while 27 are different. The list of projects (with the versions) we use in our analysis, as well as the list of version differences of 27 projects can be found in \ref{App:AppendixA}.
+
+The different versions of a project will inevitably contain different code. This is likely to introduce some differences in the results. As mentioned earlier, our decision was forced by time limitations and we report this decision as a limitation of the replication study.
+
+
+\end{description}
+
+
+\section{Analysis Challenges of the Replication Study} \label{ReplicationChallenges} 
+Our study is based on the original study in many aspects. Therefore the challenges they have faced \ref{OriginalChallenges} should also be taken into account for our study, except for their challenge about compilation: the source code does not always map correctly to byte code. Since we are analysing the source code and not the byte code, we did not face with this challenge. Our major challenge was the analysis of Java generics. In the byte code, Java generic types are already translated to non-generic types, whereas in the source code this processing should still take place. 
+
+In this section we first discuss the Java generics and then explain how we obtain the non-generic types we used for type analysis.
+
+\subsection{Generics in Java} \label{JavaGenerics}
+Generics in Java is a powerful feature which is introduced with Java 5. Generic types in Java are mostly used with Java collections or arrays. A lot can be said about generics. Our intention here is not to explain the Java generics elaborately, we only explain the points which are necessary for understanding our study. 
+
+ The following example illustrates the use of generics:
+\begin{verbatim}
+public class P { }
+public class C extends P {  }
+public class S extends P {  }
+
+import java.util.ArrayList;
+public class SubArrayList <T extends P> extends ArrayList { }
+
+public class N {
+  
+  void genericRun() {
+   	SubArrayList <P> aList = new SubArrayList <P> ();
+    aList.add(new C());
+    aList.add(new S());
+  }
+}
+\end{verbatim}
+
+The collection \texttt{aList} is a descendant of Java collection \texttt{ArrayList}. The type of \texttt{aList} is defined as the class \texttt{SubArrayList} with the \emph{type variable} T. In the definition \texttt{<T extends P>}, we also see that the type variable should be of type P or a descendant of P . When \texttt{SubArrayList} is going to be used, it should be instantiated with a \emph{type parameter}. In our example, the statement \texttt{SubArrayList <P> aList = new SubArrayList <P> ();}  has the type parameter P. It was also possible to use any descendent of P as a type parameter.
+
+When instantiating a generic type, the type parameters on both sides should be the same for the same type (\texttt{SubArrayList}) . For example, the following is not allowed: 
+\begin{verbatim}
+    SubArrayList <P> aList = new SubArrayList <C> ();
+\end{verbatim}
+
+In our analysis, we assume that the code compiles successfully, therefore we do not need to check if the type parameter supplied  is suitable for the corresponding type variable.
+
+\subsection{Type Erasure}
+During compilation, Java compiler replaces the type variables with supplied type parameters. This mechanism is called \emph{type erasure}. Type erasure is already applied in the byte code. Because we analyse source code, it is necessary to know (and to explain) what type erasure does to the source code. We will continue to use our example from \ref{JavaGenerics}: 
+
+
+
+
+
+\subsection{Type Analysis of Generics}
+
+
+
+
+
+
+\section{Limitations and Scope}
+
+
+
+\section{Results of the Replication Study}
+
+
+
 
 
 
@@ -585,11 +741,77 @@ The correspondence between the inheritance metrics used in the study and the abb
 
 This is my thesis.
 
-\chapter{Literature}\label{sec:biblio}
+
+
+% \chapter{Literature}\label{sec:biblio}
 {%\tiny
 \bibliographystyle{alphaurl}
 \bibliography{thesis}
 }
+
+
+\newpage
+\appendix
+\section{\\Appendix A - Analysed Projects} \label{App:AppendixA}
+% the \\ insures the section title is centered below the phrase: Appendix
+The following table lists the projects analysed in the replication study.
+\begin{table} [h!]
+\begin{flushleft}
+\begin{tabular}[c]{ |p{150mm} |}
+  \hline
+  ant-1.8.2   antlr-3.4   aoi-2.8.1   argouml-0.34   aspectj-1.6.9  axion-1.0-M2   c\_jdbc-2.0.2   castor-1.3.3   cayenne-3.0.1    checkstyle-5.6   cobertura-1.9.4.1   colt-1.2.0   columba-1.0   derby-10.9.1.0   displaytag-1.2   drawswf-1.2.9 drjava-stable-20100913-r5387   emma-2.0.5312   exoportal-v1.0.2   findbugs-1.3.9   fitjava-1.1   fitlibraryforfitnesse-20110301 freecol-0.10.3   freecs-1.3.20100406   galleon-2.3.0   ganttproject-2.1.1    heritrix-1.14.4   hibernate-4.2.0    hsqldb-2.2.0   htmlunit-2.8   informa-0.7.0-alpha2   ireport-3.7.5   itext-5.0.3   jFin\_DateMath-R1.0.1   james-2.2.0   jasml-0.10   javacc-5.0   jchempaint-3.0.1   jedit-4.3.2   jext-5.0   jfreechart-1.0.13   jgraph-5.13.0.0   jgraphpad-5.10.0.2   jgrapht-0.8.1   jgroups-2.10.0   jhotdraw-7.5.1   jmeter-2.5.1   jmoney-0.4.4   joggplayer-1.1.4s   jparse-0.96   jpf-1.5.1  jrat-1.0-beta1   jre-1.6.0   jrefactory-2.9.19   jruby-1.7.3   jsXe-04\_beta   jspwiki-2.8.4   jtopen-7.8   jung-2.0.1    junit-4.1   log4j-2.0-beta   lucene-4.2.0   marauroa-3.8.1   maven-3.0.5   megamek-0.35.18   mvnforum-1.2.2-ga   myfaces\_core-2.1.10   nakedobjects-4.0.0   nekohtml-1.9.14   openjms-0.7.7-beta-1   oscache-2.3   picocontainer-2.10.2   pmd-4.2.5   poi-3.6   pooka-3.0-080505   proguard-4.9   quickserver-1.4.7   quilt-0.6-a-5   roller-5.0.1   rssowl-2.0.5   sablecc-3.2   springframework-3.0.5   squirrel\_sql-3.1.2   struts-2.2.1   sunflow-0.07.2   tapestry-5.1.0.5   tomcat-7.0.2   trove-2.1.0   velocity-1.6.4   webmail-0.7.10   weka-3.6.9   xalan-2.7.1   xerces-2.10.0
+ \\
+  \hline 
+\end{tabular}
+\end{flushleft}
+\caption{List of analysed projects in the replication study}
+\label{table:ListProjectsReplication}
+\end{table}
+
+In the next table, the analysed versions which are different in the original and replication studies are listed:
+
+\begin{table} [h!]
+\begin{center}
+\begin{tabular}[c]{ |p{45mm} | p{45mm} |}
+  \hline
+Original Study & Replication Study \\
+\hline
+\hline
+ant-1.8.1 & ant-1.8.2 \\ 
+antlr-3.2 & antlr-3.4 \\
+argouml-0.30.2 & argouml-0.34 \\
+castor-1.3.1 & castor-1.3.3  \\
+checkstyle-5.1 & checkstyle-5.6 \\
+derby-10.6.1.0 & derby-10.9.1.0 \\
+fitlibraryforfitnesse-20100806 & fitlibraryforfitnesse-20110301 \\
+freecol-0.9.4 & freecol-0.10.3 \\
+ganttproject-2.0.9 & ganttproject-2.1.1 \\
+hibernate-3.6.0-beta4 & hibernate-4.2.0 \\
+jmeter-2.4 & jmeter-2.5.1 \\
+jpf-1.0.2 & jpf-1.5.1 \\
+jrat-0.6 & jrat-1.0-beta1 \\
+jre-1.5.0\_22 & jre-1.6.0 \\
+jruby-1.5.2 & jruby-1.7.3 \\
+jtopen-7.1 & jtopen-7.8 \\
+junit-4.8.2 & junit-4.1 \\
+log4j-1.2.16 & log4j-2.0-beta \\
+lucene-2.4.1 & lucene-4.2.0 \\
+maven-3.0 & maven-3.0.5 \\
+myfaces\_core-2.0.2 & myfaces\_core-2.1.10 \\
+oscache-2.4.1 & oscache-2.3 \\
+proguard-4.5.1 & proguard-4.9 \\
+roller-4.0.1 & roller-5.0.1 \\
+sablecc-3.1 & sablecc-3.2 \\
+springframework-1.2.7 & springframework-3.0.5 \\
+weka-3.7.2 & weka-3.6.9 \\
+  \hline 
+\end{tabular}
+\caption{Versions of the projects which are different between the original study and replication study.}
+\label{table:DifferencesProjects}
+\end{center}
+\end{table}
+
+
 
 
 
