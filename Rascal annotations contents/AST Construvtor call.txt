@@ -1,0 +1,69 @@
+AST for constructor:
+
+
+
+  ParamPassChild (P aP) {
+    super(aChild);    // subtype case 230, 
+  }
+
+
+constructor(
+  "ParamPassChild",
+  [parameter(
+      simpleType(simpleName("P")[
+          @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(285,1,<16,17>,<16,18>),
+          @decl=|java+class:///edu/uva/analysis/samples/st/P|,
+          @typ=class(
+            |java+class:///edu/uva/analysis/samples/st/P|,
+            [])
+        ]),
+      "aP",
+      0)[
+      @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(285,4,<16,17>,<16,21>),
+      @decl=|java+parameter:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)/aP|,
+      @typ=class(
+        |java+class:///edu/uva/analysis/samples/st/P|,
+        [])
+    ]
+  ],
+  
+  []
+  ,
+    block(
+    [   constructorCall(
+            true,
+            [simpleName("aChild")
+              [
+                @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(302,6,<17,8>,<17,14>),
+                @decl=|java+field:///edu/uva/analysis/samples/st/ParamPassChild/aChild|,
+                @typ=class(
+                |java+class:///edu/uva/analysis/samples/st/CastChild|,
+                [])
+              ]
+            ]
+          )
+          
+          
+          
+          
+          
+          
+          [
+        @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(296,37,<17,2>,<17,39>)
+      ]]
+      )
+      
+      [
+    @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(291,46,<16,23>,<18,2>)
+  ]
+  
+  )
+  [
+  @src=|project://Subtype/src/edu/uva/analysis/samples/st/ParamPassChild.java|(269,68,<16,1>,<18,2>),
+  @decl=|java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|,
+  @typ=constructor(
+    |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|,
+    [class(
+        |java+class:///edu/uva/analysis/samples/st/P|,
+        [])])
+]

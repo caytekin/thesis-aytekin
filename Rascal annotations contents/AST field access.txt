@@ -1,0 +1,26 @@
+fieldAccess(
+  false,
+  methodCall(
+    false,
+    simpleName("aChild")[
+      @src=|project://ExternalReuse/src/edu/uva/analysis/samples/er/GenExRRunner.java|(1819,6,<50,14>,<50,20>),
+      @decl=|java+variable:///edu/uva/analysis/samples/er/GenExRRunner/methodChain()/aChild|,
+      @typ=class(
+        |java+class:///edu/uva/analysis/samples/er/GenExRChild|,
+        [class(
+            |java+class:///edu/uva/analysis/samples/er/C|,
+            [])])
+    ],
+    "getAT",
+    [])[
+    @src=|project://ExternalReuse/src/edu/uva/analysis/samples/er/GenExRRunner.java|(1819,14,<50,14>,<50,28>),
+    @decl=|java+method:///edu/uva/analysis/samples/er/GenExRParent/getAT()|,
+    @typ=class(
+      |java+class:///edu/uva/analysis/samples/er/C|,
+      [])
+  ],
+  "intFieldParent")[
+  @src=|project://ExternalReuse/src/edu/uva/analysis/samples/er/GenExRRunner.java|(1819,29,<50,14>,<50,43>),
+  @decl=|java+field:///edu/uva/analysis/samples/er/P/intFieldParent|,
+  @typ=int()
+]
