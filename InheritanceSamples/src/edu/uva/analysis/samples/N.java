@@ -1,7 +1,11 @@
 package edu.uva.analysis.samples;
 
 import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import edu.uva.analysis.gensamples.*;
 import java.util.Iterator;
+
 
 public class N {
 	
@@ -12,6 +16,31 @@ public class N {
 		sChild.nonStaticParentMethod();
 	}
 	
+	
+	void genericSample() {
+		MyArrayList <Shape> aList = new MyArrayList <Shape> ();
+		// MyArrayList <Shape> aSecList = new MyArrayList <Triangle> ();  // not allowed		
+
+		aList.add(new Triangle());
+		aList.add(new Rectangle());		
+		
+		Shape s2 = aList.get(0);
+		
+		
+		    LinkedList <Shape> numberList = new LinkedList <Shape> (); 
+		    numberList .add(new Triangle());  
+		    numberList .add(new Rectangle());  
+		    Shape s1  = numberList.get(0);
+		
+		// The following is OUT_OF_SCOPE   !!!!!!!!!!!!!!!!!!!
+		// I did not implement this ???? 
+		// ArrayList <GrandChild> anotherList = new MyArrayList <Triangle> ();		
+
+		MyArrayList <Shape> axList = new MySubArrayList <Triangle> ();
+		
+		
+	
+	}
 	
 	void aNewTrial() {
 		int j = 21;

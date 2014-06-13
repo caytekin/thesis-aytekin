@@ -83,7 +83,7 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	};
 	
 	resultRel = {<iKey, INTERNAL_REUSE> | <iKey, _, <_,_>> <- internalReuseLog};
-	iprintToFile(internalReuseLogFile , internalReuseLog);
+	iprintToFile(getFilename(projectM3.id, internalReuseLogFile), internalReuseLog);
 	println("Size of internal reuse log is: <size(internalReuseLog)>");
 	return resultRel;
 }

@@ -15,13 +15,13 @@ In this study, we replicate the study of Tempero et al. using Rascal meta-progra
 
 
 \chapter{Problem Statement and Motivation}
-This chapter will provide an introduction.
+This chapter will provide an introduction. TODO !!!!
 
 \section{Java Inheritance}
-
+TODO!!!!
 
 \section{The Reasons for Conducting a Replication}
-
+TODO!!!!
 
 
 \chapter{The Original Study}
@@ -52,8 +52,6 @@ The following are the research questions of the original study (They are named O
 
 
 
-
-
 \section{Artefacts}
 The authors make use of the following artefacts:
 
@@ -67,7 +65,7 @@ The Corpus consists of both byte codes and source codes of the projects.
 \item[Qualitas.class Corpus]
 Some effort is needed to create the compiled versions of Java source code from Qualitas Corpus. Terra et al. conducted a study \cite{qualitas.class} and made their results available in the website: \cite{qualitas.classCorpusWeb}
 
-This is not the original part of the study and should be moved to the replication part!!!!!!!!!!!!!!!
+This is not the original part of the study and should be moved to the replication part TODO !!!!!!!!!!!!!!!
 
 
 \item[Study Results Web Page]
@@ -76,7 +74,7 @@ In addition to the results documented in their article, authors also have placed
 \item[Communication with the Authors] 
 During the replication study some questions have arisen about the original study. We have communicated with the authors via e-mail, and our final results are also dependent on their answers as well as the other artefacts. Especially, the correspondence between the metrics from the Inheritance Use Website \cite{InheritanceUseWeb} and the results in the article \cite{QualitasCorpus:APSEC:2010} have become clear after mailing with the authors. The e-mails are available  
 
-This is not the original part of the study and should be moved to the replication part!!!!!!!!!!!!!!!
+This is not the original part of the study and should be moved to the replication part TODO!!!!!!!!!!!!!!!
 
 
 \end{description}
@@ -94,8 +92,13 @@ The limitations of the original study are as follows:
 
 
 \section{Analysis Challenges of the Original Study} \label{OriginalChallenges}
-TO DO !!!!!!!!!!!!!!!!
 
+The authors report three challenges:
+\begin{itemize}
+\item They do not anlayze the third party libraries and therefore they can not determine the purpose of some inheritance relationships. They suspect in some instances that two types may have subtype relationship, but they can not say for sure because of this limitation. They have introduced the framework \ref{FrameworkDef} attribute to cover such cases. 
+\item The definition of generic \ref{GenericDef} is also introduced to cover the cases in which they suspect of a subtype reuse. 
+\item Byte code may not always map on to the source code correctly. This happens rarely, and it may cause some false negatives, for example in external reuse cases, during the analysis.
+\end{itemize}
 
 
 
@@ -352,7 +355,7 @@ public class B extends A { }
 \end{verbatim}
 \end{multicols}
 
-\subsection{Framework}
+\subsection{Framework} \label{FrameworkDef}
 \begin{multicols} {2}
 A descendant-ascendant pair will have the framework attribute if it does not have one of the external reuse, internal reuse, subtype or downcall attributes and the ascendant is a direct descendant of a third party type. Moreover, the first type should be direct descendant of the second type. In the example, H G pair has Framewrok attribute.
 \columnbreak
@@ -364,7 +367,7 @@ public class H extends G { }
 \end{verbatim}
 \end{multicols}
 
-\subsection{Generic}
+\subsection{Generic}  \label{GenericDef}
 \begin{multicols} {2}
 Generic attribute is used for the descendant ascendant (for example : descendant type R, and ascendant type S) pairs which adhere to the following:
 \begin{enumerate}
@@ -655,9 +658,13 @@ The different versions of a project will inevitably contain different code. This
 
 
 \section{Analysis Challenges of the Replication Study} \label{ReplicationChallenges} 
-Our study is based on the original study in many aspects. Therefore the challenges they have faced \ref{OriginalChallenges} should also be taken into account for our study, except for their challenge about compilation: the source code does not always map correctly to byte code. Since we are analysing the source code and not the byte code, we did not face with this challenge. Our major challenge was the analysis of Java generics. In the byte code, Java generic types are already translated to non-generic types, whereas in the source code this processing should still take place. 
+Our study is based on the original study in almost all aspects. Therefore the challenges they have faced \ref{OriginalChallenges} should also be taken into account for our study: the third-party libraries are not analysed, and therefore the goal of some inheritance relationships can not be determined. The definitions of two uses of inheritance (framework \ref{FrameworkDef} and generic \ref{GenericDef}) are based on heuristics.
 
-In this section we first discuss the Java generics and then explain how we obtain the non-generic types we used for type analysis.
+Here we have one less challenge to deal with than the authors, the one about compilation: the source code does not always map correctly to byte code. Since we are analysing the source code and not the byte code, we did not face with this challenge. 
+
+Our major challenge was the analysis of Java generics. In the byte code, Java generic types are already translated to non-generic types, whereas in the source code this processing should still take place. 
+
+In this section we first explain the generics in Java. We then briefly describe the concept of type erasure. We finally demonstrate the challenge we faced during the type analysis of generics.
 
 \subsection{Generics in Java} \label{JavaGenerics}
 Generics in Java is a powerful feature which is introduced with Java 5. Generic types in Java are mostly used with Java collections or arrays. A lot can be said about generics. Our intention here is not to explain the Java generics elaborately, we only explain the points which are necessary for understanding our study. 
@@ -669,7 +676,7 @@ public class C extends P {  }
 public class S extends P {  }
 
 import java.util.ArrayList;
-public class SubArrayList <T extends P> extends ArrayList { }
+public class SubArrayList <T extends P> extends ArrayList <T> { }
 
 public class N {
   
@@ -677,13 +684,22 @@ public class N {
    	SubArrayList <P> aList = new SubArrayList <P> ();
     aList.add(new C());
     aList.add(new S());
+    P aP = aList.get(0);
   }
 }
 \end{verbatim}
 
-The collection \texttt{aList} is a descendant of Java collection \texttt{ArrayList}. The type of \texttt{aList} is defined as the class \texttt{SubArrayList} with the \emph{type variable} T. In the definition \texttt{<T extends P>}, we also see that the type variable should be of type P or a descendant of P . When \texttt{SubArrayList} is going to be used, it should be instantiated with a \emph{type parameter}. In our example, the statement \texttt{SubArrayList <P> aList = new SubArrayList <P> ();}  has the type parameter P. It was also possible to use any descendent of P as a type parameter.
+In the class definition
+\begin{verbatim}
+public class SubArrayList <T extends P> extends ArrayList { }
+\end{verbatim}
+\texttt{ <T extends P> } is the \emph{type parameter} for class \texttt{SubArrayList}. \texttt{T} is called the \emph{type variable}. \texttt{SubArrayList} is called a \emph{parametrized type}. When a parametrized type will be instantiated, \emph{type arguments} should be supplied. In our example, the statement: 
+\begin{verbatim}
+   	SubArrayList <P> aList = new SubArrayList <P> ();
+\end{verbatim}
+contains the type argument \texttt{<P>}.
 
-When instantiating a generic type, the type parameters on both sides should be the same for the same type (\texttt{SubArrayList}) . For example, the following is not allowed: 
+When instantiating a parametrized type, the type arguments on both sides should be the same for the same type (\texttt{SubArrayList}) . For example, the following is not allowed: 
 \begin{verbatim}
     SubArrayList <P> aList = new SubArrayList <C> ();
 \end{verbatim}
@@ -691,24 +707,84 @@ When instantiating a generic type, the type parameters on both sides should be t
 In our analysis, we assume that the code compiles successfully, therefore we do not need to check if the type parameter supplied  is suitable for the corresponding type variable.
 
 \subsection{Type Erasure}
-During compilation, Java compiler replaces the type variables with supplied type parameters. This mechanism is called \emph{type erasure}. Type erasure is already applied in the byte code. Because we analyse source code, it is necessary to know (and to explain) what type erasure does to the source code. We will continue to use our example from \ref{JavaGenerics}: 
+During compilation, Java compiler replaces the type variables with supplied type parameters. This mechanism is called \emph{type erasure}. Type erasure is already applied in the byte code. We analyse source code. It is very useful to list differences between the two, since the authors and we are actually analysing different code when it comes to generic types. We will continue to use our example from \ref{JavaGenerics}. After type erasure the code will look like this:
+\begin{verbatim}
+public class P { }
+public class C extends P {  }
+public class S extends P {  }
 
+import java.util.ArrayList;
+public class SubArrayList            extends ArrayList     { }
 
+public class N {
+  
+  void genericRun() {
+   	SubArrayList      aList = new SubArrayList   ();
+    aList.add(new C());
+    aList.add(new S());
+    P aP = (P)aList.get(0);
+  }
+}
+\end{verbatim}
 
-
+The following changes are applied to the code:
+\begin{itemize}
+\item type parameters are deleted from the class definition of \texttt{SubArrayList}:
+\begin{verbatim}
+public class SubArrayList            extends ArrayList     { }
+\end{verbatim}
+\item type arguments are deleted from the assignment statement 
+\begin{verbatim}
+    SubArrayList     aList = new SubArrayList ();
+\end{verbatim}
+\item an explicit cast is inserted into the code when retrieving an element from the list:
+\begin{verbatim}
+    P aP = (P)aList.get(0);
+\end{verbatim}
+\end{itemize}
 
 \subsection{Type Analysis of Generics}
+As mentioned earlier, we are using Rascal meta programming language for analysis. When we analyse a Java statement, in most cases, we can obtain the type of an expression easily. In one particular case, however, we need to retrieve the type variables and type arguments and couple them to each other. This happens during the analysis of subtyping with parameter passing. 
 
+We will extend our example with an additional method to explain this case in detail: 
+\begin{verbatim}
+public class P { }
+public class C extends P {  }
+public class S extends P {  }
 
+import java.util.ArrayList;
+public class SubArrayList <T extends P> extends ArrayList <T> { 
+void useT(T aT) {	
+	}
+}
+public class N {
+    void genericRun() {
+        SubArrayList <P> aList = new SubArrayList <P> ();
+        aList.add(new C());
+        aList.useT(new C());
+    }
+}
+\end{verbatim}
 
+When we call the method \texttt{useT()}, we pass it a parameter of object type C. The variable \texttt{aList} is instantiated with type argument P, and therefore in this context, the method call \texttt{aList.useT(new C())} will expect an argument of type P. We mark this case as subtype usage because parameter of type C is supplied when parameter of type P is expected.
 
+This analysis in Rascal presented a challenge because the method declaration of \texttt{useT(T aT)} in Rascal refers to the type variable T. Here, it is necessary to find out with which type arguments the variable \texttt{aList} is instantiated in the first instance. In our analysis we couple the type arguments with type variables one by one and find out that the method \texttt{useT()} which is issued on variable \texttt{aList} will actually accept parameter of type P.
+
+This presents the most important challenge we faced during the code analysis. We do not think that our analysis results will contain differences due to this challenge, because we do apply the procedure as type erasure in our approach.
 
 
 \section{Limitations and Scope}
 
 
 
+
+
+
 \section{Results of the Replication Study}
+
+
+
+
 
 
 
@@ -810,9 +886,5 @@ weka-3.7.2 & weka-3.6.9 \\
 \label{table:DifferencesProjects}
 \end{center}
 \end{table}
-
-
-
-
 
 \end{document}

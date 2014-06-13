@@ -413,7 +413,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 			subtypeLog += aCase;	
 		}
 	}
-	iprintToFile(subtypeLogFile,subtypeLog );
+	iprintToFile(getFilename(projectM3.id,subtypeLogFile),subtypeLog );
 	return resultRel;
 }
 

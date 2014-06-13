@@ -112,16 +112,20 @@ public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourc
 public alias thisChangingTypeOccurrence = tuple [loc sourceRef, loc invokedmethod];
 public alias categorySibling = loc;
 
+public loc beginPath = |file://c:/Users/caytekin/InheritanceLogs/|; 
 
-public loc categoryLogFile = |file://c:/Users/caytekin/InheritanceLogs/Category.log|;
-public loc downcallLogFile = |file://c:/Users/caytekin/InheritanceLogs/Downcall.log|;
-public loc subtypeLogFile = |file://c:/Users/caytekin/InheritanceLogs/Subtype.log|;
-public loc externalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/ExternalReuse.log|;
-public loc internalReuseLogFile = |file://c:/Users/caytekin/InheritanceLogs/InternalReuse.log|;
-public loc superLogFile = |file://c:/Users/caytekin/InheritanceLogs/Super.log|;
-public loc thisChangingTypeCandFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeCand.log|;
-public loc thisChangingTypeOccurFile = |file://c:/Users/caytekin/InheritanceLogs/ThisChangingTypeOccur.log|;
-public loc genericLogFile = |file://c:/Users/caytekin/InheritanceLogs/Generic.log|;
+
+public str internalReuseLogFile 		=  "InternalReuse.log";
+public str categoryLogFile 				=  "Category.log" ;
+public str downcallLogFile 				=  "Downcall.log";
+public str subtypeLogFile 				=  "Subtype.log";
+public str externalReuseLogFile 		=  "ExternalReuse.log";
+public str superLogFile 				=  "Super.log";
+public str thisChangingTypeCandFile 	=  "ThisChangingTypeCand.log";
+public str thisChangingTypeOccurFile 	=  "ThisChangingTypeOccur.log";
+public str genericLogFile 				=  "Generic.log";
+public str addedRelsLogFile 			=  "AddedRels.log";
+
 
 
 

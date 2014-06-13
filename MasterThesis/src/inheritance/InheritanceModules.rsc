@@ -342,6 +342,8 @@ public rel [loc, loc]  getInheritanceRelations(M3 projectM3) {
 }
 
 
+
+
 rel [loc, loc] getExplicitInhRelations(rel [loc, loc] systemInhRelations, M3 projectM3) {
 	rel [loc, loc] retRel = {};
 	rel [loc, loc] 	extendsOrImplRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements};
@@ -686,6 +688,16 @@ public Expression createMethodCallFromConsCall(Statement consCall) {
 	retExp@decl = consCall@decl;	
 	retExp@src 	= consCall@src; 
 	return retExp;
+}
+
+public void makeDirectory(loc projectLoc) {
+	loc aDirectory = beginPath + projectLoc.authority;
+	mkDirectory(aDirectory);
+}
+
+
+public loc  getFilename(loc projectLoc, str logFile) {
+	return beginPath + projectLoc.authority + logFile;
 }
 
 

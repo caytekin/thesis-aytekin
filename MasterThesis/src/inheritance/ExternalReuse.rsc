@@ -105,7 +105,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;
 	}
-	iprintToFile(externalReuseLogFile, allExternalReuseCases);
+	iprintToFile(getFilename(projectM3.id, externalReuseLogFile), allExternalReuseCases);
 	return resultRel;
 }
 

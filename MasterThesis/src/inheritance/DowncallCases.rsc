@@ -63,25 +63,67 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	lo
 	return <retBool, descDowncalledMethod>;
 }
 
-// Here I will add a method to anlayze only the initializers in the classes.
-// They may also issue calls to the overridden methods in children and they will be therefore included in the downcall candidates.
-// I am here ------>>>>>>>     30-5-2014 
-// Steps to follow:
-// 1.) get the extended class pairs : <descClass, ascClass>
-// 2.) For each such class pair get the methods overridden by the descClass (overriddenMethods)
-// 3.) For each ascClass do the following 
-// 		3.1.) get the ASTs of each class,
-// 		3.2.) visit them to get the initializers only in AST declaration initializer(Statement initializerBody)
-// 		3.3.) Then visit each initializer to get the methodCall()'s, if the called method is in the overriddenMethods, then this is a downcall candidate.
+
+map [loc, set[loc]] getInvertedOverridesMap (M3 projectM3) {
+	map [loc, set[loc]] retMap = ();
+	set [loc] allMethodsInProject 		= {definedMethod | <definedMethod, project> <- projectM3@declarations, isMethod(definedMethod)};
+	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
+	if (!isEmpty(allOverriddenMethods)) {
+		retMap = toMap(invert(allOverriddenMethods));
+	}
+	return retMap;
+}
+
+
+loc getDescOverridingMethod(set [loc] overridingMethods, loc _descClass,map [loc, set[loc]] invertedContainment) {
+	loc retMethod 		= DEFAULT_LOC;
+	int numOfMethods 	= size(overridingMethods);
+	list [loc] methodList 	= toList(overridingMethods);
+	int i = 0; 
+	bool found 	= false;
+	while ( ( i < numOfMethods) && (!found) ) {
+		loc aMethod = methodList[i];
+		loc definingClassOfAMethod = getDefiningClassOfALoc(aMethod, invertedContainment);
+		if (definingClassOfAMethod == _descClass) {
+			retMethod = aMethod;
+			found = true;
+		}		
+		i = i + 1;
+	}
+	return retMethod;
+}
+
+
 private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, set[loc]] invertedClassAndInterfaceContainment , M3 projectM3) {
 	rel [loc ascendingClass, loc descendingClass, loc initializer, loc descDowncalledMethod] initializerCandidates = {};
-	rel [loc, loc] inhClassPairs 		= { <_descClass, _ascClass> <- getInheritanceRelations(projectM3), isClass(_descClass), isClass(_ascClass)};
-	set [loc] 	   allAscendingClasses	= {_ascClass, <_descClass, _ascClass> <- inhClassPairs};
-	rel [loc, loc] allOverriddenMethods = {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
-	
-	//public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassInterfaceMethodContainment,
-	//													map [loc, set[loc]] invertedUnitContainment , 
-	//												   	map [loc, set[loc]] declarationsMap) {
+	map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
+	map [loc, set[loc]] invertedContainment 	= getInvertedClassAndInterfaceContainment(projectM3);
+	map [loc, set[loc]] invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment(projectM3);
+	map [loc, set[loc]] declarationsMap 		= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	set [loc] 			allClassesInProject 	= getAllClassesInProject(projectM3);
+	rel [loc, loc] 		inhClassPairs 			= { <_descClass, _ascClass> | <_descClass, _ascClass> <- getInheritanceRelations(projectM3), 	_descClass in allClassesInProject , 
+																																				_ascClass in allClassesInProject };
+	map [ loc, set[loc]] invertedOverridesMap =  getInvertedOverridesMap (projectM3); 
+	for ( <_descClass, _ascClass> <- inhClassPairs){
+		list [Declaration] astsOfAscClass = getASTsOfAClass(_ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+		for (anAST <-astsOfAscClass) {
+			visit (anAST) {
+				case anInitializer:\initializer(Statement initializerBody) : {
+					visit (anInitializer) {
+						case m1:\methodCall(_,_,_) : {
+							invokedMethod = m1@decl;
+							set [loc] overridingMethods = invokedMethod in invertedOverridesMap ? invertedOverridesMap[invokedMethod] : {};
+							loc overridingDescMethod = getDescOverridingMethod(overridingMethods, _descClass, invertedContainment);
+							if (overridingDescMethod != DEFAULT_LOC) {
+								initializerCandidates += <_ascClass, _descClass, anInitializer@decl, overridingDescMethod>;						
+							}  // if
+						}  // case methodCall
+					} // visit (initializer)
+				} // case initializer
+			} // visit AST
+		} // for anAST
+	} // for _descClass, _ascClass
+	return initializerCandidates;
 }
 
 
@@ -106,6 +148,7 @@ private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invert
 			} // visit
 		}				 
 	}
+	downcallCandidates += getDowncallCandidatesFromInitializers(invertedClassAndInterfaceContainment, projectM3); 
 	println("Number of down call candidates for project: <size(downcallCandidates)>");
 	return downcallCandidates;	
 }
@@ -153,6 +196,6 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	}
 	resultRel += {<<_child, _parent>, DOWNCALL_CANDIDATE> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates };
 	downcallLog += [<<_child, _parent>, <DEFAULT_LOC, _issMethod, _downcalledMethod>> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates ];
-	iprintToFile(downcallLogFile,downcallLog);
+	iprintToFile(getFilename(projectM3.id,downcallLogFile),downcallLog);
 	return resultRel;
 }

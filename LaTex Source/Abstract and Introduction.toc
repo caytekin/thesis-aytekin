@@ -38,16 +38,17 @@
 \contentsline {section}{\numberline {5.2}Differences in the Study Set-up}{18}{section.5.2}
 \contentsline {section}{\numberline {5.3}Analysis Challenges of the Replication Study}{19}{section.5.3}
 \contentsline {subsection}{\numberline {5.3.1}Generics in Java}{19}{subsection.5.3.1}
-\contentsline {subsection}{\numberline {5.3.2}Type Analysis of Generics}{19}{subsection.5.3.2}
-\contentsline {section}{\numberline {5.4}Limitations and Scope}{19}{section.5.4}
-\contentsline {section}{\numberline {5.5}Results of the Replication Study}{19}{section.5.5}
-\contentsline {chapter}{\numberline {6}Comparison of Original Study with Replication Study}{20}{chapter.6}
-\contentsline {section}{\numberline {6.1}Comparison of Results}{20}{section.6.1}
-\contentsline {chapter}{\numberline {7}Discussion}{21}{chapter.7}
-\contentsline {section}{\numberline {7.1}Limitations of the Study}{21}{section.7.1}
-\contentsline {section}{\numberline {7.2}Threats to Validity}{21}{section.7.2}
-\contentsline {section}{\numberline {7.3}Lessons Learned}{21}{section.7.3}
-\contentsline {section}{\numberline {7.4}Future Work}{21}{section.7.4}
-\contentsline {chapter}{\numberline {8}Conclusion}{22}{chapter.8}
-\contentsline {chapter}{Bibliography}{23}{chapter*.2}
-\contentsline {section}{\numberline {.1}\\Appendix A - Analysed Projects}{24}{section.Alph0.1}
+\contentsline {subsection}{\numberline {5.3.2}Type Erasure}{20}{subsection.5.3.2}
+\contentsline {subsection}{\numberline {5.3.3}Type Analysis of Generics}{20}{subsection.5.3.3}
+\contentsline {section}{\numberline {5.4}Limitations and Scope}{21}{section.5.4}
+\contentsline {section}{\numberline {5.5}Results of the Replication Study}{21}{section.5.5}
+\contentsline {chapter}{\numberline {6}Comparison of Original Study with Replication Study}{22}{chapter.6}
+\contentsline {section}{\numberline {6.1}Comparison of Results}{22}{section.6.1}
+\contentsline {chapter}{\numberline {7}Discussion}{23}{chapter.7}
+\contentsline {section}{\numberline {7.1}Limitations of the Study}{23}{section.7.1}
+\contentsline {section}{\numberline {7.2}Threats to Validity}{23}{section.7.2}
+\contentsline {section}{\numberline {7.3}Lessons Learned}{23}{section.7.3}
+\contentsline {section}{\numberline {7.4}Future Work}{23}{section.7.4}
+\contentsline {chapter}{\numberline {8}Conclusion}{24}{chapter.8}
+\contentsline {chapter}{Bibliography}{25}{chapter*.2}
+\contentsline {section}{\numberline {.1}\\Appendix A - Analysed Projects}{26}{section.Alph0.1}

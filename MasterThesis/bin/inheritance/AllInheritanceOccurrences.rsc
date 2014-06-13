@@ -60,38 +60,88 @@ rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inherita
 }
 
 
+private loc getImmediateParent(loc classOrInt, map[loc, set[loc]] exOrImplMap) {
+	loc retLoc = DEFAULT_LOC;
+	set[loc] immParentSet = classOrInt in exOrImplMap ? exOrImplMap[classOrInt] : {};
+	if (size(immParentSet) > 1) { throw "<classOrInt> has more than one immediateParent! immediate parent set : <immParentSet> ";}
+	else {
+		if (size(immParentSet) == 1) {
+			retLoc = getOneFrom(immParentSet);
+		}
+	}  
+	return retLoc;
+}
+
+
+
+private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inheritanceKey, inheritanceType] implicitFoundInhrels, M3 projectM3) {
+	// the authors wrote an answer about the following: for three types G, C, P (G extends C, C extends P), if there is a reuse (internal or external), 
+	// subtype or a downcall between G and P, the edge G and P does not get listed, because the edge G-> P is not explicit, however, the edge between 
+	//  G and C will get the same attribute (reuse, subtype or downcall), because it is explicit.
+	rel [inheritanceKey, inheritanceType] retRel = {};
+	rel [inheritanceKey, inheritanceType] selectedOccurrences = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- implicitFoundInhrels, _iType == EXTERNAL_REUSE || _iType == INTERNAL_REUSE 
+																												|| 	_iType == SUBTYPE || _iType == DOWNCALL};
+	rel [inheritanceKey, inheritanceType, loc] addedInhOccLog = {};
+	map[loc, set[loc]] 	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map[loc, set[loc]] 	implementsMap 	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	rel [loc, loc] 		allInheritanceRelations 	= getInheritanceRelations(projectM3);
+	//println("--------------------------getResultsOfImplicitUsage----------------------");
+	//iprintln(sort(selectedOccurrences));
+	//println("--------------------------getResultsOfImplicitUsage----------------------");	
+	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
+		loc immediateParent = DEFAULT_LOC;
+		println(<<_child, _parent>, _iType>);
+		if (isInterface(_child)) {
+			immediateParent =  getImmediateParent(_child, extendsMap); 
+		}
+		else {
+			if (isClass(_parent)) {
+				immediateParent = getImmediateParent(_child, extendsMap); 
+			}
+			else { // child is a class, parent is an interface
+				immediateParent = getImmediateParent(_child, extendsMap); 
+				if ((immediateParent != DEFAULT_LOC) && inheritanceRelationExists(immediateParent ,_parent, allInheritanceRelations)) {
+					// immediate parent is found
+				;}
+				else {
+					immediateParent = getImmediateParent(_child, implementsMap); 
+				}
+			}
+		}
+		addedInhOccLog += <<_child, _parent>, _iType, immediateParent>; 
+	}  // for														
+	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _parent>, _iType, _immediateParent> <- addedInhOccLog, _immediateParent != DEFAULT_LOC };	
+	iprintToFile(getFilename(projectM3.id,addedRelsLogFile),addedInhOccLog );						
+	return retRel;
+}
+
+
+
+
 // getExplicitResults filters the inheritanceResults according to  the criteria of the original article:
-// they count explicit relations only and they include candidates of external usage and downcall.
-// TODO: Review these assumptions when the authors answer the questions
+// they count explicit relations only and they include candidates of downcall.
 private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritanceKey, inheritanceType] inheritanceResults, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
+	rel [inheritanceKey, inheritanceType] allOccurrences = {};	
 	rel [loc, loc] 	extendsOrImplRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements};
-	rel [inheritanceKey, inheritanceType] explicitFoundInhRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, <_child, _parent> in extendsOrImplRel};
+	rel [inheritanceKey, inheritanceType] allDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == DOWNCALL_ACTUAL || _iType == DOWNCALL_CANDIDATE };
+	rel [inheritanceKey, inheritanceType] allOthers =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults , _iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE};
 
-	rel [inheritanceKey, inheritanceType] allDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- explicitFoundInhRels , _iType == DOWNCALL_ACTUAL || _iType == DOWNCALL_CANDIDATE };
-	rel [inheritanceKey, inheritanceType] allExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- explicitFoundInhRels , _iType == EXTERNAL_REUSE};
-	rel [inheritanceKey, inheritanceType] others =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- explicitFoundInhRels , 	_iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE,  
-																																			_iType != EXTERNAL_REUSE};
-	retRel = others + allDowncalls + allExtReuse;
+	allOccurrences = allOthers + allDowncalls;
+	rel [inheritanceKey, inheritanceType] explicitFoundInhRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- allOccurrences, <_child, _parent> in extendsOrImplRel};	
+	rel [inheritanceKey, inheritanceType] implicitFoundInhRels = allOccurrences - explicitFoundInhRels;
+	//println("---------------------------------------------");
+	//println("ALL OCCURRENCES");
+	//iprintln(sort(allOccurrences));
+	//println("EXPLICIT RESULTS");
+	//iprintln(sort(explicitFoundInhRels ));
+	//println("IMPLICIT  RESULTS");
+	//iprintln(sort(implicitFoundInhRels ));
+	retRel = allOccurrences + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
 	return retRel;
 }
 
 
-// getActualresults filters the inheritance results according to our point of view:
-// we not only get explicit inheritance relations (defined in the code with extends or impl.) , but also implicit ones (grand children, etc.)
-// also, for downcall and expternal reuse, we look at the actual usage (i.e. there is an actual method call) and we exclude candidates, 
-// which can have potential downcall and external usage.
-/*
-private rel [inheritanceKey, inheritanceType] getActualResults (rel [inheritanceKey, inheritanceType] inheritanceResults) {
-	rel [inheritanceKey, inheritanceType] retRel = {};
-	rel [inheritanceKey, inheritanceType] actualDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == DOWNCALL_ACTUAL};
-	rel [inheritanceKey, inheritanceType] actualExtReuse = {<<_child, _parent>, EXTERNAL_REUSE> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == EXTERNAL_REUSE};
-	rel [inheritanceKey, inheritanceType] others =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults, 	_iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE,  
-																																		_iType != EXTERNAL_REUSE };
-	retRel = others + actualDowncalls + actualExtReuse;
-	return retRel;
-}
-*/
 
 num calcPercentage (num nominator, num denominator) {
 	num retValue = 0;
@@ -191,9 +241,10 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	rel [inheritanceKey, inheritanceType] ccResults = {<<_child, _parent>, iKey> | <<_child, _parent>, iKey> <- inheritanceResults, isClass(_child), isClass(_parent)};
 	rel [loc, loc] ccRelations = { <_child, _parent> | <_child, _parent> <- inheritanceRelations, isClass(_child), isClass(_parent)};
 	
-	// numExplicitCC : Number of explicit user defined cc edges (for the authors), and for me number of user defined (system) edges.
+	// numExplicitCC : Number of explicit user defined cc edges (for the authors)
 
 	CCResultsMap += (numExplicitCC: size({<_child, _parent>| <_child, _parent>  <- ccRelations}));			
+	println("Explicit cc ------------------"); iprintln(sort({<_child, _parent>| <_child, _parent>  <- ccRelations}));
 	
 	CCResultsMap += (numCCUsed: size({<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType in {INTERNAL_REUSE, EXTERNAL_REUSE, SUBTYPE} }));
 	CCResultsMap += (perCCUsed : calcPercentage(CCResultsMap[numCCUsed], CCResultsMap[numExplicitCC]));
@@ -205,6 +256,10 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	set [inheritanceKey] subtypeRels 			= {<_child, _parent> | <<_child, _parent> , _iType> <- ccResults, _iType == SUBTYPE};
 	set [inheritanceKey] exreuseNoSubtypeRels 	= {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == EXTERNAL_REUSE} - subtypeRels;
 	set [inheritanceKey] usedOnlyInReRels 		= {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == INTERNAL_REUSE} - (exreuseNoSubtypeRels + subtypeRels); 
+			
+	println("SUBTYPE:  ----------------- "); iprintln(sort(subtypeRels));		
+	println("EXTERNAL REUSE ONLY:  ----------------- "); iprintln(sort(exreuseNoSubtypeRels));
+	println("INTERNAL REUSE ONLY :  ----------------- "); iprintln(sort(usedOnlyInReRels));		
 			
 	CCResultsMap += (numCCSubtype : size(subtypeRels));	
 	CCResultsMap += (perCCSubtype : calcPercentage(CCResultsMap[numCCSubtype], CCResultsMap[numCCUsed]));	
@@ -256,7 +311,8 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://DowncallProject|;
+	loc projectLoc = |project://fitjava-1.1|;
+	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
@@ -295,7 +351,7 @@ public void runIt() {
 	rel [inheritanceKey, inheritanceType] explicitResults = getExplicitResults(filteredInheritanceCases, projectM3);
 	//rel [inheritanceKey, inheritanceType] actualResults = getActualResults(filteredInheritanceCases);	
 	
-	rel [loc, loc] systemInhRelations = getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
+	rel [loc, loc] systemInhRelations 	= getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
 	
 	rel [loc, loc] explicitInhRelations = getExplicitInhRelations(systemInhRelations, projectM3);
 
@@ -317,23 +373,29 @@ public void runIt() {
 	//println("CATEGORY:");
 	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
 	
-	println("INTERNAL REUSE:");
+	println("INTERNAL REUSE ALL:");
 	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == INTERNAL_REUSE }));
+
 
 	println("EXTERNAL REUSE:");
 	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE}));
 
-	printLog(downcallLogFile, "DOWNCALL LOG:");
+	
+	println("SUBTYPE:");
+	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE}));
+	
 
-	printLog(internalReuseLogFile, "INTERNAL REUSE LOG:");
-	printLog(externalReuseLogFile, "EXTERNAL REUSE LOG:");
-	printLog(subtypeLogFile, "SUBTYPE LOG:");
-	printLog(thisChangingTypeCandFile, "THIS CHANGING TYPE CANDIDATES:");
-	printLog(thisChangingTypeOccurFile, "THIS CHANGING TYPE OCCURRENCES:");	
+	printLog(getFilename(projectM3.id, downcallLogFile), "DOWNCALL LOG:");
 
-	printLog(genericLogFile, "GENERIC LOG:");
-	printLog(superLogFile, "SUPER LOG:");
-	printLog(categoryLogFile, "CATEGORY LOG: ");	
+	printLog(getFilename(projectM3.id, internalReuseLogFile), "INTERNAL REUSE LOG:");
+	printLog(getFilename(projectM3.id, externalReuseLogFile), "EXTERNAL REUSE LOG:");
+	printLog(getFilename(projectM3.id, subtypeLogFile), "SUBTYPE LOG:");
+	printLog(getFilename(projectM3.id, thisChangingTypeCandFile), "THIS CHANGING TYPE CANDIDATES:");
+	printLog(getFilename(projectM3.id, thisChangingTypeOccurFile), "THIS CHANGING TYPE OCCURRENCES:");	
+
+	printLog(getFilename(projectM3.id, genericLogFile), "GENERIC LOG:");
+	printLog(getFilename(projectM3.id, superLogFile), "SUPER LOG:");
+	printLog(getFilename(projectM3.id, categoryLogFile), "CATEGORY LOG: ");	
 
 
 
@@ -347,10 +409,8 @@ public void runIt() {
 	printCCResults(explicitCCMetricResults, projectM3);
 	printCIResults(explicitCIMetricResults, projectM3);
 	printIIResults(explicitIIMetricResults, projectM3);
-
-	//map [metricsType, num] actualCCMetricResults = calculateCCResults(actualResults, systemInhRelations, projectM3);
-	//println("ACTUAL RESULTS - ALL RELATIONS AND ACTUALS");
-	//printCCResults(actualCCMetricResults, projectM3);
+	
+	println("Total number of types analyzed: <size(getAllClassesAndInterfacesInProject(projectM3))>");
 
 }
 

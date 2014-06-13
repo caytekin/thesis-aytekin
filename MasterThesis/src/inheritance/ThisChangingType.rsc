@@ -130,7 +130,7 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 			}
 		} // for  descClass
 	} // for ascClass
-	iprintToFile(thisChangingTypeCandFile, candidateLog);
+	iprintToFile(getFilename(projectM3.id,thisChangingTypeCandFile), candidateLog);
 	return retRel; 
 }
 
@@ -240,7 +240,7 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 	}	
 	occurrenceLog += getThisChangingTypeOccurencesFromTheChild(candidates, projectM3) ;
 	retSet = { <_descClass, _ascClass> | <<_descClass, _ascClass>, <_srcRef, _methodOrClass>> <- occurrenceLog };
-	iprintToFile(thisChangingTypeOccurFile, occurrenceLog);	
+	iprintToFile(getFilename(projectM3.id,thisChangingTypeOccurFile), occurrenceLog);	
 	return retSet;
 }
 

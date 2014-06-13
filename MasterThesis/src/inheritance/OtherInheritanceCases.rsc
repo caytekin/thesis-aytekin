@@ -157,7 +157,7 @@ public rel [inheritanceKey, inheritanceType] getSuperRelations(M3 projectM3) {
 			}
 		}
 	}
-	iprintToFile(superLogFile,superLog);
+	iprintToFile(getFilename(projectM3.id,superLogFile) ,superLog);
 	return retRel;	
 }
 
@@ -209,7 +209,7 @@ private rel [inheritanceKey, inheritanceType] getGenericUsages(M3 projectM3) {
 			}
 		}	
 	}
-	iprintToFile(genericLogFile, genericLog);
+	iprintToFile(getFilename(projectM3.id,genericLogFile), genericLog);
 	return retRel;
 }
 
@@ -286,7 +286,7 @@ public rel [inheritanceKey, inheritanceType] getCategoryCases(rel [inheritanceKe
 		categoryLog += getOneCategoryCase(anImplementsCandidate,  subtypeSet, invertedImplementsMap); 
 	}
 
-	iprintToFile(categoryLogFile, categoryLog);	
+	iprintToFile(getFilename(projectM3.id,categoryLogFile), categoryLog);	
 	retRel = {<_iKey, CATEGORY> | <_iKey, _> <- categoryLog};
 	return retRel;
 }

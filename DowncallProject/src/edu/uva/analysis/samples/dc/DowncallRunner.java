@@ -6,6 +6,11 @@ import java.util.ArrayList;
 
 public class DowncallRunner {
 	
+	I3 anI3;
+
+	I3 getI3() {
+		return anI3;
+	}
 	
 	void acceptABoolean(boolean aBool) {
 		
@@ -65,10 +70,16 @@ public class DowncallRunner {
 	void runWithThis() {
 		DowncallChild dChild = new DowncallChild();
 		dChild.p();		// downcall, tested, working, 25-04
+		
+		I1 anotherI1 = getI3();
 	}
 	
 	public static void main (String[] args) {
 		DowncallChild dChild = new DowncallChild();
 		dChild.p();				// downcall, tested, working, , 25-04
+		
+		Q aQ = new S();
+		
+		I1 anI1 = new C2();		
 	}
 }

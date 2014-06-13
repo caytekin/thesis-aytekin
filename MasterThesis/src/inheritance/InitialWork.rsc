@@ -195,12 +195,37 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 
+
+
 public void runInitialWork() {
-	M3 projectM3 = getM3Model(|project://Subtype|);
-	println("Extends annotation"); iprintln(sort(projectM3@extends));
-	println("Size of extends annotation is: <size(projectM3@extends)>");
-	println("Implements annotation"); iprintln(sort(projectM3@implements));
-	println("Size of implements annotation: <size(projectM3@implements)>");
+	loc projectLoc = |project://cobertura-1.9.4.1|;
+//	println("Project scheme is: <projectLoc.scheme>");
+//	println("Project  authority is: <projectLoc.authority>");
+//	println("Project  host is: <projectLoc.host>");
+//	println("Project  path is: <projectLoc.path>");
+//	println("Project  extension is: <projectLoc.extension>");
+//	println("Project  query is: <projectLoc.query>");
+//	println("Project  fragment is: <projectLoc.fragment>");
+//	println("Project  parent  is: <projectLoc.parent>");
+//	println("Project  file is: <projectLoc.file>");
+
+	//makeDirectory(projectLoc);
+	//println("Directory is made...");
+
+	//println("Annotations on projectLoc");
+	//iprintln(getAnnotations(projectLoc));
+	M3 projectM3 = getM3Model(projectLoc);
+	println("Containment, ananoymous classes: "); 
+	iprintln({<_container, _item> | <_container, _item> <- projectM3@containment, _container.scheme == "java+anonymousClass" || _item.scheme == "java+anonymousClass"   });
+	//println("Annotations on M3");
+	//iprintln(getAnnotations(projectM3));
+
+	
+
+	//println("Extends annotation"); iprintln(sort(projectM3@extends));
+	//println("Size of extends annotation is: <size(projectM3@extends)>");
+	//println("Implements annotation"); iprintln(sort(projectM3@implements));
+	//println("Size of implements annotation: <size(projectM3@implements)>");
 	
 	//getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/st/OuterInnerRunner/runIt()|); 
 	//getInfoForMethod(projectM3, |java+constructor:///edu/uva/analysis/samples/st/ParamPassChild/ParamPassChild(edu.uva.analysis.samples.st.P)|); 
