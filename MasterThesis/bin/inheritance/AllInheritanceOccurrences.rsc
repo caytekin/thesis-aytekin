@@ -8,6 +8,7 @@ import Relation;
 import List;
 import ListRelation;
 import DateTime;
+import util::Math;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -60,10 +61,23 @@ rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inherita
 }
 
 
-private loc getImmediateParent(loc classOrInt, map[loc, set[loc]] exOrImplMap) {
+private loc getImmediateParent(loc classOrInt, loc ascLoc,  map[loc, set[loc]] exOrImplMap, rel [loc, loc] allInheritanceRelations) {
 	loc retLoc = DEFAULT_LOC;
+	loc foundLoc = DEFAULT_LOC;
 	set[loc] immParentSet = classOrInt in exOrImplMap ? exOrImplMap[classOrInt] : {};
-	if (size(immParentSet) > 1) { throw "<classOrInt> has more than one immediateParent! immediate parent set : <immParentSet> ";}
+	if (size(immParentSet) > 1) { // this is only possible if parents are interfaces 
+		for (anImmediateParent <-immParentSet) {
+			foundLoc = DEFAULT_LOC;
+			if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
+				foundLoc = anImmediateParent;
+				break;
+			}
+		}
+		if (foundLoc == DEFAULT_LOC) {
+			throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
+		}	
+		retLoc = foundLoc;
+	}
 	else {
 		if (size(immParentSet) == 1) {
 			retLoc = getOneFrom(immParentSet);
@@ -88,29 +102,31 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	//println("--------------------------getResultsOfImplicitUsage----------------------");
 	//iprintln(sort(selectedOccurrences));
 	//println("--------------------------getResultsOfImplicitUsage----------------------");	
+	loc immediateParent = DEFAULT_LOC;
 	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
-		loc immediateParent = DEFAULT_LOC;
-		println(<<_child, _parent>, _iType>);
+		immediateParent = DEFAULT_LOC;
+		println("--------Child: <_child>, parent: < _parent>, Inhtype: <_iType>");
 		if (isInterface(_child)) {
-			immediateParent =  getImmediateParent(_child, extendsMap); 
+			immediateParent =  getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
 		}
 		else {
 			if (isClass(_parent)) {
-				immediateParent = getImmediateParent(_child, extendsMap); 
+				immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
 			}
 			else { // child is a class, parent is an interface
-				immediateParent = getImmediateParent(_child, extendsMap); 
+				immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
 				if ((immediateParent != DEFAULT_LOC) && inheritanceRelationExists(immediateParent ,_parent, allInheritanceRelations)) {
 					// immediate parent is found
 				;}
 				else {
-					immediateParent = getImmediateParent(_child, implementsMap); 
+					immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
 				}
 			}
 		}
-		addedInhOccLog += <<_child, _parent>, _iType, immediateParent>; 
+		println("Immediate parent: <immediateParent>"); 
+		addedInhOccLog += <<_child, immediateParent>, _iType, _parent>; 
 	}  // for														
-	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _parent>, _iType, _immediateParent> <- addedInhOccLog, _immediateParent != DEFAULT_LOC };	
+	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _immediateParent>, _iType, _parent><- addedInhOccLog, _immediateParent != DEFAULT_LOC };	
 	iprintToFile(getFilename(projectM3.id,addedRelsLogFile),addedInhOccLog );						
 	return retRel;
 }
@@ -137,7 +153,7 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	//iprintln(sort(explicitFoundInhRels ));
 	//println("IMPLICIT  RESULTS");
 	//iprintln(sort(implicitFoundInhRels ));
-	retRel = allOccurrences + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
+	retRel = explicitFoundInhRels + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
 	return retRel;
 }
 
@@ -188,6 +204,7 @@ private void printIIResults(map [metricsType, num]  IIMetricResults, M3 projectM
 	println("------------------------------------------------");	
 	for ( anIIMetric <- [numExplicitII..perUnexplainedII + 1]) {
 		println("<getNameOfInheritanceMetric(anIIMetric)> 	: <IIMetricResults[anIIMetric]>");
+		appendToFile(getFilename(projectM3.id,resultsFile), "<IIMetricResults[anIIMetric]>\t" );
 	}
 	println();
 }
@@ -227,6 +244,7 @@ private void printCIResults(map [metricsType, num]  CIMetricResults, M3 projectM
 	println("------------------------------------------------");	
 	for ( aCIMetric <- [numExplicitCI..perUnexplainedCI + 1]) {
 		println("<getNameOfInheritanceMetric(aCIMetric)> 	: <CIMetricResults[aCIMetric]>");
+		appendToFile(getFilename(projectM3.id,resultsFile), "<CIMetricResults[aCIMetric]>\t" );
 	}
 	println();
 }
@@ -293,6 +311,7 @@ private void printCCResults(map [metricsType, num]  CCMetricResults, M3 projectM
 	println("------------------------------------------------");	
 	for ( aCCMetric <- [numExplicitCC..perCCUnknown+1]) {
 		println("<getNameOfInheritanceMetric(aCCMetric)> 	: <CCMetricResults[aCCMetric]>");
+		appendToFile(getFilename(projectM3.id,resultsFile), "<CCMetricResults[aCCMetric]>\t" );
 	}
 	println();
 }
@@ -307,7 +326,10 @@ private void printResults(map[inheritanceType, num] totals ) {
 
 
 
+
+
 public void runIt() {
+	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
@@ -399,16 +421,17 @@ public void runIt() {
 
 
 
-
-
 	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, explicitInhRelations, projectM3);
 	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, explicitInhRelations, projectM3);
 	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, explicitInhRelations, projectM3);
 	
+	writeFile(getFilename(projectM3.id,resultsFile), "<projectM3.id.authority>\t" );
 	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
 	printCCResults(explicitCCMetricResults, projectM3);
 	printCIResults(explicitCIMetricResults, projectM3);
 	printIIResults(explicitIIMetricResults, projectM3);
+	appendToFile(getFilename(projectM3.id,resultsFile), "\n" );
+	
 	
 	println("Total number of types analyzed: <size(getAllClassesAndInterfacesInProject(projectM3))>");
 

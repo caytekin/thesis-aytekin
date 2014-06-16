@@ -248,5 +248,5 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 public rel [inheritanceKey, inheritanceType] getThisChangingTypeOccurrences(M3 projectM3) {
 	rel [loc, loc, loc] thisChangingTypeCandidates = getThisChangingTypeCandidates(projectM3);
 	set [inheritanceKey] thisChangingTypeOccurrences = getThisChangingTypeOccurrences(thisChangingTypeCandidates, projectM3);
-	return {<iKey, SUBTYPE> | iKey <- thisChangingTypeOccurrences };
+	return {<iKey, SUBTYPE> | iKey <- thisChangingTypeOccurrences } + {<<_child, _parent>, SUBTYPE> | <_child, _parent, _ascClss> <- thisChangingTypeCandidates};
 }

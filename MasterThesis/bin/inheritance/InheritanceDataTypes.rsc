@@ -40,28 +40,28 @@ public metricsType numCCUnknown				= 1016;
 public metricsType perCCUnknown				= 1017;		// numCCUnknown / numExplicitCC
 
 
-public metricsType numExplicitCI			= 1025;
-public metricsType numOnlyCISubtype			= 1026;
-public metricsType perOnlyCISubtype			= 1027;		// numOnlyCISubtype / numExplicitCI
-public metricsType numExplainedCI			= 1028;
-public metricsType perExplainedCI			= 1029;		// numExplainedCI / numExplicitCI
-public metricsType numCategoryExplCI		= 1030;
-public metricsType perCategoryExplCI		= 1031;		// numCategoryExplCI / numExplicitCI
-public metricsType numUnexplainedCI			= 1032;
-public metricsType perUnexplainedCI			= 1033;		// numUnexplainedCI / numExplicitCI
+public metricsType numExplicitCI			= 1018;
+public metricsType numOnlyCISubtype			= 1019;
+public metricsType perOnlyCISubtype			= 1020;		// numOnlyCISubtype / numExplicitCI
+public metricsType numExplainedCI			= 1021;
+public metricsType perExplainedCI			= 1022;		// numExplainedCI / numExplicitCI
+public metricsType numCategoryExplCI		= 1023;
+public metricsType perCategoryExplCI		= 1024;		// numCategoryExplCI / numExplicitCI
+public metricsType numUnexplainedCI			= 1025;
+public metricsType perUnexplainedCI			= 1026;		// numUnexplainedCI / numExplicitCI
 
 
-public metricsType numExplicitII			= 1040;
-public metricsType numIISubtype				= 1041;
-public metricsType perIISubtype				= 1042;		// numIISubtype / numExplicitII
-public metricsType numOnlyIIReuse			= 1043;
-public metricsType perOnlyIIReuse			= 1044;		// numOnlyIIReuse / numExplicitII
-public metricsType numExplainedII			= 1045;
-public metricsType perExplainedII			= 1046;		// numExplainedII / numExplicitII
-public metricsType numCategoryExplII		= 1047;
-public metricsType perCategoryExplII		= 1048;		// numCategoryExplII / numExplicitII
-public metricsType numUnexplainedII			= 1049;
-public metricsType perUnexplainedII			= 1050;		// numUnexplainedII / numExplicitII
+public metricsType numExplicitII			= 1027;
+public metricsType numIISubtype				= 1028;
+public metricsType perIISubtype				= 1029;		// numIISubtype / numExplicitII
+public metricsType numOnlyIIReuse			= 1030;
+public metricsType perOnlyIIReuse			= 1031;		// numOnlyIIReuse / numExplicitII
+public metricsType numExplainedII			= 1032;
+public metricsType perExplainedII			= 1033;		// numExplainedII / numExplicitII
+public metricsType numCategoryExplII		= 1034;
+public metricsType perCategoryExplII		= 1035;		// numCategoryExplII / numExplicitII
+public metricsType numUnexplainedII			= 1036;
+public metricsType perUnexplainedII			= 1037;		// numUnexplainedII / numExplicitII
 
 
 
@@ -105,7 +105,7 @@ public TypeSymbol OBJECT_TYPE_SYMBOL = class(OBJECT_CLASS, []);
 
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethodOrClass];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
-public alias subtypeDetail = tuple [ inheritanceSubtype inhSub, loc subtypeDetailLoc];
+public alias subtypeDetail = tuple [inheritanceSubtype inhSub, loc subtypeDetailLoc];
 public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];
 public alias superCallLoc = loc;
 public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourceOfCandCall];
@@ -125,7 +125,7 @@ public str thisChangingTypeCandFile 	=  "ThisChangingTypeCand.log";
 public str thisChangingTypeOccurFile 	=  "ThisChangingTypeOccur.log";
 public str genericLogFile 				=  "Generic.log";
 public str addedRelsLogFile 			=  "AddedRels.log";
-
+public str resultsFile					=  "Results.txt"; 
 
 
 

@@ -94,6 +94,10 @@ loc getDescOverridingMethod(set [loc] overridingMethods, loc _descClass,map [loc
 }
 
 
+
+
+
+
 private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, set[loc]] invertedClassAndInterfaceContainment , M3 projectM3) {
 	rel [loc ascendingClass, loc descendingClass, loc initializer, loc descDowncalledMethod] initializerCandidates = {};
 	map [loc, set[loc]] invertedUnitContainment = getInvertedUnitContainment(projectM3);
@@ -118,6 +122,16 @@ private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, 
 								initializerCandidates += <_ascClass, _descClass, anInitializer@decl, overridingDescMethod>;						
 							}  // if
 						}  // case methodCall
+						case m2:\methodCall(_,Expression receiver,_,_) : {
+							if (receiver := this()) {
+								invokedMethod = m2@decl;
+								set [loc] overridingMethods = invokedMethod in invertedOverridesMap ? invertedOverridesMap[invokedMethod] : {};
+								loc overridingDescMethod = getDescOverridingMethod(overridingMethods, _descClass, invertedContainment);
+								if (overridingDescMethod != DEFAULT_LOC) {
+									initializerCandidates += <_ascClass, _descClass, anInitializer@decl, overridingDescMethod>;						
+								}  // if				
+							}		
+						;} // case m2
 					} // visit (initializer)
 				} // case initializer
 			} // visit AST
@@ -144,6 +158,11 @@ private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invert
 					if ((mCall1@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
 						downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
 					}
+				 }
+				 case mCall2:\methodCall(_, Expression receiver, _, _) : {
+				 	if (receiver := this() && (mCall2@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
+						downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
+				 	}
 				 }
 			} // visit
 		}				 

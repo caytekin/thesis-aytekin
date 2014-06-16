@@ -198,16 +198,19 @@ void searchForComplexTypes(M3 projectM3) {
 
 
 public void runInitialWork() {
-	loc projectLoc = |project://cobertura-1.9.4.1|;
-//	println("Project scheme is: <projectLoc.scheme>");
-//	println("Project  authority is: <projectLoc.authority>");
-//	println("Project  host is: <projectLoc.host>");
-//	println("Project  path is: <projectLoc.path>");
-//	println("Project  extension is: <projectLoc.extension>");
-//	println("Project  query is: <projectLoc.query>");
-//	println("Project  fragment is: <projectLoc.fragment>");
-//	println("Project  parent  is: <projectLoc.parent>");
-//	println("Project  file is: <projectLoc.file>");
+	//loc projectHead = |project://|;
+	loc myProject = |project://|+ "VerySmallProject";
+	println("My project loc: <myProject>");
+	loc projectLoc = |project://VerySmallProject|;
+	println("Project scheme is: <projectLoc.scheme>");
+	println("Project  authority is: <projectLoc.authority>");
+	//println("Project  host is: <projectLoc.host>");
+	println("Project  path is: <projectLoc.path>");
+	println("Project  extension is: <projectLoc.extension>");
+	println("Project  query is: <projectLoc.query>");
+	//println("Project  fragment is: <projectLoc.fragment>");
+	//println("Project  parent  is: <projectLoc.parent>");
+	//println("Project  file is: <projectLoc.file>");
 
 	//makeDirectory(projectLoc);
 	//println("Directory is made...");

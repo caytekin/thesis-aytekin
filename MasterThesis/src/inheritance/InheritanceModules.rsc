@@ -42,48 +42,48 @@ public str getNameOfInheritanceType(inheritanceType iType) {
 public str getNameOfInheritanceMetric(metricsType iMetric) {
 		switch(iMetric) {
 		
-		case numExplicitCC				: {return "numExplicitCC			";}
-		case numCCUsed					: {return "numCCUsed				";}
-		case perCCUsed					: {return "perCCUsed				";}
-		case numCCDC					: {return "numCCDC				";}
-		case perCCDC					: {return "perCCDC				";}
-		case numCCSubtype 		 		: {return "numCCSubtype			";}
-		case perCCSubtype 		 		: {return "perCCSubtype			";}
-		case numCCExreuseNoSubtype 		: {return "numCCExreuseNoSubtype	";}
-		case perCCExreuseNoSubtype 		: {return "perCCExreuseNoSubtype	";} 		
-		case numCCUsedOnlyInRe	 		: {return "numCCUsedOnlyInRe		";}
-		case perCCUsedOnlyInRe	 		: {return "perCCUsedOnlyInRe		";}
-		case numCCUnexplSuper		 	: {return "numCCUnexplSuper		";}
-		case perCCUnexplSuper		 	: {return "perCCUnexplSuper		";}
-		case numCCUnexplCategory		: {return "numCCUnExplCategory	";}
-		case perCCUnexplCategory		: {return "perCCUnExplCategory	";}
-		case numCCUnexplSuper			: {return "numCCUnexplSuper		";}
-		case perCCUnexplSuper			: {return "perCCUnexplSuper		";}
-		case numCCUnknown				: {return "numCCUnknown			";}
-		case perCCUnknown				: {return "perCCUnknown			";}		
+		case numExplicitCC				: {return "numExplicitCC";}
+		case numCCUsed					: {return "numCCUsed";}
+		case perCCUsed					: {return "perCCUsed";}
+		case numCCDC					: {return "numCCDC";}
+		case perCCDC					: {return "perCCDC";}
+		case numCCSubtype 		 		: {return "numCCSubtype";}
+		case perCCSubtype 		 		: {return "perCCSubtype";}
+		case numCCExreuseNoSubtype 		: {return "numCCExreuseNoSubtype";}
+		case perCCExreuseNoSubtype 		: {return "perCCExreuseNoSubtype";} 		
+		case numCCUsedOnlyInRe	 		: {return "numCCUsedOnlyInRe";}
+		case perCCUsedOnlyInRe	 		: {return "perCCUsedOnlyInRe";}
+		case numCCUnexplSuper		 	: {return "numCCUnexplSuper";}
+		case perCCUnexplSuper		 	: {return "perCCUnexplSuper";}
+		case numCCUnexplCategory		: {return "numCCUnExplCategory";}
+		case perCCUnexplCategory		: {return "perCCUnExplCategory";}
+		case numCCUnexplSuper			: {return "numCCUnexplSuper";}
+		case perCCUnexplSuper			: {return "perCCUnexplSuper";}
+		case numCCUnknown				: {return "numCCUnknown";}
+		case perCCUnknown				: {return "perCCUnknown";}		
 		
-		case numExplicitCI				: {return "numExplicitCI		";}			
-  		case numOnlyCISubtype			: {return "numOnlyCISubtype		";}
-  		case perOnlyCISubtype			: {return "perOnlyCISubtype		";}
-  		case numExplainedCI				: {return "numExplainedCI		";}
-  		case perExplainedCI				: {return "perExplainedCI		";}
-  		case numCategoryExplCI			: {return "numCategoryExplCI	";}
- 		case perCategoryExplCI			: {return "perCategoryExplCI	";}
-  		case numUnexplainedCI			: {return "numUnexplainedCI		";}
-  		case perUnexplainedCI			: {return "perUnexplainedCI		";}
+		case numExplicitCI				: {return "numExplicitCI";}			
+  		case numOnlyCISubtype			: {return "numOnlyCISubtype";}
+  		case perOnlyCISubtype			: {return "perOnlyCISubtype";}
+  		case numExplainedCI				: {return "numExplainedCI";}
+  		case perExplainedCI				: {return "perExplainedCI";}
+  		case numCategoryExplCI			: {return "numCategoryExplCI";}
+ 		case perCategoryExplCI			: {return "perCategoryExplCI";}
+  		case numUnexplainedCI			: {return "numUnexplainedCI";}
+  		case perUnexplainedCI			: {return "perUnexplainedCI";}
   		
   		
-  		case  numExplicitII				: {return "numExplicitII		";}
-		case  numIISubtype				: {return "numIISubtype			";}
-		case  perIISubtype				: {return "perIISubtype			";}
-		case  numOnlyIIReuse			: {return "numOnlyIIReuse		";}
-		case  perOnlyIIReuse			: {return "perOnlyIIReuse		";}
-		case  numExplainedII			: {return "numExplainedII		";}
-		case  perExplainedII			: {return "perExplainedII		";}
-		case  numCategoryExplII			: {return "numCategoryExplII	";}
-		case  perCategoryExplII			: {return "perCategoryExplII	";}
-		case  numUnexplainedII			: {return "numUnexplainedII		";}
-		case  perUnexplainedII			: {return "perUnexplainedII		";}
+  		case  numExplicitII				: {return "numExplicitII";}
+		case  numIISubtype				: {return "numIISubtype";}
+		case  perIISubtype				: {return "perIISubtype";}
+		case  numOnlyIIReuse			: {return "numOnlyIIReuse";}
+		case  perOnlyIIReuse			: {return "perOnlyIIReuse";}
+		case  numExplainedII			: {return "numExplainedII";}
+		case  perExplainedII			: {return "perExplainedII";}
+		case  numCategoryExplII			: {return "numCategoryExplII";}
+		case  perCategoryExplII			: {return "perCategoryExplII";}
+		case  numUnexplainedII			: {return "numUnexplainedII";}
+		case  perUnexplainedII			: {return "perUnexplainedII";}
   		
 		
 		default 						: {return "NOT KNOWN METRIC: <iMetric>"; }
@@ -143,6 +143,7 @@ private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[
 	if (size(retLocSet) != 1) {
 		throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
 	}
+	else // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	return getOneFrom(retLocSet);
 }
 
