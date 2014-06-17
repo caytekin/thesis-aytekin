@@ -86,7 +86,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
 	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	for (oneClass <- allClassesInProject) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
         		case qName:\qualifiedName(_, _) : {

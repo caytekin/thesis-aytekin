@@ -333,10 +333,11 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://fitjava-1.1|;
+	loc projectLoc = |project://exoportal-v1.0.2|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
+	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");

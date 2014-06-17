@@ -38,7 +38,7 @@ public void writeMetricNames(loc fileLoc) {
 }
 
 
-/*
+
 list [str] projectList = [
 "cobertura-1.9.4.1" ,
 "displaytag-1.2" ,
@@ -46,8 +46,9 @@ list [str] projectList = [
 "fitjava-1.1"  ,
 "FreeCS" 
 ];
-*/ 
+ 
 
+/*
 list [str] projectList = [
 "InheritanceSamples", 
 "VerySmallProject" ,
@@ -56,7 +57,7 @@ list [str] projectList = [
 "GenericProject"  ,
 "Subtype" 
 ];
-
+*/
 
 
 public void harvest() {

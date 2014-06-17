@@ -112,7 +112,7 @@ public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourc
 public alias thisChangingTypeOccurrence = tuple [loc sourceRef, loc invokedmethod];
 public alias categorySibling = loc;
 
-public loc beginPath = |file://c:/Users/caytekin/InheritanceLogs/|; 
+public loc beginPath = |file:///home/aytekin/Documents/InheritanceLogs|; 
 
 
 public str internalReuseLogFile 		=  "InternalReuse.log";
@@ -126,6 +126,7 @@ public str thisChangingTypeOccurFile 	=  "ThisChangingTypeOccur.log";
 public str genericLogFile 				=  "Generic.log";
 public str addedRelsLogFile 			=  "AddedRels.log";
 public str resultsFile					=  "Results.txt"; 
+public str errorLog						=  "Error.log" ;
 
 
 

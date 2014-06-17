@@ -333,7 +333,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://fitjava-1.1|;
+	loc projectLoc = |project://cobertura-1.9.4.1|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
