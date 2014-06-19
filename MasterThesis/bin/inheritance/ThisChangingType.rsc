@@ -78,8 +78,8 @@ private set [loc]  getThisReferencesInMethod(loc aMethodOfAscClass, M3 projectM3
 
 
 private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] invertedClassInterfaceMethodContainment, map [loc, set [loc]] invertedUnitContainment, 
-																													map [loc, set [loc]] declarationsMap) {
-	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+																													map [loc, set [loc]] declarationsMap, M3 projectM3) {
+	list [Declaration] ASTsOfOneClass = getASTsOfAClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 	set [loc] retSet = {};
 	for (anAST <- ASTsOfOneClass ) {
 		retSet += getThisReferencesInAST(anAST);
@@ -122,7 +122,7 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 				} // if
 			}	// for aMethodOfAscClass
 			// look at the initializers of ascending class.
-			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+			set [loc] candidateClassReferences = getThisReferencesInClass(ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 			set [loc] candidateInitializerReferences = candidateClassReferences - allCandidateRefsInMethods;
 			for (anInitRef <- candidateInitializerReferences) {
 				candidateLog += <<descClass, ascClass>, <ascClass, anInitRef>>;
@@ -185,7 +185,7 @@ rel [inheritanceKey, thisChangingTypeOccurrence] getThisChangingTypeOccurencesFr
 	map [loc, set[loc]] 	invertedUnitContainment 				= getInvertedUnitContainment(projectM3);
 	map [loc, set [loc]] 	declarationsMap 						= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case  methExpr2:\methodCall(_,_, _) : {

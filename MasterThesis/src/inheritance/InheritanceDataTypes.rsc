@@ -14,9 +14,7 @@ public inheritanceType SUPER = 7;
 public inheritanceType GENERIC = 8;
 public inheritanceType CATEGORY = 9;
 public inheritanceType FRAMEWORK = 10;
-
-
-public inheritanceType DOWNCALL = 12;
+public inheritanceType DOWNCALL = 11;
 
 
 
@@ -114,8 +112,9 @@ public alias categorySibling = loc;
 
 // public loc beginPath = |file:///home/aytekin/Documents/InheritanceLogs|; 
 
-public loc beginPath = |file://C:/Users/cigde_000/Documents/InheritanceLogs|;
+// public loc beginPath = |file://C:/Users/cigde_000/Documents/InheritanceLogs|;
 
+ public loc beginPath = |file://C:/Users/caytekin/InheritanceLogs|; 
 
 public str internalReuseLogFile 		=  "InternalReuse.log";
 public str categoryLogFile 				=  "Category.log" ;
@@ -129,6 +128,7 @@ public str genericLogFile 				=  "Generic.log";
 public str addedRelsLogFile 			=  "AddedRels.log";
 public str resultsFile					=  "Results.txt"; 
 public str errorLog						=  "Error.log" ;
+public str resultSummaryFile			=  "ResultsSummary.log"; 
 
 
 

@@ -74,7 +74,12 @@ private loc getImmediateParent(loc classOrInt, loc ascLoc,  map[loc, set[loc]] e
 			}
 		}
 		if (foundLoc == DEFAULT_LOC) {
-			throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
+			if (isInterface(classOrInt)) {
+				// that can happen, we should complete the for loop
+			;}
+			else {
+				throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
+			}
 		}	
 		retLoc = foundLoc;
 	}
@@ -196,6 +201,9 @@ private map [metricsType, num] calculateIIResults(rel [inheritanceKey, inheritan
 	IIResultsMap += (numUnexplainedII : size(iiRelations - allFoundUsages));
 	IIResultsMap += (perUnexplainedII : calcPercentage(IIResultsMap[numUnexplainedII], IIResultsMap[numExplicitII]));	
 
+	printResultSummaryToFile(iiResults, projectM3);
+
+
 	return IIResultsMap;	
 }
 
@@ -235,6 +243,8 @@ private map [metricsType, num] calculateCIResults(rel [inheritanceKey, inheritan
 	CIResultsMap += (numUnexplainedCI : size(ciRelations - allFoundUsages));
 	CIResultsMap += (perUnexplainedCI : calcPercentage(CIResultsMap[numUnexplainedCI], CIResultsMap[numExplicitCI]));	
 
+	printResultSummaryToFile(ciResults, projectM3);
+
 	return CIResultsMap;	
 }
 
@@ -249,6 +259,20 @@ private void printCIResults(map [metricsType, num]  CIMetricResults, M3 projectM
 	println();
 }
 
+
+private void printResultSummaryToFile(rel [inheritanceKey, inheritanceType] resultSummary, M3 projectM3) {
+	loc ccFile = getFilename(projectM3.id, resultSummaryFile);
+	lrel [loc, loc] resultRel = [];
+	for (anInhType <- [INTERNAL_REUSE..DOWNCALL+1]) {
+		resultRel = sort({<_child, _parent> | <<_child, _parent>, _iType> <- resultSummary, _iType == anInhType });
+		appendToFile(ccFile, "<getNameOfInheritanceType(anInhType)> TOTAL: <size(resultRel)> \n");
+		for (aResult <- resultRel) {
+			appendToFile(ccFile, "<aResult> \n");
+		}
+		appendToFile(ccFile, "\n");
+	}
+	appendToFile(ccFile, "\n\n\n");	
+}
 
 
 
@@ -301,6 +325,8 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	CCResultsMap += (numCCUnknown: size(ccRelations- allFoundUsages));
 	CCResultsMap += (perCCUnknown: calcPercentage(CCResultsMap[numCCUnknown], CCResultsMap[numExplicitCC]));
 
+	printResultSummaryToFile(ccResults, projectM3);
+
 	return CCResultsMap;
 }
 
@@ -333,10 +359,12 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://cobertura-1.9.4.1|;
+	loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
+	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
+	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 
 	println("Starting with internal reuse cases at: <printTime(now())> ");

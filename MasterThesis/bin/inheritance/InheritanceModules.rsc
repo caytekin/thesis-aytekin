@@ -138,12 +138,17 @@ public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {
 }
 
 
-private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[loc]] invertedUnitContainment) {
+private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[loc]] invertedUnitContainment, M3 projectM3) {
 	set [loc] retLocSet = aClassOrInt in invertedUnitContainment ? invertedUnitContainment[aClassOrInt] : {};
 	if (size(retLocSet) != 1) {
-		throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+		if (size(retLocSet) > 1) {
+			// this occurs very rarely, we should report it as error, but continue working 
+			appendToFile(getFilename(projectM3.id, errorLog), "In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+		;}
+		else {
+			throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+		}
 	}
-	else // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	return getOneFrom(retLocSet);
 }
 
@@ -166,11 +171,12 @@ public bool isInnerClass(loc aClass, map [loc, set[loc]] invertedClassInterfaceM
 
 public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] invertedClassInterfaceMethodContainment,
 														map [loc, set[loc]] invertedUnitContainment , 
-													   	map [loc, set[loc]] declarationsMap) {
+													   	map [loc, set[loc]] declarationsMap,
+													   	M3 projectM3) {
 	list [Declaration]  astsOfAClass = [];
 	// Inner classes are NOT included here, they are already included in the outer classes AST
 	if ( !isInnerClass(aClass, invertedClassInterfaceMethodContainment) ) {
-		loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment );
+		loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment, projectM3 );
 		loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
 		Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
 		visit (compUnitAST) {

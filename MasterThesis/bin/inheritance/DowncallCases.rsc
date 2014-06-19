@@ -109,7 +109,7 @@ private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, 
 																																				_ascClass in allClassesInProject };
 	map [ loc, set[loc]] invertedOverridesMap =  getInvertedOverridesMap (projectM3); 
 	for ( <_descClass, _ascClass> <- inhClassPairs){
-		list [Declaration] astsOfAscClass = getASTsOfAClass(_ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] astsOfAscClass = getASTsOfAClass(_ascClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 		for (anAST <-astsOfAscClass) {
 			visit (anAST) {
 				case anInitializer:\initializer(Statement initializerBody) : {
@@ -187,7 +187,7 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	rel [inheritanceKey, inheritanceType] resultRel = {};
 	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case mCall1:\methodCall(_, receiver:_, _, _): {

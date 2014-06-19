@@ -350,7 +350,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(projectInhRels);
 	map [loc, set [loc]] 	invertedInheritanceRelsMap 			= toMap(invert(projectInhRels));		
 	for (oneClass <- allClassesInProject ) {
-		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap);
+		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
