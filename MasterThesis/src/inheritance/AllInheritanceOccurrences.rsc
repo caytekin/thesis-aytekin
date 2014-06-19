@@ -74,7 +74,12 @@ private loc getImmediateParent(loc classOrInt, loc ascLoc,  map[loc, set[loc]] e
 			}
 		}
 		if (foundLoc == DEFAULT_LOC) {
-			throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
+			if (isInterface(classOrInt)) {
+				// that can happen, we should complete the for loop
+			;}
+			else {
+				throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
+			}
 		}	
 		retLoc = foundLoc;
 	}
@@ -333,7 +338,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://exoportal-v1.0.2|;
+	loc projectLoc = |project://proguard-4.9|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
