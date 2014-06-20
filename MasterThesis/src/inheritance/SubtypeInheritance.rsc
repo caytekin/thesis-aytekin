@@ -312,13 +312,14 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 
 
 public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
-																					map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment) {
+																					map [loc, set[TypeSymbol]] typesMap, 
+																					map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3) {
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
 	// TODO: Because of a bug in Rascal, I can only test this with method calls at the moment
 	// When that's fixed I should also test newObject()
 	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
 		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
-		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment);
+		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
 		list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
 		for (int i <- [0..size(passedSymbolList)]) {
 			//println("Parameter passing: <methOrConstExpr@src>");
@@ -368,31 +369,31 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection@typ, enhForStmt@src);
 				}
 				case  methExpr1:\methodCall(_,_, _) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);
 				}
 				case methExpr2:\methodCall(_, _, _, _): {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);					
 				} 
 				case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);
 				}
 				case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);					
 				}
 				case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);
 				}
 				case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);
 				}
 				case consCall1:\constructorCall(bool isSuper, list[Expression] arguments) : {
 					Expression consCallExpr1 = createMethodCallFromConsCall(consCall1);
-					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);					
 				}
 				case consCall2:\constructorCall(bool isSuper, Expression expr, list[Expression] arguments) : {
 					// TODO: When does this ever happen? I need a Java example for this...
 					Expression consCallExpr2 = createMethodCallFromConsCall(consCall2);
-					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, projectM3);					
 				}
 				
         	} // visit()

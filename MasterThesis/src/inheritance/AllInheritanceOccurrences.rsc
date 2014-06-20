@@ -359,7 +359,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://findbugs|;
+	loc projectLoc = |project://fitlibraryforfitnesse-20110301|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");

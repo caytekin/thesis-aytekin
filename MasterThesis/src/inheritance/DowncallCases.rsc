@@ -148,24 +148,26 @@ private rel [loc, loc, loc, loc] getDowncallCandidates(map[loc, set[loc]] invert
 	rel [loc, loc] 			allOverriddenMethods 		= {<descMeth, ascMeth> | <descMeth, ascMeth> <- projectM3@methodOverrides, ascMeth in allMethodsInProject};
 	map [loc, set [loc]] 	containmentMapForMethods 	= toMap({<owner, declared> | <owner,declared> <- projectM3@containment, isClass(owner), isMethod(declared)});
 	for (<descMeth, ascMeth> <- allOverriddenMethods) {
-		loc ascClass 				= getDefiningClassOrInterfaceOfALoc(ascMeth, invertedClassAndInterfaceContainment );
-		loc descClass 				= getDefiningClassOrInterfaceOfALoc(descMeth, invertedClassAndInterfaceContainment );
-		set [loc] methodsInAscClass = ascClass in  containmentMapForMethods ? containmentMapForMethods[ascClass] : {};
-		for (issuerMethod <- methodsInAscClass) {
-			methodAST = getMethodASTEclipse(issuerMethod, model = projectM3);	
-			visit(methodAST) {
-				case mCall1:\methodCall(_,_,_) : {
-					if ((mCall1@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
-						downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
-					}
-				 }
-				 case mCall2:\methodCall(_, Expression receiver, _, _) : {
-				 	if (receiver := this() && (mCall2@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
-						downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
-				 	}
-				 }
-			} // visit
-		}				 
+		loc ascClass 				= getDefiningClassOrInterfaceOfALoc(ascMeth, invertedClassAndInterfaceContainment, projectM3 );
+		loc descClass 				= getDefiningClassOrInterfaceOfALoc(descMeth, invertedClassAndInterfaceContainment, projectM3 );
+		if ((ascClass != DEFAULT_LOC) && (descClass != DEFAULT_LOC)) {
+			set [loc] methodsInAscClass = ascClass in  containmentMapForMethods ? containmentMapForMethods[ascClass] : {};
+			for (issuerMethod <- methodsInAscClass) {
+				methodAST = getMethodASTEclipse(issuerMethod, model = projectM3);	
+				visit(methodAST) {
+					case mCall1:\methodCall(_,_,_) : {
+						if ((mCall1@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
+							downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
+						}
+					 }
+					 case mCall2:\methodCall(_, Expression receiver, _, _) : {
+					 	if (receiver := this() && (mCall2@decl == ascMeth) && !isMethodOverriddenByDescClass(issuerMethod, descClass, invertedClassAndInterfaceContainment , projectM3)) {
+							downcallCandidates += <ascClass, descClass, issuerMethod, descMeth >;						
+					 	}
+					 }
+				} // visit
+			}	// for
+		} // if 			 
 	}
 	downcallCandidates += getDowncallCandidatesFromInitializers(invertedClassAndInterfaceContainment, projectM3); 
 	println("Number of down call candidates for project: <size(downcallCandidates)>");
@@ -195,7 +197,7 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
 					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall1@src, downcallCandidates, allInheritanceRels, extendsMap);
 					if (downcallResult.downcallBool) {
-						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment )>, <mCall1@src, invokedMethod, downcallResult.descDCallMeth>>;
+						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment, projectM3 )>, <mCall1@src, invokedMethod, downcallResult.descDCallMeth>>;
 					}	
 				}
 				case mCall2:\methodCall(_,_,_) : {
@@ -203,7 +205,7 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 					loc classOfReceiver = oneClass;
 					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall2@src, downcallCandidates, allInheritanceRels, extendsMap);					
 					if (downcallResult.downcallBool) {
-						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment )>, <mCall2@src, invokedMethod, downcallResult.descDCallMeth>>;
+						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment, projectM3 )>, <mCall2@src, invokedMethod, downcallResult.descDCallMeth>>;
 					}	
 				}
 			}

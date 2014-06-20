@@ -199,18 +199,9 @@ void searchForComplexTypes(M3 projectM3) {
 
 public void runInitialWork() {
 	//loc projectHead = |project://|;
-	loc myProject = |project://|+ "VerySmallProject";
-	println("My project loc: <myProject>");
-	loc projectLoc = |project://VerySmallProject|;
-	println("Project scheme is: <projectLoc.scheme>");
-	println("Project  authority is: <projectLoc.authority>");
-	//println("Project  host is: <projectLoc.host>");
-	println("Project  path is: <projectLoc.path>");
-	println("Project  extension is: <projectLoc.extension>");
-	println("Project  query is: <projectLoc.query>");
-	//println("Project  fragment is: <projectLoc.fragment>");
-	//println("Project  parent  is: <projectLoc.parent>");
-	//println("Project  file is: <projectLoc.file>");
+	//loc myProject = |project://|+ "EnumProject";
+	//println("My project loc: <myProject>");
+	loc projectLoc = |project://EnumProject|;
 
 	//makeDirectory(projectLoc);
 	//println("Directory is made...");
@@ -218,8 +209,8 @@ public void runInitialWork() {
 	//println("Annotations on projectLoc");
 	//iprintln(getAnnotations(projectLoc));
 	M3 projectM3 = getM3Model(projectLoc);
-	println("Containment, ananoymous classes: "); 
-	iprintln({<_container, _item> | <_container, _item> <- projectM3@containment, _container.scheme == "java+anonymousClass" || _item.scheme == "java+anonymousClass"   });
+	println("Containment, : "); 
+	iprintln(sort({<_container, _item> | <_container, _item> <- projectM3@containment }));
 	//println("Annotations on M3");
 	//iprintln(getAnnotations(projectM3));
 

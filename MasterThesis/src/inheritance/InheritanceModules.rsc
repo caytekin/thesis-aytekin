@@ -298,14 +298,27 @@ public list [loc] getAscendantsInOrder(loc childClass, map [loc, set[loc]] exten
 }
 
 
-public loc getDefiningClassOrInterfaceOfALoc(loc aLoc, map [loc, set[loc]] invertedClassAndInterfaceContainment) {
+public loc getDefiningClassOrInterfaceOfALoc(loc aLoc, map [loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3) {
 	set [loc] resultSet = aLoc in invertedClassAndInterfaceContainment ? invertedClassAndInterfaceContainment[aLoc] : {};
+	loc retLoc = DEFAULT_LOC;
 	if (size(resultSet) != 1) {
-		throw "Number of defining classes or interfaces for location <aLoc> is not one, but <size(resultSet)>. Classes: <resultSet>";
+		if (size(resultSet) == 0) {
+			// is it contained in an enum?
+			if (isEmpty({<_container, _item> | <_container, _item> <- projectM3@containment, _item == aLoc, _container.scheme == "java+enum"})) {
+				throw "Number of defining classes or interfaces for location <aLoc> is not one, but <size(resultSet)>. Classes: <resultSet>";
+			}
+			else {
+				// defined by en enum, we will not analyze it
+			;}
+		}
+		else {
+			throw "Number of defining classes or interfaces for location <aLoc> is not one, but <size(resultSet)>. Classes: <resultSet>";
+		}	
 	}
 	else {
-		return getOneFrom(resultSet);
+		retLoc =  getOneFrom(resultSet);
 	}
+	return retLoc;
 }
 
 
@@ -565,7 +578,8 @@ list [TypeSymbol]  getReceivingTypeParameters(TypeSymbol recTypeSymbol) {
 
 
 
-TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr, map [loc, set [TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment ) {
+TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression methodOrConstExpr, map [loc, set [TypeSymbol]] typesMap, 
+																  map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3 ) {
 	loc methodParameterTypeVariable = getTypeVariableFromTypeSymbol(genericTypeSymbol);
 	TypeSymbol resolvedTypeSymbol = genericTypeSymbol;
 	TypeSymbol recTypeSymbol = DEFAULT_TYPE_SYMBOL;
@@ -573,8 +587,10 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
 			//println("Method call at <methodOrConstExpr@decl> ");
-			methodOwningClassOrInt =  getDefiningClassOrInterfaceOfALoc(methodOrConstExpr@decl, invertedClassAndInterfaceContainment);
-			recTypeSymbol = receiver@typ;
+			methodOwningClassOrInt =  getDefiningClassOrInterfaceOfALoc(methodOrConstExpr@decl, invertedClassAndInterfaceContainment, projectM3);
+			if (methodOwningClassOrInt != DEFAULT_LOC) {
+				recTypeSymbol = receiver@typ;
+			}
 		}
 		case mCall:methodCall(_,_,_) : {
 			// There can be no subtyping between type parameters, so I do not have to do anything here.
@@ -630,14 +646,15 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 
 
 
-public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList, map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment  ) {
+public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, list [TypeSymbol] typeList, map [loc, set[TypeSymbol]] typesMap, 
+																				map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3  ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
 		visit (_aTypeSymbol) {
 			case aTypePar:\typeParameter(loc decl, Bound upperbound) : {
-				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment );	
+				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);	
 			} 
 		}
 		retList += currentTypeSymbol;
@@ -646,7 +663,8 @@ public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, l
 }
 
 
-public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr, map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment ) {
+public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr, map [loc, set[TypeSymbol]] typesMap, map[loc, set[loc]] invertedClassAndInterfaceContainment, 
+																														M3 projectM3 ) {
 	list [TypeSymbol] retTypeList 	= [];
 	list [TypeSymbol] methodParameterTypes = [];
 	loc methodLoc 					= methodOrConstExpr@decl;
@@ -659,7 +677,7 @@ public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr
 			methodParameterTypes = typeParameters;
 		}
 	}
-	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap, invertedClassAndInterfaceContainment);
+	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap, invertedClassAndInterfaceContainment, projectM3);
 	//println();
 	return retTypeList;
 }
