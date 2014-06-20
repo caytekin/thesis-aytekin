@@ -48,27 +48,29 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 	loc accessedField = DEFAULT_LOC;
 	TypeSymbol receiverTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	loc srcRef = DEFAULT_LOC;
+	bool isThisReference = false; 
 	visit (qName) {
-		case \qualifiedName(qualifier, expression) : {
+		case qName:\qualifiedName(qualifier, expression) : {
 			accessedField = expression@decl;
 			if (isField(accessedField) ) { receiverTypeSymbol = qualifier@typ; }
 			srcRef = expression@src;
+			fieldReceiver = qualifier@decl;
 		} 
 		case fAccessStmt:\fieldAccess(isSuper, fAccessExpr:_, str name:_) : {
 			accessedField = fAccessStmt@decl;
 			receiverTypeSymbol = fAccessExpr@typ;
-			srcRef = fAccessStmt@src;			
+			srcRef = fAccessStmt@src;		
+			isThisReference = (fAccessExpr := this());
 		}
 	}
-	if (isField(accessedField) && isLocDefinedInProject(accessedField, declarationsMap) && isLocDefinedInClassOrInterface(accessedField, invClassAndInterfaceContainment)) {  
+	if (isField(accessedField) && !(isThisReference) && isLocDefinedInProject(accessedField, declarationsMap) && isLocDefinedInClassOrInterface(accessedField, invClassAndInterfaceContainment)) {  
 		loc classOfQualifier 	= getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
 		loc classOfExpression 	= getDefiningClassOrInterfaceOfALoc(accessedField, invClassAndInterfaceContainment);
 		if (classOfQualifier != classOfExpression) {
 			retList += <<classOfQualifier, classOfExpression>, EXTERNAL_REUSE_VIA_FIELD_ACCESS, srcRef, accessedField>;
-			//println("Field access : <classOfQualifier> , <classOfExpression>, at: <srcRef>, field: <accessedField> ");
+				//println("Field access : <classOfQualifier> , <classOfExpression>, at: <srcRef>, field: <accessedField> ");
 		}
 	}
-
 	return retList;
 }
 

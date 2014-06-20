@@ -100,34 +100,33 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariab
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Declaration vars) {
+public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Type typeOfVar, list[Expression] fragments) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	bool isConditional = false;
-	visit(vars) {
-		case \variables(typeOfVar, fragments) : {
-  			TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
-  			//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
-  			visit (fragments[size(fragments) - 1]) {
-  				case nullVar : \variable(_,_, null()) : { 
-					// a null initialization should not be counted as subtype
-				;}
-				case myVar: \variable(_,_,stmt) : {
-					visit (stmt) {
-						case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
-							isConditional = true;
-							retList += getSubtypeResultViaVariable(lhsTypeSymbol , thenBranch, fragments);
-							retList += getSubtypeResultViaVariable(lhsTypeSymbol , elseBranch, fragments);				
-						}
-					} 
-					if (!isConditional) {
-						retList += getSubtypeResultViaVariable(lhsTypeSymbol , stmt, fragments);
-					}	
-				} // case myVar
-  			}  // visit fragments
-		} // case
-	} // visit
+	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
+	//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
+	visit (fragments[size(fragments) - 1]) {
+		case nullVar : \variable(_,_, null()) : { 
+			// a null initialization should not be counted as subtype
+		;}
+		case myVar: \variable(_,_,stmt) : {
+			visit (stmt) {
+				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
+					isConditional = true;
+					retList += getSubtypeResultViaVariable(lhsTypeSymbol , thenBranch, fragments);
+					retList += getSubtypeResultViaVariable(lhsTypeSymbol , elseBranch, fragments);				
+				}
+			} 
+			if (!isConditional) {
+				retList += getSubtypeResultViaVariable(lhsTypeSymbol , stmt, fragments);
+			}	
+		} // case myVar
+  	}  // visit fragments
  	return retList;
 }
+
+
+
 
 
 private bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
@@ -356,9 +355,12 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
 					allSubtypeCases += getSubtypeViaAssignment(aStmt);
 				}
-				case variables:\variables(typeOfVar, fragments) : {
-					allSubtypeCases += getSubtypeViaVariables(variables);
+				case _variables:\variables(typeOfVar, fragments) : {
+					allSubtypeCases += getSubtypeViaVariables(typeOfVar, fragments);
 				} 
+				case _fields:\field(typeOfField, fragments) : {
+					allSubtypeCases += getSubtypeViaVariables(typeOfField, fragments);
+				}
 				case castStmt:\cast(castType, castExpr) : {  
 					allSubtypeCases += getSubtypeViaCast(castStmt, inheritanceRelsMap, invertedInheritanceRelsMap);					
 				} // case \cast
