@@ -53,19 +53,27 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 }
 
 
-private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef) {
+private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	//println("Assignment source ref: <sourceRef>");
-	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
-	if (result.isSubtypeRel) {
-		retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef>;
-	} // if
+	// error NoSuchAnnotation retExpr@typ
+	TypeSymbol lhsTypeSymbol = getTypeSymbolFromAnnotation(lhs, projectM3);
+	TypeSymbol rhsTypeSymbol = getTypeSymbolFromAnnotation(rhs, projectM3);
+	if ( (lhsTypeSymbol == DEFAULT_TYPE_SYMBOL) || (rhsTypeSymbol == DEFAULT_TYPE_SYMBOL)) {
+		println("In getSubtypeResultViaAssignment, NoSuchAnnotation exception thrown for: lhs: : <lhs>, or rhs: <rhs> at sourceref : <sourceRef>");
+	}
+	else {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhs@typ);
+		if (result.isSubtypeRel) {
+			retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef>;
+		} // if
+	}
 	return retList;
 }
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Expression asmtStmt) {
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Expression asmtStmt, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	bool isConditional = false;
 	visit (asmtStmt) {
@@ -73,12 +81,12 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Ex
 			visit (aStmt) {
 				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {		// ternary operator, ,ex: p4 = (i == 3) ? new C() : new G();
 					isConditional = true;
-					retList += getSubtypeResultViaAssignment(lhs, thenBranch, conditionalS@src);
-					retList += getSubtypeResultViaAssignment(lhs, elseBranch, conditionalS@src);				
+					retList += getSubtypeResultViaAssignment(lhs, thenBranch, conditionalS@src, projectM3);
+					retList += getSubtypeResultViaAssignment(lhs, elseBranch, conditionalS@src, projectM3);				
 				} 
 			}
 			if (!isConditional) {
-				retList += getSubtypeResultViaAssignment(lhs, rhs, aStmt@src);
+				retList += getSubtypeResultViaAssignment(lhs, rhs, aStmt@src, projectM3);
 			}																					   
 		}	// case	
 	} // visit
@@ -86,21 +94,24 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Ex
 }
 
 
-private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments) {
+private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	//println("Variable decl: <rhs@src>");	
-	tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
-	if (result.isSubtypeRel) {
-		//println("Fragments: "); iprintln(fragments); 
-		for (anExpression <- fragments) {
-			retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
+	TypeSymbol rhsTypeSymbol = getTypeSymbolFromAnnotation(rhs, projectM3);
+	if (rhsTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhs@typ, lhsTypeSymbol); 
+		if (result.isSubtypeRel) {
+			//println("Fragments: "); iprintln(fragments); 
+			for (anExpression <- fragments) {
+				retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
+			}
 		}
 	}
 	return retList;
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Type typeOfVar, list[Expression] fragments) {
+public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Type typeOfVar, list[Expression] fragments, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	bool isConditional = false;
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
@@ -113,12 +124,12 @@ public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Ty
 			visit (stmt) {
 				case conditionalS:\conditional(logicalExpr, thenBranch, elseBranch) : {
 					isConditional = true;
-					retList += getSubtypeResultViaVariable(lhsTypeSymbol , thenBranch, fragments);
-					retList += getSubtypeResultViaVariable(lhsTypeSymbol , elseBranch, fragments);				
+					retList += getSubtypeResultViaVariable(lhsTypeSymbol , thenBranch, fragments, projectM3);
+					retList += getSubtypeResultViaVariable(lhsTypeSymbol , elseBranch, fragments, projectM3);				
 				}
 			} 
 			if (!isConditional) {
-				retList += getSubtypeResultViaVariable(lhsTypeSymbol , stmt, fragments);
+				retList += getSubtypeResultViaVariable(lhsTypeSymbol , stmt, fragments, projectM3);
 			}	
 		} // case myVar
   	}  // visit fragments
@@ -241,16 +252,21 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap ) {
+public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap, M3 projectM3 ) {
 	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
+	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	visit (returnStmt) {
 		case \return(retExpr) : {
 			//println("Via return statement: <retExpr@src>");
-			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(	retExpr@typ, 
+			// error NoSuchAnnotation retExpr@typ
+			retTypeSymbol = getTypeSymbolFromAnnotation(retExpr, projectM3);
+			if (retTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(retTypeSymbol, 
 																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, typesMap));
-			if (result.isSubtypeRel) {
-				retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
-			} 
+				if (result.isSubtypeRel) {
+					retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
+				}
+			}	 
 		}  
 	}
 	return retList;
@@ -354,13 +370,13 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
 				case aStmt:\assignment(lhs, operator, rhs) : {  
-					allSubtypeCases += getSubtypeViaAssignment(aStmt);
+					allSubtypeCases += getSubtypeViaAssignment(aStmt, projectM3);
 				}
 				case _variables:\variables(typeOfVar, fragments) : {
-					allSubtypeCases += getSubtypeViaVariables(typeOfVar, fragments);
+					allSubtypeCases += getSubtypeViaVariables(typeOfVar, fragments, projectM3);
 				} 
 				case _fields:\field(typeOfField, fragments) : {
-					allSubtypeCases += getSubtypeViaVariables(typeOfField, fragments);
+					allSubtypeCases += getSubtypeViaVariables(typeOfField, fragments, projectM3);
 				}
 				case castStmt:\cast(castType, castExpr) : {  
 					allSubtypeCases += getSubtypeViaCast(castStmt, inheritanceRelsMap, invertedInheritanceRelsMap);					
@@ -404,7 +420,7 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 			methodAST = getMethodASTEclipse(oneMethod, model = projectM3);	
 			visit(methodAST) {
 				case returnStmt:\return(retExpr) : {
-					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, typesMap );
+					allSubtypeCases += getSubtypeViaReturnStmt(returnStmt, oneMethod, typesMap, projectM3 );
 				}  // case \return(_)
         	} // visit()
 		}	// for each method in the class															

@@ -194,10 +194,13 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 			visit(oneAST) {
 				case mCall1:\methodCall(_, receiver:_, _, _): {
 					loc invokedMethod = mCall1@decl;
-					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-					tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall1@src, downcallCandidates, allInheritanceRels, extendsMap);
-					if (downcallResult.downcallBool) {
-						downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment, projectM3 )>, <mCall1@src, invokedMethod, downcallResult.descDCallMeth>>;
+					TypeSymbol receiverTypeSymbol = getTypeSymbolFromAnnotation(receiver,  projectM3);
+					if (receiverTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+						loc classOfReceiver = getClassFromTypeSymbol(receiverTypeSymbol);
+						tuple [bool downcallBool, loc descDCallMeth] downcallResult = isDowncall(invokedMethod, classOfReceiver, mCall1@src, downcallCandidates, allInheritanceRels, extendsMap);
+						if (downcallResult.downcallBool) {
+							downcallLog += <<classOfReceiver, getDefiningClassOrInterfaceOfALoc(invokedMethod, invertedClassAndInterfaceContainment, projectM3 )>, <mCall1@src, invokedMethod, downcallResult.descDCallMeth>>;
+						}
 					}	
 				}
 				case mCall2:\methodCall(_,_,_) : {

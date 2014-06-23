@@ -359,14 +359,15 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://fitlibraryforfitnesse-20110301|;
+	loc projectLoc = |project://ganttproject-2.1.1|;
+	//loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-
+	
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
@@ -374,7 +375,7 @@ public void runIt() {
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
-
+	
 	println("Starting with subtype cases at: <printTime(now())> ");
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	println("Subtype cases are done at <printTime(now())>...");	

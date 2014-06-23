@@ -138,6 +138,18 @@ public map [loc, set[loc]] getInvertedUnitContainment(M3 projectM3) {
 }
 
 
+public TypeSymbol getTypeSymbolFromAnnotation(Expression anExpression, M3 projectM3) {
+	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	try {
+		retSymbol = anExpression@typ;
+	}
+	catch NoSuchAnnotation("typ") : {
+		appendToFile(getFilename(projectM3.id, errorLog), "In getTypeSymbolFromAnnotation, NoSuchAnnotation exception thrown for expression <anExpression>: \n");
+	;}
+	return retSymbol;
+}
+
+
 private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[loc]] invertedUnitContainment, M3 projectM3) {
 	set [loc] retLocSet = aClassOrInt in invertedUnitContainment ? invertedUnitContainment[aClassOrInt] : {};
 	if (size(retLocSet) != 1) {

@@ -26,17 +26,23 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	visit (mCall) {
 		case m2:\methodCall(_, receiver:_, _, _): {
-			loc invokedMethod = m2@decl;        			
-			loc classOrInterfaceOfReceiver = getClassOrInterfaceFromTypeSymbol(receiver@typ);
-			if ((invokedMethod in invClassAndInterfaceContainment) && (classOrInterfaceOfReceiver != classOfMethodCall) 
-									&& isLocDefinedInProject(invokedMethod, declarationsMap) 
-								 	&& ! inheritanceRelationExists(classOfMethodCall, classOrInterfaceOfReceiver, allInheritanceRelations)) {
-				// for external reuse, the invokedMethod should not be declared in the class classOrInterfaceOfReceiver
-				loc methodDefiningClassOrInterface = getDefiningClassOrInterfaceOfALoc(invokedMethod, invClassAndInterfaceContainment, projectM3);
-				if ((methodDefiningClassOrInterface != DEFAULT_LOC) && (methodDefiningClassOrInterface != classOrInterfaceOfReceiver) ) {
-						retList += <<classOrInterfaceOfReceiver, methodDefiningClassOrInterface>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
-				}
-			} // if inheritanceRelationExists
+			loc invokedMethod = m2@decl;        	
+			if (m2@decl == |unresolved:///|) {
+				appendToFile(getFilename(projectM3.id, errorLog), "In getExternalReuseViaMethodCall, methodcall decl unresolved for method call: <m2@decl>, at <m2@src>. Receiver is: <receiver>\n");
+				println("Methodcall decl unresolved for method call: <m2@decl>, at <m2@src>. Receiver is: <receiver>");
+			}
+			else {		
+				loc classOrInterfaceOfReceiver = getClassOrInterfaceFromTypeSymbol(receiver@typ);
+				if ((invokedMethod in invClassAndInterfaceContainment) && (classOrInterfaceOfReceiver != classOfMethodCall) 
+										&& isLocDefinedInProject(invokedMethod, declarationsMap) 
+									 	&& ! inheritanceRelationExists(classOfMethodCall, classOrInterfaceOfReceiver, allInheritanceRelations)) {
+					// for external reuse, the invokedMethod should not be declared in the class classOrInterfaceOfReceiver
+					loc methodDefiningClassOrInterface = getDefiningClassOrInterfaceOfALoc(invokedMethod, invClassAndInterfaceContainment, projectM3);
+					if ((methodDefiningClassOrInterface != DEFAULT_LOC) && (methodDefiningClassOrInterface != classOrInterfaceOfReceiver) ) {
+							retList += <<classOrInterfaceOfReceiver, methodDefiningClassOrInterface>, EXTERNAL_REUSE_VIA_METHOD_CALL, m2@src, invokedMethod>; 
+					} // if methodDefiningClassOrInterface != DEFAULT_LOC ...
+				} // if inheritanceRelationExists
+			} // else 
    		} // case methodCall()
    	}
 	return retList;
