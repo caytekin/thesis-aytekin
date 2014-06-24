@@ -163,11 +163,12 @@ public rel [inheritanceKey, inheritanceType] getSuperRelations(M3 projectM3) {
 
 
 private rel [inheritanceKey iKey, set [loc] otherParents] getOneGenericUsage(Expression castStmt, 	map [loc, set [loc]] invertedExtendsAndImplementsMap,
-																										map [loc, set [loc]] extendsAndImplementsMap ) {
+																										map [loc, set [loc]] extendsAndImplementsMap,
+																										M3 projectM3 ) {
 	rel [inheritanceKey iKey,set [loc] otherParents] oneUsage = {};
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
-			TypeSymbol exprTypeSymbol = castExpr@typ;
+			TypeSymbol exprTypeSymbol = getTypeSymbolFromAnnotation(castExpr, projectM3); ;
 			// TODO Think about arrays, generics, etc. and test with examples!
 			TypeSymbol castTypeSymbol = getTypeSymbolFromRascalType(castType);
 			if (exprTypeSymbol := object()) {
@@ -200,7 +201,7 @@ private rel [inheritanceKey, inheritanceType] getGenericUsages(M3 projectM3) {
 	for ( anAST <- projectASTs) {
 		visit (anAST) {
 			case castStmt:\cast(castType, castExpr) : {  
-				rel [inheritanceKey, set[loc]] oneGenericUsage = getOneGenericUsage(castStmt, invertedExtendsAndImplementsMap, extendsAndImplementsMap );
+				rel [inheritanceKey, set[loc]] oneGenericUsage = getOneGenericUsage(castStmt, invertedExtendsAndImplementsMap, extendsAndImplementsMap, projectM3 );
 				if ( !isEmpty(oneGenericUsage) ) { 
 					tuple [inheritanceKey iKey, set [loc] otherParents] genericTuple = getOneFrom(oneGenericUsage);
 					retRel += <genericTuple.iKey, GENERIC>;

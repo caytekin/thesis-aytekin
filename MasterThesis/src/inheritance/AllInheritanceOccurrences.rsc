@@ -359,7 +359,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://ganttproject-2.1.1|;
+	loc projectLoc = |project://poi-3.6|;
 	//loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
