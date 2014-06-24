@@ -217,7 +217,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 }
 
 
-private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol, loc forLoopRef, list [TypeSymbol] typeParameters) {
+private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol, loc forLoopRef, list [TypeSymbol] typeParameters, M3 projectM3) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
 	if (size(typeParameters) == 0) { retSymbol = OBJECT_TYPE_SYMBOL; }
 	else {
@@ -225,7 +225,8 @@ private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol,
 			retSymbol = typeParameters[0]; 
 		}
 		else {
-			throw "More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>"; 
+			appendToFile(getFilename(projectM3.id, errorLog), "More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>\n");
+			println("More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>"); 
 		}	
 	}	
 	return retSymbol;
@@ -243,10 +244,10 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 				compTypeSymbol = component;
 			}
 			case anInterfaceColl:\class(loc decl, list[TypeSymbol] typeParameters) : {
-				compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters);
+				compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters, projectM3);
 			}
 			case aClassColl:\interface(loc decl, list[TypeSymbol] typeParameters) : {
-				compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters);
+				compTypeSymbol = getTypeSymbolFromTypeParameterList(collTypeSymbol, forLoopRef, typeParameters, projectM3);
 			}
 		}
 		if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
