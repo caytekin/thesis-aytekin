@@ -217,8 +217,11 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 		visit (aProjectAST) {
 			case methExpr1:\methodCall(_,receiver,_,_) : {
 			// \methodCall(bool isSuper, Expression receiver, str name, list[Expression] arguments)
-   				loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
-				occurrenceLog += getAnOccurrenceFromMethodCall(candidates, methExpr1@decl, methodAndDescClasses, classOfReceiver, methExpr1@src);
+				TypeSymbol receiverTypeSymbol = getTypeSymbolFromAnnotation(receiver, projectM3);
+				if (receiverTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+   					loc classOfReceiver = getClassFromTypeSymbol(receiver@typ);
+					occurrenceLog += getAnOccurrenceFromMethodCall(candidates, methExpr1@decl, methodAndDescClasses, classOfReceiver, methExpr1@src);
+				}	
    			} // case \methodCall
 			case methExpr2:\methodCall(_,_,_) : {
 			//\methodCall(bool isSuper, str name, list[Expression] arguments)
@@ -248,5 +251,5 @@ private set [inheritanceKey] getThisChangingTypeOccurrences(rel [loc, loc, loc] 
 public rel [inheritanceKey, inheritanceType] getThisChangingTypeOccurrences(M3 projectM3) {
 	rel [loc, loc, loc] thisChangingTypeCandidates = getThisChangingTypeCandidates(projectM3);
 	set [inheritanceKey] thisChangingTypeOccurrences = getThisChangingTypeOccurrences(thisChangingTypeCandidates, projectM3);
-	return {<iKey, SUBTYPE> | iKey <- thisChangingTypeOccurrences } + {<<_child, _parent>, SUBTYPE> | <_child, _parent, _ascClss> <- thisChangingTypeCandidates};
+	return {<iKey, SUBTYPE> | iKey <- thisChangingTypeOccurrences };
 }
