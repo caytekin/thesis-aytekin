@@ -50,46 +50,15 @@ private set [loc] getAllExceptionClasses(rel [loc, loc] allInheritanceRelations)
 }
 
 
-// return all non-framework (i. e. system) types which are not exceptions
+// return all types which are not exceptions // changed 26June2014, look here later TODO TODO TODO 
 rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inheritanceKey, inheritanceType] allInheritanceCases, rel [loc, loc] allInheritanceRelations, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType]retRel = {};
 	set [loc] allExceptionClasses = getAllExceptionClasses(allInheritanceRelations);
-	set [loc] allTypesOfProject = getAllClassesAndInterfacesInProject(projectM3);
-	set [loc] allNonExceptionTypesOfProject = allTypesOfProject - allExceptionClasses;
-	retRel = {<<_child,_parent>, _iKey> | <<_child, _parent>, _iKey> <- allInheritanceCases, _child in allNonExceptionTypesOfProject , _parent in allNonExceptionTypesOfProject};
+	retRel = {<<_child,_parent>, _iKey> | <<_child, _parent>, _iKey> <- allInheritanceCases, _child notin allExceptionClasses , _parent notin allExceptionClasses};
 	return retRel;
 }
 
 
-private loc getImmediateParent(loc classOrInt, loc ascLoc,  map[loc, set[loc]] exOrImplMap, rel [loc, loc] allInheritanceRelations) {
-	loc retLoc = DEFAULT_LOC;
-	loc foundLoc = DEFAULT_LOC;
-	set[loc] immParentSet = classOrInt in exOrImplMap ? exOrImplMap[classOrInt] : {};
-	if (size(immParentSet) > 1) { // this is only possible if parents are interfaces 
-		for (anImmediateParent <-immParentSet) {
-			foundLoc = DEFAULT_LOC;
-			if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
-				foundLoc = anImmediateParent;
-				break;
-			}
-		}
-		if (foundLoc == DEFAULT_LOC) {
-			if (isInterface(classOrInt)) {
-				// that can happen, we should complete the for loop
-			;}
-			else {
-				throw "<classOrInt> has more than one immediateParent! Immediate parent set : <immParentSet> ";
-			}
-		}	
-		retLoc = foundLoc;
-	}
-	else {
-		if (size(immParentSet) == 1) {
-			retLoc = getOneFrom(immParentSet);
-		}
-	}  
-	return retLoc;
-}
 
 
 
@@ -110,25 +79,25 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	loc immediateParent = DEFAULT_LOC;
 	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
 		immediateParent = DEFAULT_LOC;
-		println("--------Child: <_child>, parent: < _parent>, Inhtype: <_iType>");
+		//println("--------Child: <_child>, parent: < _parent>, Inhtype: <_iType>");
 		if (isInterface(_child)) {
-			immediateParent =  getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
+			immediateParent =  getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
 		}
 		else {
 			if (isClass(_parent)) {
-				immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
+				immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
 			}
 			else { // child is a class, parent is an interface
-				immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
+				immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
 				if ((immediateParent != DEFAULT_LOC) && inheritanceRelationExists(immediateParent ,_parent, allInheritanceRelations)) {
 					// immediate parent is found
 				;}
 				else {
-					immediateParent = getImmediateParent(_child, _parent, extendsMap, allInheritanceRelations); 
+					immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
 				}
 			}
 		}
-		println("Immediate parent: <immediateParent>"); 
+		//println("Immediate parent: <immediateParent>"); 
 		addedInhOccLog += <<_child, immediateParent>, _iType, _parent>; 
 	}  // for														
 	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _immediateParent>, _iType, _parent><- addedInhOccLog, _immediateParent != DEFAULT_LOC };	
@@ -144,6 +113,7 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritanceKey, inheritanceType] inheritanceResults, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] retRel = {};
 	rel [inheritanceKey, inheritanceType] allOccurrences = {};	
+	set [loc] systemTypes = getAllClassesAndInterfacesInProject(projectM3);
 	rel [loc, loc] 	extendsOrImplRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements};
 	rel [inheritanceKey, inheritanceType] allDowncalls = {<<_child, _parent>, DOWNCALL> | <<_child, _parent>, _iType> <- inheritanceResults, _iType == DOWNCALL_ACTUAL || _iType == DOWNCALL_CANDIDATE };
 	rel [inheritanceKey, inheritanceType] allOthers =  {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- inheritanceResults , _iType != DOWNCALL_ACTUAL , _iType != DOWNCALL_CANDIDATE};
@@ -158,7 +128,14 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	//iprintln(sort(explicitFoundInhRels ));
 	//println("IMPLICIT  RESULTS");
 	//iprintln(sort(implicitFoundInhRels ));
-	retRel = explicitFoundInhRels + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
+	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
+	println("ALL RESULTS -------------------------------------------------------------------");
+	iprintln(sort(allResults));
+	println("-------------------------------------------------------------------"); println();
+	retRel = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- allResults, _child in systemTypes, _parent in systemTypes};
+	println("Non-system results are taken out: ");
+	iprintln(sort(retRel));
+	println("-------------------------------------------------------------------"); println();
 	return retRel;
 }
 
@@ -359,7 +336,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://findbugs|;
+	loc projectLoc = |project://fitjava-1.1|;
 	//loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
@@ -375,6 +352,7 @@ public void runIt() {
 	println("Starting with external reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getExternalReuseCases(projectM3);	
 	println("External use cases are done at <printTime(now())>...");	
+	
 	
 	println("Starting with subtype cases at: <printTime(now())> ");
 	allInheritanceCases += getSubtypeCases(projectM3);	
@@ -400,59 +378,22 @@ public void runIt() {
 	rel [inheritanceKey, inheritanceType] filteredInheritanceCases = getFilteredInheritanceCases(allInheritanceCases, allInheritanceRelations, projectM3);
 
 	rel [inheritanceKey, inheritanceType] explicitResults = getExplicitResults(filteredInheritanceCases, projectM3);
-	//rel [inheritanceKey, inheritanceType] actualResults = getActualResults(filteredInheritanceCases);	
 	
-	rel [loc, loc] systemInhRelations 	= getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3);
+	
+	
+	rel [loc, loc] systemInhRelations = allInheritanceRelations;
+	
+	// 	= getNonFrameworkInheritanceRels(allInheritanceRelations, projectM3); Changed at 26June2014, this is a test TODO TODO TODO 
 	
 	rel [loc, loc] explicitInhRelations = getExplicitInhRelations(systemInhRelations, projectM3);
 
 
-	
-	//println("CONSTANTS:");
-	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CONSTANT }));
-	//
-	//println("MARKER:");
-	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == MARKER }));
-	//
+	set [loc] allSystemTypes = getAllClassesAndInterfacesInProject(projectM3);
+	rel [loc, loc] systemExplicitInhRelations = {<_child, _parent> | <_child, _parent> <- explicitInhRelations, _child in allSystemTypes, _parent in allSystemTypes};
 
-	//println("GENERIC:");
-	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == GENERIC }));
-
-	//println("SUPER:");
-	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUPER }));
-
-	//println("CATEGORY:");
-	//iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == CATEGORY }));
-	
-	println("INTERNAL REUSE ALL:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == INTERNAL_REUSE }));
-
-
-	println("EXTERNAL REUSE:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == EXTERNAL_REUSE}));
-
-	
-	println("SUBTYPE:");
-	iprintln(sort({<_child, _parent> | <<_child, _parent>, _iType> <- allInheritanceCases, _iType == SUBTYPE}));
-	
-
-	printLog(getFilename(projectM3.id, downcallLogFile), "DOWNCALL LOG:");
-
-	printLog(getFilename(projectM3.id, internalReuseLogFile), "INTERNAL REUSE LOG:");
-	printLog(getFilename(projectM3.id, externalReuseLogFile), "EXTERNAL REUSE LOG:");
-	printLog(getFilename(projectM3.id, subtypeLogFile), "SUBTYPE LOG:");
-	printLog(getFilename(projectM3.id, thisChangingTypeCandFile), "THIS CHANGING TYPE CANDIDATES:");
-	printLog(getFilename(projectM3.id, thisChangingTypeOccurFile), "THIS CHANGING TYPE OCCURRENCES:");	
-
-	printLog(getFilename(projectM3.id, genericLogFile), "GENERIC LOG:");
-	printLog(getFilename(projectM3.id, superLogFile), "SUPER LOG:");
-	printLog(getFilename(projectM3.id, categoryLogFile), "CATEGORY LOG: ");	
-
-
-
-	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, explicitInhRelations, projectM3);
-	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, explicitInhRelations, projectM3);
-	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, explicitInhRelations, projectM3);
+	map [metricsType, num] explicitCCMetricResults = calculateCCResults(explicitResults, systemExplicitInhRelations, projectM3);
+	map [metricsType, num] explicitCIMetricResults = calculateCIResults(explicitResults, systemExplicitInhRelations, projectM3);
+	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, systemExplicitInhRelations, projectM3);
 	
 	writeFile(getFilename(projectM3.id,resultsFile), "<projectM3.id.authority>\t" );
 	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");

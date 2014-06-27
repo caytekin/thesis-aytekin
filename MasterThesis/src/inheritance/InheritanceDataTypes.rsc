@@ -75,8 +75,10 @@ public inheritanceSubtype SUBTYPE_VIA_PARAMETER = 207;
 public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP = 208;
 
 
-public inheritanceSubtype EXTERNAL_REUSE_VIA_METHOD_CALL = 210;
-public inheritanceSubtype EXTERNAL_REUSE_VIA_FIELD_ACCESS = 211;
+public inheritanceSubtype EXTERNAL_REUSE_DIRECT_VIA_METHOD_CALL = 210;
+public inheritanceSubtype EXTERNAL_REUSE_INDIRECT_VIA_METHOD_CALL = 211;
+public inheritanceSubtype EXTERNAL_REUSE_DIRECT_VIA_FIELD_ACCESS = 212;
+public inheritanceSubtype EXTERNAL_REUSE_INDIRECT_VIA_FIELD_ACCESS = 213;
 
 
 public inheritanceSubtype INTERNAL_REUSE_METHOD_LEVEL = 220;

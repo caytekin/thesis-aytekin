@@ -201,7 +201,7 @@ public void runInitialWork() {
 	//loc projectHead = |project://|;
 	//loc myProject = |project://|+ "EnumProject";
 	//println("My project loc: <myProject>");
-	loc projectLoc = |project://EnumProject|;
+	loc projectLoc = |project://InheritanceSamples|;
 
 	//makeDirectory(projectLoc);
 	//println("Directory is made...");
@@ -209,12 +209,38 @@ public void runInitialWork() {
 	//println("Annotations on projectLoc");
 	//iprintln(getAnnotations(projectLoc));
 	M3 projectM3 = getM3Model(projectLoc);
-	println("Containment, : "); 
-	iprintln(sort({<_container, _item> | <_container, _item> <- projectM3@containment }));
+	map[loc, set[loc]] 			extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map[loc, set[loc]] 			implementsMap  	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	
+	set [loc] allTypesInProject =  getAllClassesAndInterfacesInProject(projectM3);
+	
+	for (aLoc <- allTypesInProject) {	
+		println("Loc <aLoc>");
+		loc immParent = getImmediateParent(aLoc ,extendsMap, implementsMap, declarationsMap);
+		if (immParent != DEFAULT_LOC) {
+			println("immediate parent of <aLoc> is <immParent>"); 
+		}	
+	}
+	
+	
+	//println("Containment, : "); 
+	//iprintln(sort({<_container, _item> | <_container, _item> <- projectM3@containment }));
+	//
+	//println("Method invocation:");
+	//iprintln(sort({<_container, _item> | <_container, _item> <- projectM3@methodInvocation }));
+	
 	//println("Annotations on M3");
 	//iprintln(getAnnotations(projectM3));
 
+	//loc methodLoc = |java+method:///javax/swing/text/View/getAlignment(int)|;
 	
+	//println("Id: <methodLoc.id>");
+	//println("Authority: <methodLoc.authority>");
+	//println("parent: <methodLoc.parent>");
+	//println("Scheme: <methodLoc.scheme>");
+	//println("File <methodLoc.file>");
+
 
 	//println("Extends annotation"); iprintln(sort(projectM3@extends));
 	//println("Size of extends annotation is: <size(projectM3@extends)>");

@@ -246,6 +246,15 @@ public set [loc] getClassesWhichOverrideAMethod(loc aMethod, map [loc, set[loc]]
 }
 
 
+public bool isLocDefinedInGivenType(loc aLoc, loc aType , map[loc, set[loc]] invClassAndInterfaceContainment) {
+	bool retBool = false; 
+	set [loc] containingSet = aLoc in invClassAndInterfaceContainment ? invClassAndInterfaceContainment[aLoc] : {};
+	if (aType in containingSet) { retBool = true; }
+	return retBool;
+}
+
+
+
 public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, map[loc, set[loc]] invertedContainment,  M3 projectM3) {
 	bool retBool = false;
 	set [loc] classesThatOverrideTheMethod = getClassesWhichOverrideAMethod(issuerMethod, invertedContainment, projectM3);
@@ -291,6 +300,124 @@ public bool isMethodOverriddenByAnyDescClass(loc aMethod, loc ascClass, loc desc
 	}
 	return retBool;
 }
+
+
+private loc getImmediateParentOfInterface(loc classOrInt, map[loc, set[loc]] extendsMap, map[loc, set[loc]] declarationsMap  ) {
+	loc retLoc 		= DEFAULT_LOC;
+	set [loc] immediateParentInterfaceSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	if (size(immediateParentInterfaceSet) == 1) {
+		retLoc = getOneFrom(immediateParentInterfaceSet);
+	}
+	else {
+		if (isEmpty(immediateParentInterfaceSet)) {
+		;}
+		else {
+			set [loc] immediateParentsInSystem = {_parent | _parent <- immediateParentInterfaceSet, isLocDefinedInProject(_parent, declarationsMap) };
+			if (isEmpty(immediateParentsInSystem)) { retLoc = getOneFrom(immediateParentInterfaceSet); }
+			else {retLoc = getOneFrom(immediateParentsInSystem);}
+		}
+	}
+	return retLoc;																											  	
+}
+
+
+
+private loc getImmediateParentOfClass(loc classOrInt, map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap) {
+	loc retLoc 		= DEFAULT_LOC;
+	set [loc] immediateParentClassSet 		= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap ? implementsMap[classOrInt] : {};
+	if (immediateParentClassSet != {}) {
+		if (size(immediateParentClassSet) >1) { throw "in getImmediateParentOfClass, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
+		retLoc = getOneFrom(immediateParentClassSet);
+	} 
+	else {
+		if (size(immediateParentInterfaceSet) == 1) {
+			retLoc = getOneFrom(immediateParentInterfaceSet);
+		}
+		else {
+			if (isEmpty(immediateParentInterfaceSet)) {
+			;}
+			else {
+				set [loc] immediateParentsInSystem = {_parent | _parent <- immediateParentInterfaceSet, isLocDefinedInProject(_parent, declarationsMap) };
+				if (isEmpty(immediateParentsInSystem)) { retLoc = getOneFrom(immediateParentInterfaceSet); }
+				else {retLoc = getOneFrom(immediateParentsInSystem);}
+			}	
+		}
+	}
+	return retLoc;																											  	
+}
+
+
+
+
+
+public loc getImmediateParent (loc classOrInt, map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap  ) {
+	if (isClass(classOrInt)) {return getImmediateParentOfClass(classOrInt, extendsMap, implementsMap, declarationsMap); }
+	if (isInterface(classOrInt)) {return getImmediateParentOfInterface(classOrInt, extendsMap, declarationsMap); }
+}
+
+
+
+
+private loc getImmediateParentOfInterfaceGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, rel [loc, loc] allInheritanceRelations) {
+	loc retLoc 		= DEFAULT_LOC;
+	loc foundLoc 	= DEFAULT_LOC;
+	set [loc] immediateParentInterfaceSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	if (size(immediateParentInterfaceSet) == 1) {
+		retLoc = getOneFrom(immediateParentInterfaceSet);
+	}
+	else {
+		for (anImmediateParent <- immediateParentInterfaceSet) {
+			if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
+				foundLoc = anImmediateParent;
+				break;
+			}
+		} // for
+	retLoc = foundLoc;
+	}
+	return retLoc;																											  	
+}
+
+
+private loc getImmediateParentOfClassGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, 
+																											  	rel [loc, loc] allInheritanceRelations) {
+	loc retLoc 		= DEFAULT_LOC;
+	loc foundLoc 	= DEFAULT_LOC;
+	set [loc] immediateParentClassSet 		= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap ? implementsMap[classOrInt] : {};
+	if (immediateParentClassSet != {}) {
+		if (size(immediateParentClassSet) >1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
+		retLoc = getOneFrom(immediateParentClassSet);
+	} 
+	else {
+		if (size(immediateParentInterfaceSet) == 1) {
+			retLoc = getOneFrom(immediateParentInterfaceSet);
+		}
+		else {
+			for (anImmediateParent <- immediateParentInterfaceSet) {
+				if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
+					foundLoc = anImmediateParent;
+					break;
+				}
+			} // for
+			retLoc = foundLoc;
+		}
+	}
+	return retLoc;																											  	
+}
+
+
+
+
+public loc getImmediateParentGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap,  rel [loc, loc] allInheritanceRelations) {
+	if (isClass(classOrInt)) {return getImmediateParentOfClassGivenAnAsc(classOrInt, ascLoc, extendsMap, implementsMap, allInheritanceRelations);} 
+	if (isInterface(classOrInt)) { return getImmediateParentOfInterfaceGivenAnAsc(classOrInt, ascLoc,  extendsMap, allInheritanceRelations); } 
+	println("The loc <classOrInt> is not a class orinterface.");
+	return DEFAULT_LOC;
+}
+
+
+
 
 
 public set [loc] getDescendantsOfAClass(loc aClass, rel [loc,loc] allInheritanceRels) {
@@ -472,6 +599,9 @@ public loc getClassOrInterfaceFromTypeSymbol(TypeSymbol typeSymbol) {
     	case i:\interface(iLoc,_) : {
     		classOrInterfaceLoc = iLoc;  	
     	}
+    	case obj:\object() : {
+			classOrInterfaceLoc = OBJECT_CLASS;
+    	} 
     }
     return classOrInterfaceLoc;
 }

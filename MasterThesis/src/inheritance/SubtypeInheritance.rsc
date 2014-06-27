@@ -184,10 +184,9 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
-			//println("Cast subtype source ref: <castStmt@src>");	
-			TypeSymbol castTypeSymbol = getTypeSymbolFromAnnotation(castExpr, projectM3);
-			if (castTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(castTypeSymbol, getTypeSymbolFromRascalType(castType));
+			TypeSymbol castExprTypeSymbol = getTypeSymbolFromAnnotation(castExpr, projectM3);
+			if (castExprTypeSymbol != DEFAULT_TYPE_SYMBOL) {
+				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(getTypeSymbolFromRascalType(castType), castExprTypeSymbol);
 				if (result.isSubtypeRel) {
 					bool upcasting = isUpcasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
 					if (upcasting) {
@@ -341,15 +340,20 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
 	// TODO: Because of a bug in Rascal, I can only test this with method calls at the moment
 	// When that's fixed I should also test newObject()
-	if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) { 
-		list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
-		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
-		list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
-		for (int i <- [0..size(passedSymbolList)]) {
-			//println("Parameter passing: <methOrConstExpr@src>");
-			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
-			if (result.isSubtypeRel) {
-				retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
+	// if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) // changed at 26June2014 TODO TODO TODO: This is an experiment
+	{ 
+		//println("Analyzing method or constructor: <methOrConstExpr@decl>");
+		if (methOrConstExpr@decl in typesMap) {
+			//println("Method or constructor: <methOrConstExpr@decl> is found in types map."); println();	
+			list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
+			list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
+			list [TypeSymbol] updatedDeclaredSymbolList = updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
+			for (int i <- [0..size(passedSymbolList)]) {
+				//println("Parameter passing: <methOrConstExpr@src>");
+				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
+				if (result.isSubtypeRel) {
+					retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
+				}
 			}
 		}
 	}
@@ -435,7 +439,8 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	}	// for each class in the project
 	for ( int i <- [0..size(allSubtypeCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc detLoc] aCase = allSubtypeCases[i];
-		if (aCase.iKey.parent in allClassesAndInterfacesInProject ) {
+		// if (aCase.iKey.parent in allClassesAndInterfacesInProject ) // changed at 26June2014 TODO TODO TODO: This is an experiment
+		{
 			resultRel += <aCase.iKey, SUBTYPE>;
 			subtypeLog += aCase;	
 		}

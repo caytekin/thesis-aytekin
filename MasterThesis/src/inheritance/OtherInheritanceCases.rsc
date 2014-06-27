@@ -48,7 +48,14 @@ public bool containsOnlyConstantFields(loc aLoc, map[loc, set [loc]] classAndInt
 	bool retBool = false;
 	set [loc] everythingInLoc = aLoc in classAndInterfaceContWithoutTypeVars ? classAndInterfaceContWithoutTypeVars[aLoc] : {} ;
 	set [loc] fieldsInLoc = {_aField | _aField  <- everythingInLoc, isField(_aField)};
-	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && areAllFieldsConstants(fieldsInLoc, allFieldModifiers)) {
+	bool allFieldsAreConstants = false;
+	if (isInterface(aLoc)) {
+		allFieldsAreConstants = true; // in an interface all fields are implicitly public static and final.
+	}
+	else {
+		allFieldsAreConstants = areAllFieldsConstants(fieldsInLoc, allFieldModifiers);
+	}
+	if (!isEmpty(fieldsInLoc) && isEmpty(everythingInLoc - fieldsInLoc) && allFieldsAreConstants) {
 		retBool = true;
 	}
 	return retBool;													
