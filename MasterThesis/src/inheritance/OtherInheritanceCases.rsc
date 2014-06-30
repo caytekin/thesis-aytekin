@@ -118,30 +118,22 @@ public rel [inheritanceKey, inheritanceType] getMarkerInterfaces(set [loc] marke
 }
 
 
-public loc getImmediateParentOfAClass(loc childClass, map [loc, set[loc]] extendsMap) {
-	loc retClass = DEFAULT_LOC;
-	set [loc] parentSet = childClass in extendsMap ? extendsMap[childClass] : {};
-	if (size(parentSet) == 1) {
-		retClass = getOneFrom(parentSet);
-	}
-	else 
-	{
-		if (size(parentSet) == 0) {
-			// there is no explicitly defined parent, but there is a super call, then the immediate parent is Object.
-			retClass = OBJECT_CLASS;
-		}
-		else {
-			throw("The number of parents of the class <childClass> is different from one in getImmediateParentOfAClass(). Size: <size(parentSet)>, parent set: <parentSet>");
-		}
-	} 
-	return retClass;
+
+
+public loc getImmediateClassParentOfAClass(loc childClass, map [loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap) {
+	loc retClass = getImmediateParentOfClass(childClass, extendsMap, implementsMap, declarationsMap);
+	if(isClass(retClass)) { return retClass;} 
+	else {return DEFAULT_LOC;} 
 }
+
 
 
 public rel [inheritanceKey, inheritanceType] getSuperRelations(M3 projectM3) {
 	set [loc] 				allClassesInProject 		= getAllClassesInProject(projectM3);
 	map [loc, set [loc]] 	constructorContainmentMap 	= toMap({<_owner, _constructor> | <_owner, _constructor> <- projectM3@containment, _constructor.scheme == "java+constructor" });
 	map [loc, set [loc]]	extendsMap 					= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends });
+	map[loc, set[loc]] 	implementsMap = toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements }); 
+	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
 	rel [inheritanceKey,inheritanceType] retRel = {};
 	lrel [inheritanceKey, superCallLoc] superLog = [];
 	for (aClass <- allClassesInProject) {
@@ -158,7 +150,7 @@ public rel [inheritanceKey, inheritanceType] getSuperRelations(M3 projectM3) {
 				}
 			}
 			if (superCall) {
-				loc parentClass = getImmediateParentOfAClass(aClass, extendsMap);
+				loc parentClass = getImmediateClassParentOfAClass(aClass, extendsMap, implementsMap, declarationsMap);
 				retRel += <<aClass, parentClass>, SUPER>;
 				superLog += <<aClass, parentClass>, locOfSuperCall>;
 			}

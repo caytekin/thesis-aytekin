@@ -53,8 +53,8 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 }
 
 
-private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+private lrel [inheritanceKey, inheritanceSubtype , loc, loc ]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	//println("Assignment source ref: <sourceRef>");
 	// error NoSuchAnnotation retExpr@typ
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromAnnotation(lhs, projectM3);
@@ -65,7 +65,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssig
 	else {
 		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhsTypeSymbol, lhsTypeSymbol);
 		if (result.isSubtypeRel) {
-			retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef>;
+			retList += <result.iKey, SUBTYPE_ASSIGNMENT_STMT, sourceRef, result.iKey.parent>;
 		} // if
 	}
 	return retList;
@@ -73,8 +73,8 @@ private lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeResultViaAssig
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Expression asmtStmt, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+public lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeViaAssignment(Expression asmtStmt, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	bool isConditional = false;
 	visit (asmtStmt) {
 		case aStmt:\assignment(lhs, operator, rhs) : {  
@@ -94,8 +94,8 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaAssignment(Ex
 }
 
 
-private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+private lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	//println("Variable decl: <rhs@src>");	
 	TypeSymbol rhsTypeSymbol = getTypeSymbolFromAnnotation(rhs, projectM3);
 	if (rhsTypeSymbol != DEFAULT_TYPE_SYMBOL) {
@@ -103,7 +103,7 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariab
 		if (result.isSubtypeRel) {
 			//println("Fragments: "); iprintln(fragments); 
 			for (anExpression <- fragments) {
-				retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
+				retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl, result.iKey.parent>;
 			}
 		}
 	}
@@ -111,8 +111,8 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaVariab
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc]  getSubtypeViaVariables(Type typeOfVar, list[Expression] fragments, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+public lrel [inheritanceKey, inheritanceSubtype , loc, loc ]  getSubtypeViaVariables(Type typeOfVar, list[Expression] fragments, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	bool isConditional = false;
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
 	//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
@@ -177,11 +177,11 @@ private tuple [bool , loc ] isSidewaysCast(loc aChild, loc aParent, map [loc, se
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expression castStmt, map [loc, set [loc]] inheritanceRelsMap, map [loc, set [loc]] invertedInheritanceRelsMap,
+public lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeViaCast(Expression castStmt, map [loc, set [loc]] inheritanceRelsMap, map [loc, set [loc]] invertedInheritanceRelsMap,
 																												M3 projectM3 ) {
 // The cast can be from child to parent, but also from parent to child
 // Also, sideways cast is possible. 
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
 			TypeSymbol castExprTypeSymbol = getTypeSymbolFromAnnotation(castExpr, projectM3);
@@ -191,21 +191,21 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaCast(Expressi
 					bool upcasting = isUpcasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
 					if (upcasting) {
 						// reverse the order if there is upcasting.
-						retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_UPCASTING, castStmt@src>;				
+						retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_UPCASTING, castStmt@src, result.iKey.child>;				
 					}
 					else {
 						if (isInterface(result.iKey.child) && isInterface (result.iKey.parent) ) {
 							tuple [bool isSidewaysCast, loc implChild] sidewaysResult = isSidewaysCast(result.iKey.child, result.iKey.parent, inheritanceRelsMap, invertedInheritanceRelsMap, castStmt@src);
 							if (sidewaysResult.isSidewaysCast) {
-								retList += <<sidewaysResult.implChild, result.iKey.child>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src>;
-								retList += <<sidewaysResult.implChild, result.iKey.parent>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src>;						
+								retList += <<sidewaysResult.implChild, result.iKey.child>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src, result.iKey.child>;
+								retList += <<sidewaysResult.implChild, result.iKey.parent>, SUBTYPE_VIA_SIDEWAYS_CASTING, castStmt@src, result.iKey.parent>;						
 							}
 							else {
-								retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+								retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src, result.iKey.parent>;
 							}							
 						}
 						else {
-							retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src>;
+							retList += <result.iKey, SUBTYPE_VIA_CAST, castStmt@src, result.iKey.parent>;
 						}
 					}	
 				}
@@ -233,8 +233,8 @@ private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol,
 
 
 
-private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoop(TypeSymbol paramTypeSymbol, Expression collExpression, loc forLoopRef, M3 projectM3) {
-	lrel [inheritanceKey, inheritanceSubtype, loc] retList = [];
+private lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeResultViaForLoop(TypeSymbol paramTypeSymbol, Expression collExpression, loc forLoopRef, M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	TypeSymbol compTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	TypeSymbol collTypeSymbol = getTypeSymbolFromAnnotation(collExpression,  projectM3); 
 	if (collTypeSymbol != DEFAULT_TYPE_SYMBOL) {
@@ -252,15 +252,15 @@ private lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeResultViaForLoo
 		if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 			//println("For loop: <forLoopRef>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(compTypeSymbol, paramTypeSymbol);
-			if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef>; }
+			if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef, result.iKey.parent>; }
 		}
 	} 		
 	return retList;
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap, M3 projectM3 ) {
-	lrel [inheritanceKey , inheritanceSubtype  , loc] retList = [];
+public lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeViaReturnStmt(Statement returnStmt, loc methodLoc,map [loc, set[TypeSymbol]] typesMap, M3 projectM3 ) {
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] retList = [];
 	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	visit (returnStmt) {
 		case \return(retExpr) : {
@@ -271,7 +271,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaReturnStmt(St
 				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(retTypeSymbol, 
 																						getDeclaredReturnTypeSymbolOfMethod(methodLoc, typesMap));
 				if (result.isSubtypeRel) {
-					retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src>;
+					retList += <result.iKey, SUBTYPE_VIA_RETURN, retExpr@src, result.iKey.parent>;
 				}
 			}	 
 		}  
@@ -334,10 +334,11 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
+public lrel [inheritanceKey, inheritanceSubtype , loc, loc ] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
 																					map [loc, set[TypeSymbol]] typesMap, 
 																					map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3) {
-	lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
+	//lrel [inheritanceKey , inheritanceSubtype , loc ] retList = [];
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ]  retList = [];
 	// TODO: Because of a bug in Rascal, I can only test this with method calls at the moment
 	// When that's fixed I should also test newObject()
 	// if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) // changed at 26June2014 TODO TODO TODO: This is an experiment
@@ -352,7 +353,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 				//println("Parameter passing: <methOrConstExpr@src>");
 				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], updatedDeclaredSymbolList[i]);
 				if (result.isSubtypeRel) {
-					retList += <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
+					retList +=  <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src, result.iKey.parent>;
 				}
 			}
 		}
@@ -362,10 +363,23 @@ public lrel [inheritanceKey, inheritanceSubtype, loc] getSubtypeViaParameterPass
 }
 
 
+private num calculateIndirectSubtypePercentage(rel [inheritanceKey, inheritanceType] tempResult) {
+	set [inheritanceKey] indirectSet = {<_child, _parent> | <<_child, _parent>, _iType> <- tempResult, _iType == INDIRECT_SUBTYPE};
+	set [inheritanceKey] directSet = {<_child, _parent> | <<_child, _parent>, _iType> <- tempResult, _iType == DIRECT_SUBTYPE};
+	num differenceSize = size(indirectSet - directSet);
+	num unionSize = size(indirectSet + directSet);
+	print("Percentage is ");
+	if (unionSize != 0) { println("<differenceSize/unionSize>"); return (differenceSize/unionSize); }
+	else return 0;
+}
+
+
+
+
 public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	rel [inheritanceKey, inheritanceType] 			resultRel 	= {};
-	lrel [inheritanceKey, inheritanceSubtype, loc] 	subtypeLog 	= [];
-	lrel [inheritanceKey, inheritanceSubtype, loc] 	allSubtypeCases = [];
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] 			subtypeLog 	= [];
+	lrel [inheritanceKey, inheritanceSubtype , loc, loc ] 			allSubtypeCases = [];
 	set [loc] 				allClassesAndInterfacesInProject 	= getAllClassesAndInterfacesInProject(projectM3);
 	set [loc] 				allClassesInProject 				= getAllClassesInProject(projectM3);
 	map [loc, set [loc]] 	declarationsMap 					= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
@@ -376,7 +390,10 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 	map [loc, set[loc]] 	invertedClassInterfaceMethodContainment = getInvertedClassInterfaceMethodContainment (projectM3);
 	rel [loc, loc] 			projectInhRels 						 = getInheritanceRelations(projectM3);
 	map [loc, set [loc]] 	inheritanceRelsMap 					= toMap(projectInhRels);
-	map [loc, set [loc]] 	invertedInheritanceRelsMap 			= toMap(invert(projectInhRels));		
+	map [loc, set [loc]] 	invertedInheritanceRelsMap 			= toMap(invert(projectInhRels));
+	map [loc, set [loc]]	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map [loc, set [loc]]    implementsMap  		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	rel [loc, loc] 		allInheritanceRelations 	= getInheritanceRelations(projectM3);		
 	for (oneClass <- allClassesInProject ) {
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invertedClassInterfaceMethodContainment , invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
@@ -437,14 +454,29 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
         	} // visit()
 		}	// for each method in the class															
 	}	// for each class in the project
+	
+	rel [inheritanceKey, inheritanceType] tempResult = {};
 	for ( int i <- [0..size(allSubtypeCases)]) { 
-		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc detLoc] aCase = allSubtypeCases[i];
-		// if (aCase.iKey.parent in allClassesAndInterfacesInProject ) // changed at 26June2014 TODO TODO TODO: This is an experiment
+		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc detLoc, loc refParent] aCase = allSubtypeCases[i];
 		{
-			resultRel += <aCase.iKey, SUBTYPE>;
-			subtypeLog += aCase;	
+			loc immediateParent = getImmediateParentGivenAnAsc(aCase.iKey.child, aCase.iKey.parent, extendsMap, implementsMap, allInheritanceRelations);
+			if (immediateParent == DEFAULT_LOC) {
+				subtypeLog += aCase;				
+			} 
+			else {
+				if (immediateParent != aCase.iKey.parent) {
+					subtypeLog += <<aCase.iKey.child, immediateParent>, aCase.iType, aCase.detLoc, aCase.refParent>;
+					tempResult += <<aCase.iKey.child, immediateParent>, INDIRECT_SUBTYPE>;	
+				}
+				else {
+					tempResult += <aCase.iKey, DIRECT_SUBTYPE>;
+					subtypeLog += aCase;
+				}
+			}
 		}
 	}
+	resultRel = {<<_child, _parent>, SUBTYPE> | <<_child, _parent>, _aSubtypeType> <- tempResult};
+	calculateIndirectSubtypePercentage(tempResult);
 	iprintToFile(getFilename(projectM3.id,subtypeLogFile),subtypeLog );
 	return resultRel;
 }

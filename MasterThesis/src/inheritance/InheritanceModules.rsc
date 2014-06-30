@@ -322,7 +322,7 @@ private loc getImmediateParentOfInterface(loc classOrInt, map[loc, set[loc]] ext
 
 
 
-private loc getImmediateParentOfClass(loc classOrInt, map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap) {
+public loc getImmediateParentOfClass(loc classOrInt, map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap) {
 	loc retLoc 		= DEFAULT_LOC;
 	set [loc] immediateParentClassSet 		= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
 	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap ? implementsMap[classOrInt] : {};
@@ -383,7 +383,7 @@ private loc getImmediateParentOfClassGivenAnAsc(loc classOrInt, loc ascLoc,  map
 																											  	rel [loc, loc] allInheritanceRelations) {
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
-	set [loc] immediateParentClassSet 		= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	set [loc] immediateParentClassSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
 	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap ? implementsMap[classOrInt] : {};
 	if (immediateParentClassSet != {}) {
 		if (size(immediateParentClassSet) >1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}

@@ -17,6 +17,11 @@ public inheritanceType FRAMEWORK = 10;
 public inheritanceType DOWNCALL = 11;
 
 
+public inheritanceType DIRECT_SUBTYPE = 20;
+public inheritanceType INDIRECT_SUBTYPE = 21;
+
+
+
 
 
 public metricsType numExplicitCC			= 1001;
@@ -105,7 +110,7 @@ public TypeSymbol OBJECT_TYPE_SYMBOL = class(OBJECT_CLASS, []);
 
 public alias internalReuseDetail = tuple [loc accessedLoc, loc invokingMethodOrClass];
 public alias externalReuseDetail = tuple [loc accessedLoc, loc invokingMethod];
-public alias subtypeDetail = tuple [inheritanceSubtype inhSub, loc subtypeDetailLoc];
+public alias subtypeDetail = tuple [inheritanceKey _iKey, inheritanceSubtype inhSub, loc subtypeDetailLoc, loc referredParent];
 public alias downcallDetail = tuple [loc dOccurrenceLoc, loc dInvokedMethod, loc dDowncalledMethod];
 public alias superCallLoc = loc;
 public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourceOfCandCall];

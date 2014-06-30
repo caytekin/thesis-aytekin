@@ -23,12 +23,12 @@ import inheritance::InheritanceModules;
 
 
 
-public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFieldOrMethod, map [loc, set[loc]] 	invClassAndInterfaceContainment,  
-																							map [loc, set[loc]] 	declarationsMap,
-																							rel [loc, loc] 			allInheritanceRelations, 
-																							map [loc, set[loc]] 		extendsMap,
-																							map [loc, set[loc]] 		implementsMap, 
-																							M3 projectM3) {
+public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFieldOrMethod, 	map [loc, set[loc]] 	invClassAndInterfaceContainment,  
+												map [loc, set[loc]] 	declarationsMap,
+												rel [loc, loc] 		allInheritanceRelations, 
+												map [loc, set[loc]] 	extendsMap,
+												map [loc, set[loc]] 	implementsMap, 
+												M3 projectM3) {
 	loc immediateParentOfReceiver = DEFAULT_LOC; 
 	bool direct = false;
 	
@@ -152,12 +152,13 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
         		case fAccess:\fieldAccess(_,_,_) : {
         			allExternalReuseCases += getExternalReuseViaFieldAccess(fAccess, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
         		}
-				case m2:\methodCall(_, receiver:_, _, _): {
-					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+			case m2:\methodCall(_, receiver:_, _, _): {
+				allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
         		} // case methodCall()
         	} // visit()
 		}	// for each method in the class															
 	}	// for each class in the project
+
 	for ( int i <- [0..size(allExternalReuseCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;

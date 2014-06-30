@@ -67,8 +67,7 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	// subtype or a downcall between G and P, the edge G and P does not get listed, because the edge G-> P is not explicit, however, the edge between 
 	//  G and C will get the same attribute (reuse, subtype or downcall), because it is explicit.
 	rel [inheritanceKey, inheritanceType] retRel = {};
-	rel [inheritanceKey, inheritanceType] selectedOccurrences = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- implicitFoundInhrels, _iType == EXTERNAL_REUSE || _iType == INTERNAL_REUSE 
-																												|| 	_iType == SUBTYPE || _iType == DOWNCALL};
+	rel [inheritanceKey, inheritanceType] selectedOccurrences = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- implicitFoundInhrels, _iType == EXTERNAL_REUSE || _iType == SUBTYPE };
 	rel [inheritanceKey, inheritanceType, loc] addedInhOccLog = {};
 	map[loc, set[loc]] 	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	map[loc, set[loc]] 	implementsMap 	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
@@ -78,29 +77,12 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	//println("--------------------------getResultsOfImplicitUsage----------------------");	
 	loc immediateParent = DEFAULT_LOC;
 	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
-		immediateParent = DEFAULT_LOC;
-		//println("--------Child: <_child>, parent: < _parent>, Inhtype: <_iType>");
-		if (isInterface(_child)) {
-			immediateParent =  getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
+		immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
+		if (immediateParent != DEFAULT_LOC) {
+			addedInhOccLog += <<_child, immediateParent>, _iType, _parent>; 
 		}
-		else {
-			if (isClass(_parent)) {
-				immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
-			}
-			else { // child is a class, parent is an interface
-				immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
-				if ((immediateParent != DEFAULT_LOC) && inheritanceRelationExists(immediateParent ,_parent, allInheritanceRelations)) {
-					// immediate parent is found
-				;}
-				else {
-					immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
-				}
-			}
-		}
-		//println("Immediate parent: <immediateParent>"); 
-		addedInhOccLog += <<_child, immediateParent>, _iType, _parent>; 
 	}  // for														
-	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _immediateParent>, _iType, _parent><- addedInhOccLog, _immediateParent != DEFAULT_LOC };	
+	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _immediateParent>, _iType, _parent><- addedInhOccLog};	
 	iprintToFile(getFilename(projectM3.id,addedRelsLogFile),addedInhOccLog );						
 	return retRel;
 }
@@ -336,7 +318,7 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://fitjava-1.1|;
+	loc projectLoc = |project://cobertura-1.9.4.1|;
 	//loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
