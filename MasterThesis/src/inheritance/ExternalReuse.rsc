@@ -34,19 +34,15 @@ public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFie
 	
 	if (isLocDefinedInProject(classOrInterfaceOfReceiver, declarationsMap) && !	(isLocDefinedInGivenType(accessedFieldOrMethod, classOrInterfaceOfReceiver, invClassAndInterfaceContainment))) {   // external reuse
 		if (isLocDefinedInProject(accessedFieldOrMethod,  declarationsMap)) {
-			locDefiningClassOrInterface = getDefiningClassOrInterfaceOfALoc(accessedFieldOrMethod, invClassAndInterfaceContainment, projectM3);
+			loc locDefiningClassOrInterface = getDefiningClassOrInterfaceOfALoc(accessedFieldOrMethod, invClassAndInterfaceContainment, projectM3);
 			immediateParentOfReceiver = getImmediateParentGivenAnAsc(classOrInterfaceOfReceiver, locDefiningClassOrInterface, extendsMap, implementsMap, allInheritanceRelations);
 		}
 		else { 
 			immediateParentOfReceiver = getImmediateParent(classOrInterfaceOfReceiver, extendsMap, implementsMap, declarationsMap);
 		}
 	}
-	return immediateParentOfReceiver;
+	return immediateParentOfReceiver ;
 }
-
-
-
-
 
 
 
@@ -67,8 +63,8 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 				println("Methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>");
 			}
 			else {		
-				loc classOrInterfaceOfReceiver = getClassOrInterfaceFromTypeSymbol(receiver@typ);
-				loc immediateParentOfReceiver = getImmParentForAccess(classOrInterfaceOfReceiver, invokedMethod, 	invClassAndInterfaceContainment,  declarationsMap, 
+				loc classOrInterfaceOfReceiver 	= getClassOrInterfaceFromTypeSymbol(receiver@typ);
+				immediateParentOfReceiver = getImmParentForAccess(classOrInterfaceOfReceiver, invokedMethod, 	invClassAndInterfaceContainment,  declarationsMap, 
 																													allInheritanceRelations, extendsMap, implementsMap, projectM3);
 				if (immediateParentOfReceiver != DEFAULT_LOC) { // external reuse
 					if ((isLocDefinedInProject(invokedMethod, declarationsMap)) && isLocDefinedInGivenType(invokedMethod, immediateParentOfReceiver, invClassAndInterfaceContainment)) {
@@ -126,6 +122,18 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 	return retList;
 }
 
+private map [metricsType, num]  calculateExternalReuseIndirectPercentages(rel [inheritanceKey, inheritanceType] explicitFoundInhrels, rel [inheritanceKey, inheritanceType]  addedImplicitRels) {
+	map [metricsType, num] addedResultsMap = ();
+	addedResultsMap += (perAddedCCExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+class", "java+class"));
+	addedResultsMap += (perAddedCIExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+class", "java+interface"));
+	addedResultsMap += (perAddedIIExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+interface", "java+interface"));
+	for (aMetric <- [perAddedCCExtReuse, perAddedCIExtReuse, perAddedIIExtReuse]) {
+		println("<getNameOfInheritanceMetric(aMetric)> : <addedResultsMap[aMetric]>");
+	}
+	return addedResultsMap;
+}
+
+
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {
@@ -158,11 +166,15 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
         	} // visit()
 		}	// for each method in the class															
 	}	// for each class in the project
-
+	rel [inheritanceKey, inheritanceType] directExReusePairs = {};
+	rel [inheritanceKey, inheritanceType] indirectExReusePairs = {};
 	for ( int i <- [0..size(allExternalReuseCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
+		if ((aCase.iType == EXTERNAL_REUSE_DIRECT_VIA_METHOD_CALL) || (aCase.iType == EXTERNAL_REUSE_DIRECT_VIA_FIELD_ACCESS)) { directExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
+		if ((aCase.iType == EXTERNAL_REUSE_INDIRECT_VIA_METHOD_CALL) || (aCase.iType == EXTERNAL_REUSE_INDIRECT_VIA_FIELD_ACCESS)) { indirectExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;
 	}
+	calculateExternalReuseIndirectPercentages(directExReusePairs, indirectExReusePairs);
 	iprintToFile(getFilename(projectM3.id, externalReuseLogFile), allExternalReuseCases);
 	return resultRel;
 }

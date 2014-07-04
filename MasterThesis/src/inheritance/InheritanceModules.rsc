@@ -84,10 +84,28 @@ public str getNameOfInheritanceMetric(metricsType iMetric) {
 		case  perCategoryExplII			: {return "perCategoryExplII";}
 		case  numUnexplainedII			: {return "numUnexplainedII";}
 		case  perUnexplainedII			: {return "perUnexplainedII";}
+		
+		
+		case  perAddedCCSubtype			: {return "perAddedCCSubtype"; }
+		case  perAddedCCExtReuse		: {return "perAddedCCExtReuse"; }
+		case  perAddedCISubtype         : {return "perAddedCISubtype"; }
+		case  perAddedCIExtReuse		: {return "perAddedCIExtReuse";}
+		case  perAddedIISubtype			: {return "perAddedIISubtype";}
+		case  perAddedIIExtReuse  		: {return "perAddedIIExtReuse";}
+		
   		
 		
 		default 						: {return "NOT KNOWN METRIC: <iMetric>"; }
  	}
+}
+
+
+public num getPercentageAdded(rel [inheritanceKey, inheritanceType] explicitFoundInhrels,rel [inheritanceKey, inheritanceType]  addedImplicitRels, inheritanceType inhType,  str scheme1, str scheme2) {
+	rel [inheritanceKey, inheritanceType] differenceSet = addedImplicitRels - explicitFoundInhrels;
+	rel [inheritanceKey, inheritanceType] unionSet = addedImplicitRels + explicitFoundInhrels;
+	num differenceSize = size({<_child, _parent> | <<_child, _parent>, _iType> <- differenceSet, _iType ==  inhType, _child.scheme == scheme1, _parent.scheme == scheme2 });
+	num unionSize = size({<_child, _parent> | <<_child, _parent>, _iType> <- unionSet, _iType ==  inhType, _child.scheme == scheme1, _parent.scheme == scheme2 });
+	return unionSize != 0 ?  differenceSize/unionSize : 0; 
 }
 
 
@@ -631,7 +649,8 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 }
 
 
-//public bool isVarargInDeclaration(loc aMethodLoc, map [loc, set[TypeSymbol]] typesMap) {
+
+// public bool isVarargInDeclaration(loc aMethodLoc, map [loc, set[TypeSymbol]] typesMap) {
 //	bool retBool = false;
 //	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(aMethodLoc, typesMap);
 //	visit (methodTypeSymbol) {

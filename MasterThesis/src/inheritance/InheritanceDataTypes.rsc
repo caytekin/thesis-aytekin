@@ -17,9 +17,8 @@ public inheritanceType FRAMEWORK = 10;
 public inheritanceType DOWNCALL = 11;
 
 
-public inheritanceType DIRECT_SUBTYPE = 20;
-public inheritanceType INDIRECT_SUBTYPE = 21;
-
+public inheritanceType DIRECT_EXTERNAL_REUSE = 20;
+public inheritanceType INDIRECT_EXTERNAL_REUSE = 21;
 
 
 
@@ -65,6 +64,16 @@ public metricsType numCategoryExplII		= 1034;
 public metricsType perCategoryExplII		= 1035;		// numCategoryExplII / numExplicitII
 public metricsType numUnexplainedII			= 1036;
 public metricsType perUnexplainedII			= 1037;		// numUnexplainedII / numExplicitII
+
+
+public metricsType perAddedCCSubtype		= 1101;
+public metricsType perAddedCCExtReuse		= 1102;
+public metricsType perAddedCISubtype        = 1103;
+public metricsType perAddedCIExtReuse		= 1104;
+public metricsType perAddedIISubtype		= 1105;
+public metricsType perAddedIIExtReuse		= 1106;
+
+
 
 
 

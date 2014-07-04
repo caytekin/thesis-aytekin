@@ -62,6 +62,18 @@ rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inherita
 
 
 
+private map [metricsType, num] calculateSubtypeIndirectPercentages(rel [inheritanceKey, inheritanceType] explicitFoundInhrels, rel [inheritanceKey, inheritanceType]  addedImplicitRels) {
+	map [metricsType, num] addedResultsMap = ();
+	addedResultsMap += (perAddedCCSubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+class", "java+class"));
+	addedResultsMap += (perAddedCISubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+class", "java+interface"));
+	addedResultsMap += (perAddedIISubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+interface", "java+interface"));
+	for (aMetric <- [perAddedCCSubtype, perAddedCISubtype, perAddedIISubtype]) {
+		println("<getNameOfInheritanceMetric(aMetric)> : <addedResultsMap[aMetric]>");
+	}
+	return addedResultsMap;
+}
+
+
 private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inheritanceKey, inheritanceType] implicitFoundInhrels, M3 projectM3) {
 	// the authors wrote an answer about the following: for three types G, C, P (G extends C, C extends P), if there is a reuse (internal or external), 
 	// subtype or a downcall between G and P, the edge G and P does not get listed, because the edge G-> P is not explicit, however, the edge between 
@@ -110,7 +122,9 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	//iprintln(sort(explicitFoundInhRels ));
 	//println("IMPLICIT  RESULTS");
 	//iprintln(sort(implicitFoundInhRels ));
-	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
+	rel [inheritanceKey, inheritanceType] addedImplicitRels = getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
+	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + addedImplicitRels;
+	calculateSubtypeIndirectPercentages(explicitFoundInhRels, addedImplicitRels);
 	println("ALL RESULTS -------------------------------------------------------------------");
 	iprintln(sort(allResults));
 	println("-------------------------------------------------------------------"); println();
