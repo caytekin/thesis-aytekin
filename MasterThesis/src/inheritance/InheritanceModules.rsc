@@ -8,6 +8,7 @@ import List;
 import ListRelation;
 import ValueIO;
 import Node;
+import String;
 import util::ValueUI;
 
 import lang::java::m3::Core;
@@ -120,6 +121,14 @@ public map [loc, set[loc]] getInvertedDescMap(rel [loc, loc] m3Annotation) {
 	rel [loc, loc] extendsRel = {<_child, _parent> | <_child, _parent> <- m3Annotation};
 	if (!isEmpty(extendsRel)) {
 		retMap = toMap(invert(extendsRel));
+	}
+	return retMap;
+}
+
+public map [loc, set[str]] getInvertedNamesMap(rel [str, loc] namesAnnotation) {
+	map [loc, set [str]] retMap = ();
+	if (!isEmpty(namesAnnotation)) {
+		retMap = toMap(invert(namesAnnotation));
 	}
 	return retMap;
 }
@@ -893,5 +902,71 @@ public void printLog(loc logFile, str header) {
 	iprintln(sort(val));	
 }
 
+
+private loc makeATypeLoc (loc prefixLoc, str locStr) {
+	loc retLoc = DEFAULT_LOC;
+	retLoc = prefixLoc + replaceAll(locStr, ".", "/");
+	return retLoc;
+}
+
+
+
+private loc makeHeuristicLoc(str anArgStr, map [loc, set [str]] invertedNamesMap) {
+	loc retLoc = DEFAULT_LOC;
+	loc classLoc = makeATypeLoc(|java+class:///|, anArgStr);
+	if (classLoc in invertedNamesMap) {
+		retLoc = classLoc;
+	}
+	else {
+		loc interfaceLoc = makeATypeLoc(|java+interface:///|, anArgStr);
+		if (interfaceLoc in invertedNamesMap) {
+			retLoc = interfaceLoc;
+		}
+	}
+	return retLoc;	
+}
+
+
+
+private list [loc] getArgumentLocs(str methodStr, map [loc, set [str]] invertedNamesMap) {
+	list [loc] retList = [];
+	list [str] argStrList = [];
+	int openPar = findFirst(methodStr, "(");
+	int closePar = findLast(methodStr, ")");
+	bool properForHeuristic = true;
+	if ((openPar != -1) && (closePar != -1)) {
+		str argStr = substring(methodStr, openPar +1, closePar);
+		argStrList = split(",",argStr);
+		int i = 0;
+		str anArgStr = "";
+		while (properForHeuristic && (i < size(argStrList))) {
+			anArgStr = argStrList[i];
+			if  ( 		(contains(anArgStr, "["))  || (contains(anArgStr, "\<"))  
+					|| 	(!contains(anArgStr, ".")) || (contains(anArgStr, "...")) ) {
+				// complex or primitive types or varargs, we quit.
+				properForHeuristic = false;	
+			;}
+			else {
+				loc madeUpLoc = makeHeuristicLoc(anArgStr, invertedNamesMap);
+				if (madeUpLoc == DEFAULT_LOC) { properForHeuristic = false; }
+				else { retList = retList + madeUpLoc; }
+			}
+			i = i + 1;
+		}
+	}	
+	if (properForHeuristic == false) {retList = [];}
+	return retList;
+}
+
+
+public list [TypeSymbol] getArgTypeSymbols(str methodStr, map [loc, set [str]] invertedNamesMap) {
+	list [TypeSymbol] retList = [];
+	list [loc] argLocs = getArgumentLocs(methodStr, invertedNamesMap);
+	for (anArg <- argLocs) {
+		if (isClass(anArg)) { retList = retList + class(anArg, []); }
+		if (isInterface(anArg)) { retList = retList + interface(anArg, []); }
+	}
+	return retList;
+}
 
 

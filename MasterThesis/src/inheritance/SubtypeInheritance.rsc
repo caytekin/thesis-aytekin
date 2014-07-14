@@ -344,6 +344,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	// if (isLocDefinedInProject(methOrConstExpr@decl, declarationsMap)) // changed at 26June2014 TODO TODO TODO: This is an experiment
 	{ 
 		//println("Analyzing method or constructor: <methOrConstExpr@decl>");
+
 		if (methOrConstExpr@decl in typesMap) {
 			//println("Method or constructor: <methOrConstExpr@decl> is found in types map."); println();	
 			list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
