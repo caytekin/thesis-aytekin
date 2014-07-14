@@ -16,26 +16,21 @@ import lang::java::jdt::m3::AST;
 
 
 public void run() {
-	set[Declaration] projectASTs =  createAstsFromEclipseProject(|project://cobertura-1.9.4.1|, true);
-	map [loc, num] methodsMap = ();
-	for (anAST <- projectASTs) {
-		visit (anAST) {
-			case m1:\methodCall(_, _, _, _) : {
-				if (m1@decl in methodsMap) {
-					methodsMap[m1@decl] = methodsMap[m1@decl] + 1;
-				} 
-				else {methodsMap += (m1@decl : 1) ; }
-			}
-			case m2:\methodCall(_,_,_) : {
-				if (m2@decl in methodsMap) {
-					methodsMap[m2@decl] = methodsMap[m2@decl] + 1;
-				} 
-				else {methodsMap += (m2@decl : 1); };
-			}
+//	set[Declaration] projectASTs =  createAstsFromEclipseProject(|project://InheritanceSamples|, true);
+	loc projectLoc = |project://InheritanceSamples|;
+	M3 projectM3 = createM3FromEclipseProject(projectLoc);	
+	loc aMethod = |java+constructor:///edu/uva/analysis/samples/DowncallRunner/DowncallRunner()|;
+	//loc aMethod = |java+constructor:///edu/uva/analysis/samples/D/D()|;
+	methodAST = getMethodASTEclipse(aMethod, model = projectM3);
+	bool superCall = false;
+	visit (methodAST) {
+		case c1:\constructorCall(isSuper:_,_,_) : {
+			if (isSuper) {superCall = true; } 
+		}
+		case c2:\constructorCall(isSuper:_,_) : {
+			if (isSuper) {superCall = true; }
 		}
 	}
-	map [loc, num] frequentlyCalledMethods = (aMethod : methodsMap[aMethod] | aMethod <- methodsMap, methodsMap[aMethod] > 400 );	
-	println("Frequently called methods:");
-	iprintln(frequentlyCalledMethods);
+	println("Is there a super call? <superCall>");
 }
 

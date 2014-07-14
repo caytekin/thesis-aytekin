@@ -332,15 +332,15 @@ public void runIt() {
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
 	println("Creating M3....");
-	loc projectLoc = |project://cobertura-1.9.4.1|;
-	//loc projectLoc = |project://InheritanceSamples|;
+	//loc projectLoc = |project://cobertura-1.9.4.1|;
+	loc projectLoc = |project://InheritanceSamples|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = createM3FromEclipseProject(projectLoc);
 	println("Created M3....for <projectLoc>");
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
-	
+	/*
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
 	println("Internal use cases are done...<printTime(now())>");
@@ -357,11 +357,11 @@ public void runIt() {
 	println("Starting with this changing type cases at: <printTime(now())> ");
 	allInheritanceCases += getThisChangingTypeOccurrences(projectM3);
 	println("This changing type cases are done at: <printTime(now())> ");
-	
+	*/
 	println("Starting with downcall cases at: <printTime(now())> ");
 	allInheritanceCases += getDowncallOccurrences(projectM3);	
 	println("Downcall cases are done at <printTime(now())>...");	
-
+	/*
 	println("Starting with other cases at: <printTime(now())> ");
 	allInheritanceCases += getOtherInheritanceCases(projectM3);	
 	println("Other cases are done at <printTime(now())>...");	
@@ -369,7 +369,8 @@ public void runIt() {
 	println("Starting with category cases at : <printTime(now())> ");
 	allInheritanceCases += getCategoryCases(allInheritanceCases, projectM3);
 	println("Category cases are done at : <printTime(now())> ");
-
+	*/
+	
 	printResults(countResults(allInheritanceCases));
 	rel [inheritanceKey, inheritanceType] filteredInheritanceCases = getFilteredInheritanceCases(allInheritanceCases, allInheritanceRelations, projectM3);
 
@@ -400,6 +401,6 @@ public void runIt() {
 	
 	
 	println("Total number of types analyzed: <size(getAllClassesAndInterfacesInProject(projectM3))>");
-
+	printLog(getFilename(projectM3.id,downcallLogFile), "DOWNCALL LOG:");
 }
 
