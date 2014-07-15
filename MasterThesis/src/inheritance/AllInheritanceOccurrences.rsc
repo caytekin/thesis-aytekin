@@ -50,15 +50,13 @@ private set [loc] getAllExceptionClasses(rel [loc, loc] allInheritanceRelations)
 }
 
 
-// return all types which are not exceptions // changed 26June2014, look here later TODO TODO TODO 
+// return all types which are not exceptions 
 rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inheritanceKey, inheritanceType] allInheritanceCases, rel [loc, loc] allInheritanceRelations, M3 projectM3) {
 	rel [inheritanceKey, inheritanceType]retRel = {};
 	set [loc] allExceptionClasses = getAllExceptionClasses(allInheritanceRelations);
 	retRel = {<<_child,_parent>, _iKey> | <<_child, _parent>, _iKey> <- allInheritanceCases, _child notin allExceptionClasses , _parent notin allExceptionClasses};
 	return retRel;
 }
-
-
 
 
 
@@ -84,9 +82,6 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	map[loc, set[loc]] 	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	map[loc, set[loc]] 	implementsMap 	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
 	rel [loc, loc] 		allInheritanceRelations 	= getInheritanceRelations(projectM3);
-	//println("--------------------------getResultsOfImplicitUsage----------------------");
-	//iprintln(sort(selectedOccurrences));
-	//println("--------------------------getResultsOfImplicitUsage----------------------");	
 	loc immediateParent = DEFAULT_LOC;
 	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
 		immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
@@ -115,13 +110,6 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	allOccurrences = allOthers + allDowncalls;
 	rel [inheritanceKey, inheritanceType] explicitFoundInhRels = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- allOccurrences, <_child, _parent> in extendsOrImplRel};	
 	rel [inheritanceKey, inheritanceType] implicitFoundInhRels = allOccurrences - explicitFoundInhRels;
-	//println("---------------------------------------------");
-	//println("ALL OCCURRENCES");
-	//iprintln(sort(allOccurrences));
-	//println("EXPLICIT RESULTS");
-	//iprintln(sort(explicitFoundInhRels ));
-	//println("IMPLICIT  RESULTS");
-	//iprintln(sort(implicitFoundInhRels ));
 	rel [inheritanceKey, inheritanceType] addedImplicitRels = getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
 	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + addedImplicitRels;
 	calculateSubtypeIndirectPercentages(explicitFoundInhRels, addedImplicitRels);
@@ -331,15 +319,13 @@ public void runIt() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	println("Creating M3....");
-	//loc projectLoc = |project://cobertura-1.9.4.1|;
-	loc projectLoc = |project://VerySmallProject|;
+	loc projectLoc = |project://findbugs|;
 	makeDirectory(projectLoc);
-	M3 projectM3 = createM3FromEclipseProject(projectLoc);
-	println("Created M3....for <projectLoc>");
+	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
+	
 	
 	println("Starting with internal reuse cases at: <printTime(now())> ");
 	allInheritanceCases += getInternalReuseCases(projectM3);
@@ -353,6 +339,7 @@ public void runIt() {
 	println("Starting with subtype cases at: <printTime(now())> ");
 	allInheritanceCases += getSubtypeCases(projectM3);	
 	println("Subtype cases are done at <printTime(now())>...");	
+	
 	
 	println("Starting with this changing type cases at: <printTime(now())> ");
 	allInheritanceCases += getThisChangingTypeOccurrences(projectM3);

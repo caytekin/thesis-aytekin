@@ -293,17 +293,13 @@ public bool isMethodOverriddenByDescClass(loc issuerMethod, loc descClass, map[l
 
 
 private set [loc] getInBetweenClasses(loc ascClass, loc descClass, map[loc, set[loc]] extendsMap) {
-	//println("Extends map: <extendsMap>");
 	set  [loc] 	allInBetweenClasses = {}; 
 	list [loc] 	ascendantsInOrder = getAscendantsInOrder(descClass, extendsMap);
-	//println("Ascendants in order: <ascendantsInOrder>");
 	bool ascClassFound = false;
 	int i = 0;
 	while ((!ascClassFound) && (i < size(ascendantsInOrder))) {
 		loc anAscendant = ascendantsInOrder[i];
-		//println("An ascendant: <anAscendant>");
 		if (anAscendant == ascClass) {
-			//println("Equality is true...");
 			ascClassFound = true;
 		}
 		else {
@@ -311,7 +307,6 @@ private set [loc] getInBetweenClasses(loc ascClass, loc descClass, map[loc, set[
 		}
 		i += 1;
 	}
-	//println("ascClassFound is: <ascClassFound>");
 	if (!ascClassFound) { throw "Ascending class <ascClass> is not found in the Ascendants list of class: <descClass>"; }
 	return allInBetweenClasses;
 }
@@ -323,7 +318,6 @@ public bool isMethodOverriddenByAnyDescClass(loc aMethod, loc ascClass, loc desc
 	set  [loc]	allDescClassesUpToDescClass =  descClass + getInBetweenClasses(ascClass, descClass, extendsMap); 
 	if ( !isEmpty(classesThatOverrideTheMethod & allDescClassesUpToDescClass) ) {
 		retBool = true;
-		//println("isMethodOverriddenByAnyDescClass is true for acsClass <ascClass>, descClass: <descClass>");
 	}
 	return retBool;
 }
@@ -381,6 +375,8 @@ public loc getImmediateParentOfClass(loc classOrInt, map[loc, set[loc]] extendsM
 public loc getImmediateParent (loc classOrInt, map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap, map[loc, set[loc]] declarationsMap  ) {
 	if (isClass(classOrInt)) {return getImmediateParentOfClass(classOrInt, extendsMap, implementsMap, declarationsMap); }
 	if (isInterface(classOrInt)) {return getImmediateParentOfInterface(classOrInt, extendsMap, declarationsMap); }
+	println("classOrInt is neither class nor interface: <classOrInt>" );
+	return DEFAULT_LOC;
 }
 
 
@@ -443,6 +439,30 @@ public loc getImmediateParentGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, se
 	return DEFAULT_LOC;
 }
 
+
+public lrel [loc, loc] getInheritanceChainGivenAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap,  rel [loc, loc] allInheritanceRelations) {
+	// I am here!!!!!!!!!!!!!!!!!!!!!!
+	// Tomorrow have a look if this works TODO TODO TODO !!!!!!!!!!!!!!
+	
+	
+	lrel [loc, loc] retList = [];
+	bool topReached = false;
+	loc childType = classOrInt;
+	loc immediateParent = getImmediateParentGivenAnAsc(classOrInt, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
+	if (ascLoc != DEFAULT_LOC) {
+		while (!topReached) {
+			if (immediateParent == DEFAULT_LOC) {
+				topReached = true;
+			}
+			else {
+				retList = retList + <childType, immediateParent>;
+				if (immediateParent == ascLoc) { topReached = true;} 
+				childType = immediateParent;
+				immediateParent= getImmediateParentGivenAnAsc(childType, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
+			}
+		}
+	}
+}
 
 
 
@@ -659,18 +679,6 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 
 
 
-// public bool isVarargInDeclaration(loc aMethodLoc, map [loc, set[TypeSymbol]] typesMap) {
-//	bool retBool = false;
-//	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(aMethodLoc, typesMap);
-//	visit (methodTypeSymbol) {
-//		case \vararg(_,_) : {
-//			retBool = true;
-//		}
-//	}
-//	return retBool;
-//}
-//
-
 loc getTypeVariableFromTypeSymbol(TypeSymbol aTypeSymbol) {
 	loc typeVar = DEFAULT_LOC;
 	visit (aTypeSymbol) {
@@ -766,47 +774,33 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			// There can be no subtyping between type parameters, so I do not have to do anything here.
 		;}
 		case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-			//println("Called constructor: <newObject1@decl>");
-			//println("newObject 11111111111 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
-			//println("Received type symbol: <recTypeSymbol>");
 		}
 		case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-			//println("newObject 22222222222 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-			//println("newObject 33333333333 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 		case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-			//println("newObject 44444444444 type: <\type>, expArgs : <expArgs>, at : <methodOrConstExpr@src>");
 			recTypeSymbol =  getTypeSymbolFromRascalType(\type);
 			methodOwningClassOrInt =  getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
 		}
 	}
 	if (recTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-		//println("Receiver type symbol is: <recTypeSymbol>");
 		// recTypeParameters holds the actual types with which the object was instantiated, like Shape, Ractangle, String, etc.
 		list [TypeSymbol] recTypeParameters = getReceivingTypeParameters(recTypeSymbol); 
 		if ( !isEmpty(recTypeParameters) ) { 
-			//println("Receiving type parameters:"); iprintln(recTypeParameters);
 			// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
 			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
-			//println("Type parameters of receiving class:"); iprintln(typeVariablesOfRecClass);
 			// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
 			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters, methodOrConstExpr@src);
-			//println("Type variable map: "); iprintln(typeVariableMap);
 			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
-			//println("Resolved type symbol is: <resolvedTypeSymbol>" );
-			//println();
 		}
 		else {
-			// recTypeParameters can be empty if a child that's decalered to take a type parameter is instantiated without a type parameter
-			// Then I will assume that it is as if the child is instantiated with Object type parameter.
 			resolvedTypeSymbol  = OBJECT_TYPE_SYMBOL;
 		}
 	}
@@ -848,7 +842,6 @@ public list [TypeSymbol] getDeclaredParameterTypes (Expression methodOrConstExpr
 		}
 	}
 	retTypeList = updateTypesWithGenerics(methodOrConstExpr, methodParameterTypes, typesMap, invertedClassAndInterfaceContainment, projectM3);
-	//println();
 	return retTypeList;
 }
 
@@ -857,7 +850,6 @@ public TypeSymbol getDeclaredReturnTypeSymbolOfMethod(loc methodLoc, map [loc, s
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
 	TypeSymbol methodTypeSymbol = getTypeSymbolOfLocDeclaration(methodLoc, typesMap);
 	visit (methodTypeSymbol) {
-	// \method(loc decl, list[TypeSymbol] typeParameters, TypeSymbol returnType, list[TypeSymbol] parameters)
 		case \method(_, _, returnType,  _) : {
 			retSymbol = returnType;
 		}
@@ -871,11 +863,9 @@ public Expression createMethodCallFromConsCall(Statement consCall) {
 	list [Expression] arguments = [];
 	visit (consCall) {
 	     case consCall1:\constructorCall(_, args:_): {
-        //       (bool isSuper, list[Expression] arguments)
 			arguments = args; 
         }
         case consCall2:\constructorCall(_, expr:_, args:_): {
-        //       (bool isSuper, Expression expr, list[Expression] arguments)
 			arguments = args; 
         }
 	}
@@ -969,4 +959,24 @@ public list [TypeSymbol] getArgTypeSymbols(str methodStr, map [loc, set [str]] i
 	return retList;
 }
 
+
+public M3 getM3ForProjectLoc(loc projectLoc) {
+	M3 retM3; 
+	loc m3FileLoc = beginPath + "/M3s/" + (projectLoc.authority + ".m3");
+	bool createM3 = false; 
+	try {
+		retM3 = readBinaryValueFile(#M3, m3FileLoc);
+	}
+	catch IO(exc) : {
+		println("IO exception : <exc>");
+		createM3 = true;
+	}
+	if (createM3) {
+		println("Creating M3 model for <projectLoc>");
+		retM3 = createM3FromEclipseProject(projectLoc);
+		println("Created M3 model...");
+		writeBinaryValueFile(m3FileLoc, retM3); 
+	}
+	return retM3;
+}
 

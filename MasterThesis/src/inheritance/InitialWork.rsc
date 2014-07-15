@@ -218,9 +218,25 @@ private Expression createMethodCallFromConsCall(Statement consCall) {
 
 public void runInitialWork() {
 	loc projectLoc = |project://VerySmallProject|;
-	M3 projectM3 = getM3Model(projectLoc);
+	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	//text(projectM3@names);
-	getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/N/complexMethodCall2()|); 
+	println(projectLoc); 
+			//println("Parent: <projectLoc.parent>");
+			//println("Id: <projectLoc.id>");			
+			println("Scheme: <projectLoc.scheme>");
+			println("Authority: <projectLoc.authority>");
+			println("Path: <projectLoc.path>");
+			println("Extension: <projectLoc.extension>");
+			println("Query: <projectLoc.query>");
+			println("Fragment: <projectLoc.fragment>");
+			//println("Parent: <projectLoc.parent>");
+			//println("File: <projectLoc.file>");
+
+	 // getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/N/complexMethodCall2()|); 
+	
+	
+	
+	
 }
 
 
