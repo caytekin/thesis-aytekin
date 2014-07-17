@@ -223,18 +223,22 @@ public void runInitialWork() {
 	println(projectLoc); 
 			//println("Parent: <projectLoc.parent>");
 			//println("Id: <projectLoc.id>");			
-			println("Scheme: <projectLoc.scheme>");
-			println("Authority: <projectLoc.authority>");
-			println("Path: <projectLoc.path>");
-			println("Extension: <projectLoc.extension>");
-			println("Query: <projectLoc.query>");
-			println("Fragment: <projectLoc.fragment>");
+			//println("Scheme: <projectLoc.scheme>");
+			//println("Authority: <projectLoc.authority>");
+			//println("Path: <projectLoc.path>");
+			//println("Extension: <projectLoc.extension>");
+			//println("Query: <projectLoc.query>");
+			//println("Fragment: <projectLoc.fragment>");
 			//println("Parent: <projectLoc.parent>");
 			//println("File: <projectLoc.file>");
 
 	 // getInfoForMethod(projectM3, |java+method:///edu/uva/analysis/samples/N/complexMethodCall2()|); 
-	
-	
+
+	map [loc, set [loc]] 	declarationsMap	= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	map [loc, set [loc]]	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map [loc, set [loc]]    implementsMap  	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
+	iprintln(getInheritanceChainGivenAsc(|java+class:///edu/uva/analysis/samples/X|, |java+interface:///edu/uva/analysis/samples/InterfaceA|, extendsMap, implementsMap,  declarationsMap, allInheritanceRelations));	
 	
 	
 }

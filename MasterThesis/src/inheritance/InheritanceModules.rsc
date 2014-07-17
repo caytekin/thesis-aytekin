@@ -386,6 +386,9 @@ private loc getImmediateParentOfInterfaceGivenAnAsc(loc classOrInt, loc ascLoc, 
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
 	set [loc] immediateParentInterfaceSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
+	println("Extends map: "); iprintln(extendsMap);
+	println("classOrInt: <classOrInt>,  ascLoc: <ascLoc>");
+	println("immediateParentInterfaceSet: <immediateParentInterfaceSet>");
 	if (size(immediateParentInterfaceSet) == 1) {
 		retLoc = getOneFrom(immediateParentInterfaceSet);
 	}
@@ -406,10 +409,10 @@ private loc getImmediateParentOfClassGivenAnAsc(loc classOrInt, loc ascLoc,  map
 																											  	rel [loc, loc] allInheritanceRelations) {
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
-	set [loc] immediateParentClassSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
-	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap ? implementsMap[classOrInt] : {};
+	set [loc] immediateParentClassSet 		= classOrInt in extendsMap 		? extendsMap[classOrInt] : {};
+	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap 	? implementsMap[classOrInt] : {};
 	if (immediateParentClassSet != {}) {
-		if (size(immediateParentClassSet) >1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
+		if (size(immediateParentClassSet) > 1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
 		retLoc = getOneFrom(immediateParentClassSet);
 	} 
 	else {
@@ -440,28 +443,31 @@ public loc getImmediateParentGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, se
 }
 
 
-public lrel [loc, loc] getInheritanceChainGivenAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap,  rel [loc, loc] allInheritanceRelations) {
-	// I am here!!!!!!!!!!!!!!!!!!!!!!
-	// Tomorrow have a look if this works TODO TODO TODO !!!!!!!!!!!!!!
-	
-	
+public lrel [loc, loc] getInheritanceChainGivenAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] 	implementsMap,  
+																												map[loc, set[loc]] 	declarationsMap,
+																												rel [loc, loc] 		allInheritanceRelations) {
 	lrel [loc, loc] retList = [];
 	bool topReached = false;
 	loc childType = classOrInt;
 	loc immediateParent = getImmediateParentGivenAnAsc(classOrInt, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
 	if (ascLoc != DEFAULT_LOC) {
 		while (!topReached) {
+			println("Child loc: <childType>");
+			println("immediateParent: <immediateParent>");
 			if (immediateParent == DEFAULT_LOC) {
 				topReached = true;
 			}
 			else {
 				retList = retList + <childType, immediateParent>;
-				if (immediateParent == ascLoc) { topReached = true;} 
-				childType = immediateParent;
-				immediateParent= getImmediateParentGivenAnAsc(childType, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
+				if ((immediateParent == ascLoc) || !(isLocDefinedInProject(immediateParent, declarationsMap)) ) { topReached = true;} 
+				else {
+					childType = immediateParent;
+					immediateParent= getImmediateParentGivenAnAsc(childType, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
+				}
 			}
 		}
 	}
+	return retList;
 }
 
 
