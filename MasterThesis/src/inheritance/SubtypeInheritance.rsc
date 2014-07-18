@@ -19,7 +19,7 @@ import inheritance::InheritanceModules;
 
 
 
-public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
+public list [TypeSymbol] getPassedSymbolList(Expression methExpr, M3 projectM3) {
 	list [Expression] args 		= [];
 	list [TypeSymbol] retList 	= [];
 	visit (methExpr)  {
@@ -48,7 +48,16 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr) {
 			args = expArgs;
 		}
 	}
-	for ( int i <- [0..(size(args))]) retList += args[i]@typ;
+	TypeSymbol argTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	for ( int i <- [0..(size(args))]) {
+		argTypeSymbol = getTypeSymbolFromAnnotation(args[i], projectM3);
+		if (argTypeSymbol == DEFAULT_TYPE_SYMBOL) {
+			println("No such symbol annotation for : Method expression: <methExpr>, args: <args>");
+			retList = [];
+			break;
+		}
+		retList += argTypeSymbol;
+	}
 	return retList;
 }
 
@@ -140,16 +149,22 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ]  getSubtypeViaVariables(
 
 
 
-private bool isUpcasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
+private bool isUpCasting(loc aChild, loc aParent, map [loc, set [loc]] inheritanceRelsMap ) {
 	bool retBool = false;
-	set [loc] allParentsOfAChild = (aChild in inheritanceRelsMap) ? inheritanceRelsMap[aChild] : {};
-	if (aParent notin allParentsOfAChild) {
-		// we suspect upcasting
-		set [loc] reverseParentSet = (aParent in inheritanceRelsMap) ? inheritanceRelsMap[aParent] : {};
-		if (aChild in reverseParentSet) {
-			retBool = true;
+	if ( (aChild == OBJECT_CLASS) && (aParent != OBJECT_CLASS) ) {
+		retBool = true;
+	} 
+	else {
+		set [loc] allParentsOfAChild = (aChild in inheritanceRelsMap) ? inheritanceRelsMap[aChild] : {};
+		if (aParent notin allParentsOfAChild) {
+			// we suspect upcasting
+			set [loc] reverseParentSet = (aParent in inheritanceRelsMap) ? inheritanceRelsMap[aParent] : {};
+			if (aChild in reverseParentSet) {
+				retBool = true;
+			}
 		}
-	}
+	;}
+	if (retBool) {	println("upcasting between <aChild> and <aParent>....."); }
 	return retBool;
 }
 
@@ -188,7 +203,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaCast(Expres
 			if (castExprTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(getTypeSymbolFromRascalType(castType), castExprTypeSymbol);
 				if (result.isSubtypeRel) {
-					bool upcasting = isUpcasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
+					bool upcasting = isUpCasting(result.iKey.child, result.iKey.parent, inheritanceRelsMap);
 					if (upcasting) {
 						// reverse the order if there is upcasting.
 						retList += < <result.iKey.parent, result.iKey.child> , SUBTYPE_VIA_UPCASTING, castStmt@src>;				
@@ -341,7 +356,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	lrel [inheritanceKey, inheritanceSubtype , loc ]  retList = [];
 	bool analyzeMethod = false;
 	list [TypeSymbol] finalDeclaredSymbolList = [];
-	list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr);
+	list [TypeSymbol] passedSymbolList 		= getPassedSymbolList(methOrConstExpr, projectM3);
 	if (methOrConstExpr@decl in typesMap) {
 		analyzeMethod = true; 
 		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);

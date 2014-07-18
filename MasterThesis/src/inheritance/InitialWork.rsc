@@ -238,7 +238,7 @@ public void runInitialWork() {
 	map [loc, set [loc]]	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
 	map [loc, set [loc]]    implementsMap  	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
-	iprintln(getInheritanceChainGivenAsc(|java+class:///edu/uva/analysis/samples/X|, |java+interface:///edu/uva/analysis/samples/InterfaceA|, extendsMap, implementsMap,  declarationsMap, allInheritanceRelations));	
+	iprintln(getInheritanceChainGivenAsc(|java+class:///edu/uva/analysis/samples/X|, |java+class:///edu/uva/analysis/samples/Y|, extendsMap, implementsMap,  declarationsMap, allInheritanceRelations));	
 	
 	
 }

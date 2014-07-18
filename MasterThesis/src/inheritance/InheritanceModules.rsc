@@ -386,9 +386,6 @@ private loc getImmediateParentOfInterfaceGivenAnAsc(loc classOrInt, loc ascLoc, 
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
 	set [loc] immediateParentInterfaceSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
-	println("Extends map: "); iprintln(extendsMap);
-	println("classOrInt: <classOrInt>,  ascLoc: <ascLoc>");
-	println("immediateParentInterfaceSet: <immediateParentInterfaceSet>");
 	if (size(immediateParentInterfaceSet) == 1) {
 		retLoc = getOneFrom(immediateParentInterfaceSet);
 	}
@@ -452,8 +449,6 @@ public lrel [loc, loc] getInheritanceChainGivenAsc(loc classOrInt, loc ascLoc,  
 	loc immediateParent = getImmediateParentGivenAnAsc(classOrInt, ascLoc, extendsMap, implementsMap, allInheritanceRelations);
 	if (ascLoc != DEFAULT_LOC) {
 		while (!topReached) {
-			println("Child loc: <childType>");
-			println("immediateParent: <immediateParent>");
 			if (immediateParent == DEFAULT_LOC) {
 				topReached = true;
 			}

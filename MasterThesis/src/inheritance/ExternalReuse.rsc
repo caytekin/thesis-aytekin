@@ -23,11 +23,12 @@ import inheritance::InheritanceModules;
 
 
 
-public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFieldOrMethod, 	map [loc, set[loc]] 	invClassAndInterfaceContainment,  
-												map [loc, set[loc]] 	declarationsMap,
-												rel [loc, loc] 		allInheritanceRelations, 
-												map [loc, set[loc]] 	extendsMap,
-												map [loc, set[loc]] 	implementsMap, 
+public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFieldOrMethod, 	
+																	map [loc, set[loc]] 	invClassAndInterfaceContainment,  
+																	map [loc, set[loc]] 	declarationsMap,
+																	rel [loc, loc] 			allInheritanceRelations, 
+																	map [loc, set[loc]] 	extendsMap,
+																	map [loc, set[loc]] 	implementsMap, 
 												M3 projectM3) {
 	loc immediateParentOfReceiver = DEFAULT_LOC; 
 	bool direct = false;
@@ -43,6 +44,43 @@ public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFie
 	}
 	return immediateParentOfReceiver ;
 }
+
+
+
+public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseGeneral (TypeSymbol recTypeSymbol, loc accessedLoc, loc srcRef, 
+																						map [loc, set[loc]] 	invClassAndInterfaceContainment,  
+																						map [loc, set[loc]] 	declarationsMap,
+																						rel [loc, loc] 			allInheritanceRelations, 
+																						map[loc, set[loc]] 		extendsMap,
+																						map[loc, set[loc]] 		implementsMap,
+																						M3 projectM3) {
+	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
+	loc classOrInterfaceOfReceiver 	= getClassOrInterfaceFromTypeSymbol(recTypeSymbol);
+	immediateParentOfReceiver = getImmParentForAccess(classOrInterfaceOfReceiver, accessedLoc, 	invClassAndInterfaceContainment,  declarationsMap, 
+																				allInheritanceRelations, extendsMap, implementsMap, projectM3);
+	if (immediateParentOfReceiver != DEFAULT_LOC) { // external reuse
+		if ((isLocDefinedInProject(accessedLoc, declarationsMap)) && isLocDefinedInGivenType(accessedLoc, immediateParentOfReceiver, invClassAndInterfaceContainment)) {
+			retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_DIRECT, srcRef, accessedLoc>; 
+		}  
+		else {
+			if (isLocDefinedInProject(accessedLoc, declarationsMap) ) {
+				loc definingTypeOfLoc = getDefiningClassOrInterfaceOfALoc(accessedLoc, invClassAndInterfaceContainment, projectM3);
+				lrel [loc, loc] inhChain = getInheritanceChainGivenAsc( classOrInterfaceOfReceiver, definingTypeOfLoc,  extendsMap, implementsMap,  declarationsMap, allInheritanceRelations);
+				for (aPair <- inhChain) {
+					retList += <aPair, EXTERNAL_REUSE_INDIRECT, srcRef, accessedLoc>; 
+				}
+			}
+			else {	// LIMITATION! If the accessedLoc is defined outside of the project, we just insert the immediate parent and nothing else in between.
+				retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_INDIRECT, srcRef, accessedLoc>; 
+			}
+		}
+	}
+
+	return retList;
+}
+
+
+
 
 
 
@@ -63,17 +101,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 				println("Methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>");
 			}
 			else {		
-				loc classOrInterfaceOfReceiver 	= getClassOrInterfaceFromTypeSymbol(receiver@typ);
-				immediateParentOfReceiver = getImmParentForAccess(classOrInterfaceOfReceiver, invokedMethod, 	invClassAndInterfaceContainment,  declarationsMap, 
-																													allInheritanceRelations, extendsMap, implementsMap, projectM3);
-				if (immediateParentOfReceiver != DEFAULT_LOC) { // external reuse
-					if ((isLocDefinedInProject(invokedMethod, declarationsMap)) && isLocDefinedInGivenType(invokedMethod, immediateParentOfReceiver, invClassAndInterfaceContainment)) {
-						retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_DIRECT_VIA_METHOD_CALL, m2@src, invokedMethod>; 
-					}  
-					else {
-						retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_INDIRECT_VIA_METHOD_CALL, m2@src, invokedMethod>; 
-					}
-				}
+				retList = getExternalReuseGeneral (receiver@typ, invokedMethod, m2@src, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
 			} // else	
    		} // case methodCall()
    	}  // visit
@@ -107,28 +135,20 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 		}
 	}  // visit
 	if (isField(accessedField) && !(isThisReference) ) {
-		loc classOrInterfaceOfReceiver 	= getClassOrInterfaceFromTypeSymbol(receiverTypeSymbol);
-		loc immediateParentOfReceiver 	= getImmParentForAccess(classOrInterfaceOfReceiver, accessedField, 	invClassAndInterfaceContainment,  declarationsMap, 
-																											allInheritanceRelations, extendsMap, implementsMap, projectM3);
-		if (immediateParentOfReceiver != DEFAULT_LOC) { // external reuse
-			if ((isLocDefinedInProject(accessedField, declarationsMap)) && isLocDefinedInGivenType(accessedField, immediateParentOfReceiver, invClassAndInterfaceContainment)) {
-				retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_DIRECT_VIA_FIELD_ACCESS, srcRef, accessedField>; 
-			}  
-			else {
-				retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_INDIRECT_VIA_FIELD_ACCESS, srcRef, accessedField>; 
-			}
-		}
+		retList = getExternalReuseGeneral (receiverTypeSymbol, accessedField, srcRef, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
 	} // if
 	return retList;
 }
 
-private map [metricsType, num]  calculateExternalReuseIndirectPercentages(rel [inheritanceKey, inheritanceType] explicitFoundInhrels, rel [inheritanceKey, inheritanceType]  addedImplicitRels) {
+private map [metricsType, num]  calculateExternalReuseIndirectPercentages(	rel [inheritanceKey, inheritanceType] explicitFoundInhrels, 
+																			rel [inheritanceKey, inheritanceType]  addedImplicitRels, M3 projectM3) {
 	map [metricsType, num] addedResultsMap = ();
 	addedResultsMap += (perAddedCCExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+class", "java+class"));
 	addedResultsMap += (perAddedCIExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+class", "java+interface"));
 	addedResultsMap += (perAddedIIExtReuse : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, EXTERNAL_REUSE, "java+interface", "java+interface"));
 	for (aMetric <- [perAddedCCExtReuse, perAddedCIExtReuse, perAddedIIExtReuse]) {
 		println("<getNameOfInheritanceMetric(aMetric)> : <addedResultsMap[aMetric]>");
+		appendToFile(getFilename(projectM3.id, addedPercentagesFile), "<addedResultsMap[aMetric]> \t");
 	}
 	return addedResultsMap;
 }
@@ -170,11 +190,11 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	rel [inheritanceKey, inheritanceType] indirectExReusePairs = {};
 	for ( int i <- [0..size(allExternalReuseCases)]) { 
 		tuple [ inheritanceKey iKey, inheritanceSubtype iType, loc srcLoc, loc accessedLoc] aCase = allExternalReuseCases[i];
-		if ((aCase.iType == EXTERNAL_REUSE_DIRECT_VIA_METHOD_CALL) || (aCase.iType == EXTERNAL_REUSE_DIRECT_VIA_FIELD_ACCESS)) { directExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
-		if ((aCase.iType == EXTERNAL_REUSE_INDIRECT_VIA_METHOD_CALL) || (aCase.iType == EXTERNAL_REUSE_INDIRECT_VIA_FIELD_ACCESS)) { indirectExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
+		if (aCase.iType == EXTERNAL_REUSE_DIRECT) { directExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
+		if (aCase.iType == EXTERNAL_REUSE_INDIRECT) { indirectExReusePairs += <aCase.iKey, EXTERNAL_REUSE> ; }
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;
 	}
-	calculateExternalReuseIndirectPercentages(directExReusePairs, indirectExReusePairs);
+	calculateExternalReuseIndirectPercentages(directExReusePairs, indirectExReusePairs, projectM3);
 	iprintToFile(getFilename(projectM3.id, externalReuseLogFile), allExternalReuseCases);
 	return resultRel;
 }

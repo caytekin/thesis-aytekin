@@ -17,9 +17,6 @@ public inheritanceType FRAMEWORK = 10;
 public inheritanceType DOWNCALL = 11;
 
 
-public inheritanceType DIRECT_EXTERNAL_REUSE = 20;
-public inheritanceType INDIRECT_EXTERNAL_REUSE = 21;
-
 
 
 
@@ -79,20 +76,18 @@ public metricsType perAddedIIExtReuse		= 1106;
 
 
 
-public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT = 201;
-public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL = 202;
-public inheritanceSubtype SUBTYPE_VIA_CAST = 203;
-public inheritanceSubtype SUBTYPE_VIA_UPCASTING = 204;
-public inheritanceSubtype SUBTYPE_VIA_SIDEWAYS_CASTING = 205;
-public inheritanceSubtype SUBTYPE_VIA_RETURN = 206;
-public inheritanceSubtype SUBTYPE_VIA_PARAMETER = 207;
-public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP = 208;
+public inheritanceSubtype SUBTYPE_ASSIGNMENT_STMT 		= 201;
+public inheritanceSubtype SUBTYPE_ASSIGNMENT_VAR_DECL 	= 202;
+public inheritanceSubtype SUBTYPE_VIA_CAST 				= 203;
+public inheritanceSubtype SUBTYPE_VIA_UPCASTING			= 204;
+public inheritanceSubtype SUBTYPE_VIA_SIDEWAYS_CASTING 	= 205;
+public inheritanceSubtype SUBTYPE_VIA_RETURN 			= 206;
+public inheritanceSubtype SUBTYPE_VIA_PARAMETER 		= 207;
+public inheritanceSubtype SUBTYPE_VIA_FOR_LOOP 			= 208;
 
 
-public inheritanceSubtype EXTERNAL_REUSE_DIRECT_VIA_METHOD_CALL = 210;
-public inheritanceSubtype EXTERNAL_REUSE_INDIRECT_VIA_METHOD_CALL = 211;
-public inheritanceSubtype EXTERNAL_REUSE_DIRECT_VIA_FIELD_ACCESS = 212;
-public inheritanceSubtype EXTERNAL_REUSE_INDIRECT_VIA_FIELD_ACCESS = 213;
+public inheritanceSubtype EXTERNAL_REUSE_DIRECT 	= 210;
+public inheritanceSubtype EXTERNAL_REUSE_INDIRECT 	= 211;
 
 
 public inheritanceSubtype INTERNAL_REUSE_METHOD_LEVEL = 220;
@@ -145,6 +140,7 @@ public str addedRelsLogFile 			=  "AddedRels.log";
 public str resultsFile					=  "Results.txt"; 
 public str errorLog						=  "Error.log" ;
 public str resultSummaryFile			=  "ResultsSummary.log"; 
+public str addedPercentagesFile 		=  "AddedPercentages.txt";
 
 
 

@@ -60,13 +60,16 @@ rel [inheritanceKey, inheritanceType] getFilteredInheritanceCases(rel [ inherita
 
 
 
-private map [metricsType, num] calculateSubtypeIndirectPercentages(rel [inheritanceKey, inheritanceType] explicitFoundInhrels, rel [inheritanceKey, inheritanceType]  addedImplicitRels) {
+private map [metricsType, num] calculateSubtypeIndirectPercentages(	rel [inheritanceKey, inheritanceType] explicitFoundInhrels, 
+																	rel [inheritanceKey, inheritanceType]  addedImplicitRels,
+																	M3 projectM3) {
 	map [metricsType, num] addedResultsMap = ();
 	addedResultsMap += (perAddedCCSubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+class", "java+class"));
 	addedResultsMap += (perAddedCISubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+class", "java+interface"));
 	addedResultsMap += (perAddedIISubtype : getPercentageAdded(explicitFoundInhrels, addedImplicitRels, SUBTYPE, "java+interface", "java+interface"));
 	for (aMetric <- [perAddedCCSubtype, perAddedCISubtype, perAddedIISubtype]) {
 		println("<getNameOfInheritanceMetric(aMetric)> : <addedResultsMap[aMetric]>");
+		appendToFile(getFilename(projectM3.id, addedPercentagesFile), "<addedResultsMap[aMetric]> \t");
 	}
 	return addedResultsMap;
 }
@@ -77,16 +80,18 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 	// subtype or a downcall between G and P, the edge G and P does not get listed, because the edge G-> P is not explicit, however, the edge between 
 	//  G and C will get the same attribute (reuse, subtype or downcall), because it is explicit.
 	rel [inheritanceKey, inheritanceType] retRel = {};
-	rel [inheritanceKey, inheritanceType] selectedOccurrences = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- implicitFoundInhrels, _iType == EXTERNAL_REUSE || _iType == SUBTYPE };
+	rel [inheritanceKey, inheritanceType] selectedOccurrences = {<<_child, _parent>, _iType> | <<_child, _parent>, _iType> <- implicitFoundInhrels, _iType == SUBTYPE };
 	rel [inheritanceKey, inheritanceType, loc] addedInhOccLog = {};
-	map[loc, set[loc]] 	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
-	map[loc, set[loc]] 	implementsMap 	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
-	rel [loc, loc] 		allInheritanceRelations 	= getInheritanceRelations(projectM3);
-	loc immediateParent = DEFAULT_LOC;
+	map[loc, set[loc]] 	extendsMap 				= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map[loc, set[loc]] 	implementsMap 			= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	rel [loc, loc] 		allInheritanceRelations = getInheritanceRelations(projectM3);
+	map [loc, set[loc]] declarationsMap			= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	
 	for ( <<_child, _parent>, _iType> <- sort(selectedOccurrences)) {
-		immediateParent = getImmediateParentGivenAnAsc(_child, _parent, extendsMap, implementsMap, allInheritanceRelations); 
-		if (immediateParent != DEFAULT_LOC) {
-			addedInhOccLog += <<_child, immediateParent>, _iType, _parent>; 
+		lrel [loc, loc] inhChain = getInheritanceChainGivenAsc( _child, _parent,  extendsMap, implementsMap,  declarationsMap, allInheritanceRelations);
+		println("Inheritance Chain added for subtype: <<_child, _parent>>"); iprintln(inhChain);
+		for (aPair <- inhChain) {
+			addedInhOccLog += <aPair, _iType, _parent>; 
 		}
 	}  // for														
 	retRel = {<<_child, _immediateParent>, _iType> | <<_child, _immediateParent>, _iType, _parent><- addedInhOccLog};	
@@ -112,7 +117,7 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	rel [inheritanceKey, inheritanceType] implicitFoundInhRels = allOccurrences - explicitFoundInhRels;
 	rel [inheritanceKey, inheritanceType] addedImplicitRels = getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
 	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + addedImplicitRels;
-	calculateSubtypeIndirectPercentages(explicitFoundInhRels, addedImplicitRels);
+	calculateSubtypeIndirectPercentages(explicitFoundInhRels, addedImplicitRels, projectM3);
 	println("ALL RESULTS -------------------------------------------------------------------");
 	iprintln(sort(allResults));
 	println("-------------------------------------------------------------------"); println();
@@ -312,6 +317,20 @@ private void printResults(map[inheritanceType, num] totals ) {
 }
 
 
+private void printResultsWhichAreParentChild(rel [inheritanceKey, inheritanceType] explicitResults, M3 projectM3) {
+	map [loc, set [loc]]	extendsMap 		= toMap({<_child, _parent> | <_child, _parent> <- projectM3@extends});
+	map [loc, set [loc]]    implementsMap  	= toMap({<_child, _parent> | <_child, _parent> <- projectM3@implements});
+	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
+	map [loc, set [loc]] 	declarationsMap				= toMap({<aLoc, aProject> | <aLoc, aProject> <- projectM3@declarations});
+	for (<<_child, _parent>, _iType> <- explicitResults) {
+		lrel [loc, loc] inhChain = getInheritanceChainGivenAsc(_child, _parent,  extendsMap, 	implementsMap,	declarationsMap, allInheritanceRelations);
+		if (isEmpty(inhChain)) {
+			println("Inheritance chain for <_child>, <_parent> is empty!: Type: <_iType>");
+		}
+	;}
+}
+
+
 
 
 
@@ -319,11 +338,12 @@ public void runIt() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://findbugs|;
+	loc projectLoc = |project://cobertura-1.9.4.1|;
 	makeDirectory(projectLoc);
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
+	writeFile(getFilename(projectM3.id, addedPercentagesFile), " ");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	
 	
@@ -359,9 +379,13 @@ public void runIt() {
 	
 	
 	printResults(countResults(allInheritanceCases));
+	
+	//printResultsWhichAreParentChild(allInheritanceCases, projectM3);
+	
 	rel [inheritanceKey, inheritanceType] filteredInheritanceCases = getFilteredInheritanceCases(allInheritanceCases, allInheritanceRelations, projectM3);
 
 	rel [inheritanceKey, inheritanceType] explicitResults = getExplicitResults(filteredInheritanceCases, projectM3);
+	
 	
 	
 	
