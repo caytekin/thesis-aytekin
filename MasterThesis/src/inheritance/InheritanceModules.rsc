@@ -171,7 +171,7 @@ public TypeSymbol getTypeSymbolFromAnnotation(Expression anExpression, M3 projec
 		retSymbol = anExpression@typ;
 	}
 	catch NoSuchAnnotation("typ") : {
-		appendToFile(getFilename(projectM3.id, errorLog), "In getTypeSymbolFromAnnotation, NoSuchAnnotation exception thrown for expression <anExpression>: \n");
+		appendToFile(getFilename(projectM3.id, errorLog), "In getTypeSymbolFromAnnotation, NoSuchAnnotation exception thrown for expression <anExpression>: \n\n");
 	;}
 	return retSymbol;
 }
@@ -182,7 +182,7 @@ private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[
 	if (size(retLocSet) != 1) {
 		if (size(retLocSet) > 1) {
 			// this occurs very rarely, we should report it as error, but continue working 
-			appendToFile(getFilename(projectM3.id, errorLog), "In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+			appendToFile(getFilename(projectM3.id, errorLog), "In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>\n\n");
 		;}
 		else {
 			throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
@@ -713,7 +713,7 @@ list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymb
 }
 
 
-map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters, loc stmtLoc) {
+map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSymbol] typeParameters, loc stmtLoc, M3 projectM3) {
 	map [loc, TypeSymbol] retMap = ();
 	list [TypeSymbol] completeTypeParameters = typeParameters;
 	if (size(typeVariables) != size(typeParameters)) {
@@ -727,7 +727,10 @@ map [loc, TypeSymbol] getTypeVariableMap(list [loc] typeVariables, list [TypeSym
 			;
 		}
 		else {
-			throw "More type parameters than type variables! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>";
+			// exceptional situation, we will log this in error log and return an empty map.
+			println("More type parameters than type variables! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>");
+			appendToFile(getFilename(projectM3.id, errorLog), "More type parameters than type variables! Type variables: <typeVariables>, type parameters: <typeParameters> at: <stmtLoc>\n\n");
+			completeTypeParameters = [];
 		}
 	}
 	for (int i <- [0..size(completeTypeParameters)] ) {
@@ -798,8 +801,16 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			// typeVariablesOfRecClass holds the type variables in the class definition, like X, T in <X,T>
 			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
 			// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
-			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters, methodOrConstExpr@src);
-			resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
+			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters, methodOrConstExpr@src, projectM3);
+			// here NoSuchKey exception is thrown...  TODO TODO TODO
+			if (methodParameterTypeVariable notin typeVariableMap) {
+				println("methodParameterTypeVariable: <methodParameterTypeVariable> is not found in typeVariableMap: <typeVariableMap>");
+				println("method call to method: <methodOrConstExpr@decl> at source location: <methodOrConstExpr@src> ");
+				resolvedTypeSymbol = DEFAULT_TYPE_SYMBOL;
+			}
+			else {
+				resolvedTypeSymbol = typeVariableMap[methodParameterTypeVariable];
+			}
 		}
 		else {
 			resolvedTypeSymbol  = OBJECT_TYPE_SYMBOL;

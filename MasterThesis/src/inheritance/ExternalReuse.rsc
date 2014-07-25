@@ -97,7 +97,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 		case m2:\methodCall(_, receiver:_, _, _): {
 			loc invokedMethod = m2@decl;        	
 			if (invokedMethod == |unresolved:///|) {
-				appendToFile(getFilename(projectM3.id, errorLog), "In getExternalReuseViaMethodCall, methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>\n");
+				appendToFile(getFilename(projectM3.id, errorLog), "In getExternalReuseViaMethodCall, methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>\n\n");
 				println("Methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>");
 			}
 			else {		

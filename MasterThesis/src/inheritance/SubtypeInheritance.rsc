@@ -239,7 +239,7 @@ private TypeSymbol getTypeSymbolFromTypeParameterList(TypeSymbol collTypeSymbol,
 			retSymbol = typeParameters[0]; 
 		}
 		else {
-			appendToFile(getFilename(projectM3.id, errorLog), "More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>\n");
+			appendToFile(getFilename(projectM3.id, errorLog), "More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>\n\n");
 			println("More than one type parameter in class/interface collection def: <collTypeSymbol> at <forLoopRef>. Type parameters: <typeParameters>"); 
 		}	
 	}	
@@ -319,7 +319,7 @@ private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol) {
 
 
 
-private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] passedSymbolList, list [TypeSymbol] declaredSymbolList ) {
+private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] passedSymbolList, list [TypeSymbol] declaredSymbolList, M3 projectM3 ) {
 	list [TypeSymbol] retList = [];
 	if ( size(passedSymbolList) == size(declaredSymbolList) ) {
 		retList = declaredSymbolList;
@@ -339,8 +339,15 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 			if (size(passedSymbolList) > size(declaredSymbolList)) {
 				retList = prefix(declaredSymbolList);
 				int numOfElementsToAdd = size(passedSymbolList) - size(declaredSymbolList);
-				TypeSymbol typeSymbolToAdd = getTypeSymbolOfVararg(declaredSymbolList[size(declaredSymbolList) - 1] );
-				for (int i <- [0..numOfElementsToAdd+1]) { retList +=  typeSymbolToAdd ; }
+				if (isVararg(last(passedSymbolList), last(declaredSymbolList))) {
+					TypeSymbol typeSymbolToAdd = getTypeSymbolOfVararg(declaredSymbolList[size(declaredSymbolList) - 1] );
+					for (int i <- [0..numOfElementsToAdd+1]) { retList +=  typeSymbolToAdd ; }
+				}
+				else {
+					appendToFile(getFilename(projectM3.id, errorLog), "In updateDeclaredSymbolListForVararg, the vararg could not be analyzed. Passed symbol list: <passedSymbolList>, declared symbol list: <declaredSymbolList> \n\n");
+					println("In updateDeclaredSymbolListForVararg, the vararg could not be analyzed. Passed symbol list: <passedSymbolList>, declared symbol list: <declaredSymbolList> "); 
+					retList = [];
+				}
 			}
 		}
 	}
@@ -360,13 +367,15 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	if (methOrConstExpr@decl in typesMap) {
 		analyzeMethod = true; 
 		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
-		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList);
+		//println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
+		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList, projectM3);
 	}
 	else {	// method is not defined in the source, we try to get the method parameters wuth a heuristic.
 		str methodStr = (methOrConstExpr@decl).file; 
 		finalDeclaredSymbolList = getArgTypeSymbols(methodStr, invertedNamesMap);
-		if (!isEmpty(finalDeclaredSymbolList)) {analyzeMethod = true;} 
 	}
+	if (!isEmpty(finalDeclaredSymbolList)) {analyzeMethod = true;} 	
+	else { analyzeMethod = false; }
 	if (analyzeMethod) { 
 		for (int i <- [0..size(passedSymbolList)]) {
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], finalDeclaredSymbolList[i]);

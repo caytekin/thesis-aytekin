@@ -40,7 +40,7 @@ public void writeMetricNames(loc fileLoc) {
 
 
 list [str] projectList = [
-"ant-1.8.2",
+"ant1.8.1",
 "antlr-3.4", 
 "aoi-2.8.1",
 "argouml-0.34",
@@ -66,7 +66,7 @@ list [str] projectList = [
 "drjava-stable-20100913-r5387",
 "emma-2.0.5312",
 "exoportal-v1.0.2",
-"findbugs-1.3.9",
+"findbugs",
 "fitjava-1.1",
 "fitlibraryforfitnesse-201110301",
 "freecol-0.10.3",
@@ -81,8 +81,8 @@ list [str] projectList = [
 "informa-0.7.0-alpha2",
 "ireport-3.7.5",
 "itext-5.0.3",
-"jFin_DateMath-R1.0.1",
-"james-2.2.0",
+"jFin_DateMath-R1.0.1_src-main",
+"james-2.2.0_src-java",
 "jasml-0.10",
 "javacc-5.0",
 "jchempaint-3.0.1",
@@ -90,21 +90,63 @@ list [str] projectList = [
 "jext-5.0",
 "jfreechart-1.0.13",
 "jgraph-5.13.0.0",
-"jgraphpad-5.10.0.2"
+"jgraphpad-5.10.0.2",
+"jgroups-2.10.0",
+
+"jhotdraw-7.5.1",
+"jmeter-2.5.1",
+"jmoney-0.4.4",
+"jOggplayer114s",
+"jparse-0.96",
+"jpf-1.5.1",
+"jrat-1-beta1_branches-nkadwa_nio-source-core-java",
+"jre-1.6.0",
+"jrefactory-2.9.19",
+"jruby-1.7.3",
+"jsXe-04_beta",
+"JSPWiki-2.8",
+"jtopen-7.8",
+"jung-2.0.1",
+"junit-4.1",
+
+"log4j-2.0-beta",
+"lucene-4.2.0",
+"marauroa-3.8.1",
+"maven-3.0.5",
+"megamek-0.35.18",
+"mvnforum-1.2.2-ga",
+"myfaces_core-2.1.10",
+"nakedobjects-4.0.0",
+"nekohtml-1.9.14",
+"openjms-0.7.7-beta-1",
+"oscache-2.3",
+"picocontainer-2.10.2",
+"pmd-4.2.5",
+"poi-3.6",
+"pooka-3.0-080505",
+"proguard-4.9",  
+"quickserver-1.4.7",
+"quilt-0.6-a-5",
+"roller-5.0.1",
+"rssowl-2.0.5",
+"sablecc-3.2",
+"springframework-3.0.5",
+"squirrel_sql-3.1.2",
+"struts-2.2.1",
+"sunflow-0.07.2",
+"tapestry-5.1.0.5",
+"tomcat-7.0.2",
+"trove-2.1.0",
+"velocity1.6.4",
+"webmail-0.7.10",
+"weka-3.6.9",
+"xalan-2.7.1",
+"xerces-2.10.0"
+
 
 ];
  
 
-/*
-list [str] projectList = [
-"InheritanceSamples", 
-"VerySmallProject" ,
-"ThisChangingType" ,
-"Category"  ,
-"GenericProject"  ,
-"Subtype" 
-];
-*/
 
 
 public void harvest() {
