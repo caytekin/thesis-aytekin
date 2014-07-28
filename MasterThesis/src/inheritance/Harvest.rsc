@@ -46,91 +46,90 @@ list [str] projectList = [
 "argouml-0.34",
 // "aspectj-1.6.9_matcher",   this project is contained in aspectj-1.6.9_tools 
 // "aspectj-1.6.9_rt",		  this is also mostly contained in aspectj-1.6.9_tools. 
-"aspectj-1.6.9_tools",
+"aspectj-1.6.9_tools",		// should be added to InheritanceLogs
 // "aspectj-1.6.9_weaver",	  this project is contained in aspectj-1.6.9_tools
 "axion-1.0-M2",
 "c_jdbc-2.0.2",
-"castor-1.3.3",
+"castor-1.3.3",				// should be added to InheritanceLogs
 "cayenne-3.0.1",
 "checkstyle-5.6",
 "cobertura-1.9.4.1",
 "colt-1.2.0",
 "columba-1.0_addressbook",
-"columba-1.0_api",
+ //"columba-1.0_api",		2 classes only
 "columba-1.0_core",
 "columba-1.0_mail",
-"columba-1.0_test",
+// "columba-1.0_test",		2 classes only
 "derby-10.9.1.0",
 "displaytag-1.2",
 "drawswf-1.2.9",
-"drjava-stable-20100913-r5387",
+"drjava-stable-20100913-r5387",			// should be added to inheritance logs
 "emma-2.0.5312",
 "exoportal-v1.0.2",
 "findbugs",
 "fitjava-1.1",
-"fitlibraryforfitnesse-201110301",
+"fitlibraryforfitnesse-20110301",
 "freecol-0.10.3",
-"freecs-1.3.20100406",
 "FreeCS", 
 "galleon-2.3.0",
 "ganttproject-2.1.1",
 "heritrix-1.14.4",
-"hibernate-4.2.0",      
+// "hibernate-4.2.0",      stack overflow in Rascal analysis
 "hsqldb-2.0.0",
 "htmlunit-2.8",
 "informa-0.7.0-alpha2",
-"ireport-3.7.5",
+"iReport-3.7.5",
 "itext-5.0.3",
-"jFin_DateMath-R1.0.1_src-main",
 "james-2.2.0_src-java",
 "jasml-0.10",
 "javacc-5.0",
 "jchempaint-3.0.1",
 "jedit-4.3.2",
 "jext-5.0",
+"jFin_DateMath-R1.0.1_src-main",
 "jfreechart-1.0.13",
 "jgraph-5.13.0.0",
 "jgraphpad-5.10.0.2",
-"jgroups-2.10.0",
-
+"jgrapht-0.8.1",
+"JGroups",
 "jhotdraw-7.5.1",
 "jmeter-2.5.1",
 "jmoney-0.4.4",
-"jOggplayer114s",
+"jOggPlayer114s",
 "jparse-0.96",
 "jpf-1.5.1",
 "jrat-1-beta1_branches-nkadwa_nio-source-core-java",
-"jre-1.6.0",
+// "jre-1.6.0",				could not be analyzed, Rascal error in Corba analysis
 "jrefactory-2.9.19",
-"jruby-1.7.3",
-"jsXe-04_beta",
+"JRuby",
 "JSPWiki-2.8",
-"jtopen-7.8",
+"jsXe-04_beta",
+"jtopen-7.1",
 "jung-2.0.1",
-"junit-4.1",
-
+"junit-4.10",
 "log4j-2.0-beta",
-"lucene-4.2.0",
+// "lucene-4.2.0",			could not be analyzed, does not compile because of non ASCII chars.
 "marauroa-3.8.1",
 "maven-3.0.5",
 "megamek-0.35.18",
 "mvnforum-1.2.2-ga",
-"myfaces_core-2.1.10",
-"nakedobjects-4.0.0",
+"myfaces_core-2.1.10",		// what's the problem?
+"nakedobjects-4.0.0",		// should be added to InheritanceLogs
 "nekohtml-1.9.14",
 "openjms-0.7.7-beta-1",
 "oscache-2.3",
 "picocontainer-2.10.2",
-"pmd-4.2.5",
+"pmd-4.2.x",
 "poi-3.6",
 "pooka-3.0-080505",
 "proguard-4.9",  
 "quickserver-1.4.7",
 "quilt-0.6-a-5",
-"roller-5.0.1",
+"roller-5.0.1",				// Rascal error - abort compilation...
 "rssowl-2.0.5",
 "sablecc-3.2",
-"springframework-3.0.5",
+"springframework-3.0.5_projects-org.springframework.core",
+"springframework-3.0.5_projects-org.springframework.jdbc",
 "squirrel_sql-3.1.2",
 "struts-2.2.1",
 "sunflow-0.07.2",
@@ -139,7 +138,7 @@ list [str] projectList = [
 "trove-2.1.0",
 "velocity1.6.4",
 "webmail-0.7.10",
-"weka-3.6.9",
+"weka-3.6.9",				// should be added to inheritance logs
 "xalan-2.7.1",
 "xerces-2.10.0"
 
@@ -152,7 +151,7 @@ list [str] projectList = [
 public void harvest() {
 	loc fileName = DEFAULT_LOC;
 	bool fileFound = false;
-	loc harvestFile = beginPath + "Harvest.txt" ;
+	loc harvestFile = beginPath + "Harvest.csv" ;
 	writeFile(harvestFile, "FINAL RESULTS \n");
 	writeMetricNames(harvestFile);
 	for (aProject <- projectList) {
