@@ -357,9 +357,9 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 
 
 public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
-																					map [loc, set[TypeSymbol]] 	typesMap, 
-																					map [loc, set[loc]] 		invertedClassAndInterfaceContainment, 
-																					map [loc, set [str]] 		invertedNamesMap, M3 projectM3) {
+														map [loc, set[TypeSymbol]] 	typesMap, 
+														map [loc, set[loc]] 		invertedClassAndInterfaceContainment, 
+														map [loc, set [str]] 		invertedNamesMap, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype , loc ]  retList = [];
 	bool analyzeMethod = false;
 	list [TypeSymbol] finalDeclaredSymbolList = [];
@@ -377,10 +377,18 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	if (!isEmpty(finalDeclaredSymbolList)) {analyzeMethod = true;} 	
 	else { analyzeMethod = false; }
 	if (analyzeMethod) { 
-		for (int i <- [0..size(passedSymbolList)]) {
-			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], finalDeclaredSymbolList[i]);
-			if (result.isSubtypeRel) {
-				retList +=  <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
+		if (size(finalDeclaredSymbolList) < size(passedSymbolList)) {	// the number of declared method arguments is less than the number of passed parameters 
+			println("For method call at: <methOrConstExpr@src>, the method:<methOrConstExpr@decl> ");
+			println("passed symbol list: <passedSymbolList>");
+			println("final declared symbol list: <finalDeclaredSymbolList>");
+			retList = [];
+		}
+		else {
+			for (int i <- [0..size(passedSymbolList)]) {
+				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(passedSymbolList[i], finalDeclaredSymbolList[i]);
+				if (result.isSubtypeRel) {
+					retList +=  <result.iKey, SUBTYPE_VIA_PARAMETER, methOrConstExpr@src>;
+				}
 			}
 		}
 	}

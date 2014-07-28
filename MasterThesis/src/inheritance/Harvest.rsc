@@ -138,10 +138,9 @@ list [str] projectList = [
 "trove-2.1.0",
 "velocity1.6.4",
 "webmail-0.7.10",
-"weka-3.6.9",				// should be added to inheritance logs
+"weka-3.6.9",				
 "xalan-2.7.1",
 "xerces-2.10.0"
-
 
 ];
  

@@ -338,7 +338,7 @@ public void runIt() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://nakedobjects-4.0.0|; 
+	loc projectLoc = |project://squirrel|; 
 	makeDirectory(projectLoc);
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
