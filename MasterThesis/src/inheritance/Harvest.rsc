@@ -44,26 +44,31 @@ list [str] projectList = [
 "antlr-3.4", 
 "aoi-2.8.1",
 "argouml-0.34",
-// "aspectj-1.6.9_matcher",   this project is contained in aspectj-1.6.9_tools 
-// "aspectj-1.6.9_rt",		  this is also mostly contained in aspectj-1.6.9_tools. 
-"aspectj-1.6.9_tools",		// should be added to InheritanceLogs
-// "aspectj-1.6.9_weaver",	  this project is contained in aspectj-1.6.9_tools
+"aspectj-1.6.9_tools",		
 "axion-1.0-M2",
 "c_jdbc-2.0.2",
-"castor-1.3.3",				// should be added to InheritanceLogs
+
+"castor-1.3.3_codegen",
+"castor-1.3.3_cpactf",
+"castor-1.3.3_ddlgen",
+"castor-1.3.3_jdo",
+"castor-1.3.3_testsuite-xml-framework",
+"castor-1.3.3_xml",
+"castor-1.3.3_xml-schema",
+
 "cayenne-3.0.1",
 "checkstyle-5.6",
 "cobertura-1.9.4.1",
 "colt-1.2.0",
+
 "columba-1.0_addressbook",
- //"columba-1.0_api",		2 classes only
 "columba-1.0_core",
 "columba-1.0_mail",
-// "columba-1.0_test",		2 classes only
+
 "derby-10.9.1.0",
 "displaytag-1.2",
 "drawswf-1.2.9",
-"drjava-stable-20100913-r5387",			// should be added to inheritance logs
+//"drjava-stable-20100913-r5387",			// stack overflow
 "emma-2.0.5312",
 "exoportal-v1.0.2",
 "findbugs",
@@ -74,7 +79,7 @@ list [str] projectList = [
 "galleon-2.3.0",
 "ganttproject-2.1.1",
 "heritrix-1.14.4",
-// "hibernate-4.2.0",      stack overflow in Rascal analysis
+//"hibernate-4.2.0",      // stack overflow in Rascal analysis
 "hsqldb-2.0.0",
 "htmlunit-2.8",
 "informa-0.7.0-alpha2",
@@ -108,13 +113,18 @@ list [str] projectList = [
 "jung-2.0.1",
 "junit-4.10",
 "log4j-2.0-beta",
-// "lucene-4.2.0",			could not be analyzed, does not compile because of non ASCII chars.
+"lucene-4.2.0",			
 "marauroa-3.8.1",
 "maven-3.0.5",
 "megamek-0.35.18",
 "mvnforum-1.2.2-ga",
-"myfaces_core-2.1.10",		// what's the problem?
-"nakedobjects-4.0.0",		// should be added to InheritanceLogs
+
+"myfaces_core-2.1.10_src-myfaces-api-2.1.10-sources",
+"myfaces_core-2.1.10_src-myfaces-core-module-2.1.10-shared-src",
+"myfaces_core-2.1.10_src-myfaces-impl-2.1.10-sources",
+"myfaces_core-2.1.10_src-myfaces-impl-shared-2.1.10-sources",
+
+"nakedobjects-4.0.0",	
 "nekohtml-1.9.14",
 "openjms-0.7.7-beta-1",
 "oscache-2.3",
@@ -125,12 +135,12 @@ list [str] projectList = [
 "proguard-4.9",  
 "quickserver-1.4.7",
 "quilt-0.6-a-5",
-"roller-5.0.1",				// Rascal error - abort compilation...
+//"roller-5.0.1",				// Rascal error - abort compilation...
 "rssowl-2.0.5",
 "sablecc-3.2",
 "springframework-3.0.5_projects-org.springframework.core",
 "springframework-3.0.5_projects-org.springframework.jdbc",
-"squirrel_sql-3.1.2",
+"squirrel",
 "struts-2.2.1",
 "sunflow-0.07.2",
 "tapestry-5.1.0.5",
@@ -138,7 +148,7 @@ list [str] projectList = [
 "trove-2.1.0",
 "velocity1.6.4",
 "webmail-0.7.10",
-"weka-3.6.9",				
+"weka-3-6-9",				
 "xalan-2.7.1",
 "xerces-2.10.0"
 
