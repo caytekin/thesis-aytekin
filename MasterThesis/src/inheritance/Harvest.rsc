@@ -7,6 +7,7 @@ import Relation;
 import List;
 import ListRelation;
 import DateTime;
+import ValueIO;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -138,8 +139,10 @@ list [str] projectList = [
 //"roller-5.0.1",				// Rascal error - abort compilation...
 "rssowl-2.0.5",
 "sablecc-3.2",
+
 "springframework-3.0.5_projects-org.springframework.core",
 "springframework-3.0.5_projects-org.springframework.jdbc",
+
 "squirrel",
 "struts-2.2.1",
 "sunflow-0.07.2",
@@ -153,12 +156,10 @@ list [str] projectList = [
 "xerces-2.10.0"
 
 ];
- 
 
 
 
 public void harvest() {
-	loc fileName = DEFAULT_LOC;
 	bool fileFound = false;
 	loc harvestFile = beginPath + "Harvest.csv" ;
 	writeFile(harvestFile, "FINAL RESULTS \n");

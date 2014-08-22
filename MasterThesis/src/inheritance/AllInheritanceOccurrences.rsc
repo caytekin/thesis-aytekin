@@ -338,7 +338,7 @@ public void runIt() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://squirrel|; 
+	loc projectLoc = |project://antlr-3.4|; 
 	makeDirectory(projectLoc);
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
@@ -413,7 +413,8 @@ public void runIt() {
 	
 	println("Total number of types analyzed: <size(getAllClassesAndInterfacesInProject(projectM3))>");
 	//printLog(getFilename(projectM3.id,downcallLogFile), "DOWNCALL LOG:");
-	//printLog(getFilename(projectM3.id,externalReuseLogFile), "EXTERNAL REUSE LOG:");
+	printLog(getFilename(projectM3.id,externalReuseLogFile), "EXTERNAL REUSE LOG:");
+	printLog(getFilename(projectM3.id,internalReuseLogFile), "INTERNAL REUSE LOG:");
 	//printLog(getFilename(projectM3.id,subtypeLogFile), "SUBTYPE LOG:");
 	
 	

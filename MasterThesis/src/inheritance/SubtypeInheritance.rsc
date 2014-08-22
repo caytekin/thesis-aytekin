@@ -126,7 +126,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ]  getSubtypeViaVariables(
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
 	//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
 	visit (fragments[size(fragments) - 1]) {
-		case nullVar : \variable(_,_, null()) : { 
+		case nullVar: \variable(_, _ , null()) : { 
 			// a null initialization should not be counted as subtype
 		;}
 		case myVar: \variable(_,_,stmt) : {

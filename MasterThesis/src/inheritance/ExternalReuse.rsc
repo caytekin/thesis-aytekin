@@ -47,7 +47,7 @@ public loc getImmParentForAccess(loc classOrInterfaceOfReceiver, loc accessedFie
 
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseGeneral (TypeSymbol recTypeSymbol, loc accessedLoc, loc srcRef, 
+public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseGeneral (loc classOfAccess, TypeSymbol recTypeSymbol, loc accessedLoc, loc srcRef, 
 																						map [loc, set[loc]] 	invClassAndInterfaceContainment,  
 																						map [loc, set[loc]] 	declarationsMap,
 																						rel [loc, loc] 			allInheritanceRelations, 
@@ -60,7 +60,9 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseGener
 																				allInheritanceRelations, extendsMap, implementsMap, projectM3);
 	if (immediateParentOfReceiver != DEFAULT_LOC) { // external reuse
 		if ((isLocDefinedInProject(accessedLoc, declarationsMap)) && isLocDefinedInGivenType(accessedLoc, immediateParentOfReceiver, invClassAndInterfaceContainment)) {
-			retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_DIRECT, srcRef, accessedLoc>; 
+			if (classOfAccess != classOrInterfaceOfReceiver) {
+				retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_DIRECT, srcRef, accessedLoc>; 
+			}
 		}  
 		else {
 			if (isLocDefinedInProject(accessedLoc, declarationsMap) ) {
@@ -101,7 +103,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 				println("Methodcall decl unresolved for method call: <invokedMethod>, at <m2@src>. Receiver is: <receiver>");
 			}
 			else {		
-				retList = getExternalReuseGeneral (receiver@typ, invokedMethod, m2@src, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+				retList = getExternalReuseGeneral (classOfMethodCall, receiver@typ, invokedMethod, m2@src, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
 			} // else	
    		} // case methodCall()
    	}  // visit
@@ -109,12 +111,13 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaMe
 }
 
 
-public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, map [loc, set[loc]] 	invClassAndInterfaceContainment,  
-																											map [loc, set[loc]] 	declarationsMap,
-																											rel [loc, loc] 			allInheritanceRelations, 
-																											map[loc, set[loc]] 		extendsMap,
-																											map[loc, set[loc]] 		implementsMap,
-																											M3 projectM3) {
+public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFieldAccess(Expression qName, loc classOfFieldAccess, 
+																							map [loc, set[loc]] 	invClassAndInterfaceContainment,  
+																							map [loc, set[loc]] 	declarationsMap,
+																							rel [loc, loc] 			allInheritanceRelations, 
+																							map[loc, set[loc]] 		extendsMap,
+																							map[loc, set[loc]] 		implementsMap,
+																							M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype, loc, loc] retList = [];
 	loc accessedField = DEFAULT_LOC;
 	TypeSymbol receiverTypeSymbol = DEFAULT_TYPE_SYMBOL;
@@ -135,7 +138,7 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseViaFi
 		}
 	}  // visit
 	if (isField(accessedField) && !(isThisReference) ) {
-		retList = getExternalReuseGeneral (receiverTypeSymbol, accessedField, srcRef, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+		retList = getExternalReuseGeneral (classOfFieldAccess, receiverTypeSymbol, accessedField, srcRef, invClassAndInterfaceContainment,  declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
 	} // if
 	return retList;
 }
@@ -171,17 +174,18 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
 	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	for (oneClass <- allClassesInProject) {
+		println("External reuse cases for class: <oneClass> are going to be collected...");
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
         		case qName:\qualifiedName(_, _) : {
-        			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+        			allExternalReuseCases += getExternalReuseViaFieldAccess(qName, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
         		}
         		case fAccess:\fieldAccess(_,_,_) : {
-        			allExternalReuseCases += getExternalReuseViaFieldAccess(fAccess, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+        			allExternalReuseCases += getExternalReuseViaFieldAccess(fAccess, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
         		}
-			case m2:\methodCall(_, receiver:_, _, _): {
-				allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
+				case m2:\methodCall(_, receiver:_, _, _): {
+					allExternalReuseCases += getExternalReuseViaMethodCall(m2, oneClass, invClassAndInterfaceContainment, declarationsMap, allInheritanceRelations, extendsMap, implementsMap, projectM3);
         		} // case methodCall()
         	} // visit()
 		}	// for each method in the class															

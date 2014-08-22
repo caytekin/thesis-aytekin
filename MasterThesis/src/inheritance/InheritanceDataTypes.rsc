@@ -141,6 +141,7 @@ public str resultsFile					=  "Results.txt";
 public str errorLog						=  "Error.log" ;
 public str resultSummaryFile			=  "ResultsSummary.log"; 
 public str addedPercentagesFile 		=  "AddedPercentages.txt";
+public str resultsMapFile 				=  "MapOfResults.txt";
 
 
 
