@@ -334,7 +334,7 @@ private void printResultsWhichAreParentChild(rel [inheritanceKey, inheritanceTyp
 
 
 
-public void runIt() {
+public void main() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
@@ -415,7 +415,7 @@ public void runIt() {
 	//printLog(getFilename(projectM3.id,downcallLogFile), "DOWNCALL LOG:");
 	printLog(getFilename(projectM3.id,externalReuseLogFile), "EXTERNAL REUSE LOG:");
 	printLog(getFilename(projectM3.id,internalReuseLogFile), "INTERNAL REUSE LOG:");
-	//printLog(getFilename(projectM3.id,subtypeLogFile), "SUBTYPE LOG:");
+	printLog(getFilename(projectM3.id,subtypeLogFile), "SUBTYPE LOG:");
 	
 	
 }

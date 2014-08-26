@@ -679,11 +679,26 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 }
 
 
+loc getTypeVariableFromTypeSymbolForClassOrInt(TypeSymbol aTypeSymbol) {
+	loc typeVar = DEFAULT_LOC;
+	//println("getTypeVariableFromTypeSymbolForClassOrInt, TypeSymbol is: <aTypeSymbol>");
+	visit (aTypeSymbol) {
+		case _typeArgument:\typeParameter(loc decl, _) : {
+			typeVar = decl;
+		}
+	}
+	if (typeVar == DEFAULT_LOC)  { throw "No type variable is found for <aTypeSymbol>"; }
+	return typeVar;		
+}
+
+
+
 
 loc getTypeVariableFromTypeSymbol(TypeSymbol aTypeSymbol) {
 	loc typeVar = DEFAULT_LOC;
+	//println("in getTypeVariableFromTypeSymbol, TypeSymbol is: <aTypeSymbol>");
 	visit (aTypeSymbol) {
-		case _typeParameter:\typeParameter(loc decl, _) : {
+		case _typeArgument:\typeArgument(loc decl) : {
 			typeVar = decl;
 		}
 	}
@@ -705,7 +720,7 @@ list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymb
 		}		
 	}
 	for (aTypePar <- typeSymbolParList) {
-		typeVariablesList += getTypeVariableFromTypeSymbol(aTypePar);
+		typeVariablesList += getTypeVariableFromTypeSymbolForClassOrInt(aTypePar);
 	}
 	//println("Type variables for class : <recClassOrInt>");
 	//iprintln(typeVariablesList );
@@ -826,10 +841,12 @@ public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, l
 																				map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3  ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
+	println("Regular: <typeList>");
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
+		println("In updateTypesWithGenerics _aTypeSymbol is: <_aTypeSymbol>");
 		visit (_aTypeSymbol) {
-			case aTypePar:\typeParameter(loc decl, Bound upperbound) : {
+			case aTypeArg:\typeArgument(loc decl) : {
 				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);	
 			} 
 		}
