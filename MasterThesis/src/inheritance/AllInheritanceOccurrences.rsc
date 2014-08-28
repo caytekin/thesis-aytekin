@@ -338,7 +338,7 @@ public void main() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://antlr-3.4|; 
+	loc projectLoc = |project://Subtype|; 
 	makeDirectory(projectLoc);
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );

@@ -297,6 +297,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaReturnStmt(
 
 private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
+	//println("Vararg symbol is: <varargSymbol>");
 	if (array(TypeSymbol component, int dimension) := varargSymbol ) {
 		retSymbol = component;
 	}
@@ -307,25 +308,32 @@ private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
 }
 
 
-private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol) {
+private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol, rel [loc, loc] allInheritanceRelations) {
 	bool retBool = false;
 	if ( array(TypeSymbol component, int dimension) := declaredSymbol ) {
-		if (component == passedSymbol) {
+		println("Declared symbol: <declaredSymbol>");
+		println("Passed symbol: <passedSymbol>");
+		loc declaredLoc = getClassOrInterfaceFromTypeSymbol(declaredSymbol);
+		loc passedLoc 	= getClassOrInterfaceFromTypeSymbol(passedSymbol);	
+		if (inheritanceRelationExists(passedLoc, declaredLoc, allInheritanceRelations)) {
 			retBool = true;
-		}
+		} 
+		//if (component == passedSymbol) {
+		//	retBool = true;
+		//}
 	}
 	return retBool;
 }
 
 
 
-private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] passedSymbolList, list [TypeSymbol] declaredSymbolList, M3 projectM3 ) {
+private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] passedSymbolList, list [TypeSymbol] declaredSymbolList, rel [loc, loc] allInheritanceRelations, M3 projectM3 ) {
 	list [TypeSymbol] retList = [];
 	if ( size(passedSymbolList) == size(declaredSymbolList) ) {
 		retList = declaredSymbolList;
 		if ( size(passedSymbolList) > 0 ) {
 			if ( last(passedSymbolList) != last(declaredSymbolList) ) {
-				if (isVararg(last(passedSymbolList), last(declaredSymbolList))) {
+				if (isVararg(last(passedSymbolList), last(declaredSymbolList), allInheritanceRelations)) {
 					retList[size(retList)-1] = getTypeSymbolOfVararg(last(declaredSymbolList)); 
 				}
  			} 
@@ -339,7 +347,7 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 			if (size(passedSymbolList) > size(declaredSymbolList)) {
 				retList = prefix(declaredSymbolList);
 				int numOfElementsToAdd = size(passedSymbolList) - size(declaredSymbolList);
-				if (isVararg(last(passedSymbolList), last(declaredSymbolList))) {
+				if (isVararg(last(passedSymbolList), last(declaredSymbolList), allInheritanceRelations)) {
 					TypeSymbol typeSymbolToAdd = getTypeSymbolOfVararg(declaredSymbolList[size(declaredSymbolList) - 1] );
 					for (int i <- [0..numOfElementsToAdd+1]) { retList +=  typeSymbolToAdd ; }
 				}
@@ -359,7 +367,9 @@ private list [TypeSymbol] updateDeclaredSymbolListForVararg(list [TypeSymbol] pa
 public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPassing(Expression methOrConstExpr, map [loc, set[loc]] declarationsMap, 
 														map [loc, set[TypeSymbol]] 	typesMap, 
 														map [loc, set[loc]] 		invertedClassAndInterfaceContainment, 
-														map [loc, set [str]] 		invertedNamesMap, M3 projectM3) {
+														map [loc, set [str]] 		invertedNamesMap, 
+														rel [loc, loc]				allInheritanceRelations,
+														M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype , loc ]  retList = [];
 	bool analyzeMethod = false;
 	list [TypeSymbol] finalDeclaredSymbolList = [];
@@ -367,8 +377,8 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	if (methOrConstExpr@decl in typesMap) {
 		analyzeMethod = true; 
 		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
-		//println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
-		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList, projectM3);
+		println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
+		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList, allInheritanceRelations,  projectM3);
 	}
 	else {	// method is not defined in the source, we try to get the method parameters wuth a heuristic.
 		str methodStr = (methOrConstExpr@decl).file; 
@@ -440,31 +450,31 @@ public rel [inheritanceKey, inheritanceType] getSubtypeCases(M3 projectM3) {
 					allSubtypeCases += getSubtypeResultViaForLoop(parameter@typ, collection, enhForStmt@src, projectM3);
 				}
 				case  methExpr1:\methodCall(_,_, _) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);
 				}
 				case methExpr2:\methodCall(_, _, _, _): {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(methExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);					
 				} 
 				case newObject1:\newObject(Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);
 				}
 				case newObject2:\newObject(Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);					
 				}
 				case newObject3:\newObject(Expression expr, Type \type, list[Expression] expArgs) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject3, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);
 				}
 				case newObject4:\newObject(Expression expr, Type \type, list[Expression] expArgs, Declaration class) : {
-					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);
+					allSubtypeCases += 	getSubtypeViaParameterPassing(newObject4, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);
 				}
 				case consCall1:\constructorCall(bool isSuper, list[Expression] arguments) : {
 					Expression consCallExpr1 = createMethodCallFromConsCall(consCall1);
-					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr1, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);					
 				}
 				case consCall2:\constructorCall(bool isSuper, Expression expr, list[Expression] arguments) : {
 					// TODO: When does this ever happen? I need a Java example for this...
 					Expression consCallExpr2 = createMethodCallFromConsCall(consCall2);
-					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, projectM3);					
+					allSubtypeCases += 	getSubtypeViaParameterPassing(consCallExpr2, declarationsMap, typesMap, invertedClassAndInterfaceContainment, invertedNamesMap, allInheritanceRelations, projectM3);					
 				}
 				
         	} // visit()

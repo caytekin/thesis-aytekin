@@ -382,7 +382,7 @@ public loc getImmediateParent (loc classOrInt, map[loc, set[loc]] extendsMap, ma
 
 
 
-private loc getImmediateParentOfInterfaceGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, rel [loc, loc] allInheritanceRelations) {
+private loc getImmediateParentGivenAnAscForCC_II(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, rel [loc, loc] allInheritanceRelations) {
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
 	set [loc] immediateParentInterfaceSet 	= classOrInt in extendsMap ? extendsMap[classOrInt] : {};
@@ -402,29 +402,37 @@ private loc getImmediateParentOfInterfaceGivenAnAsc(loc classOrInt, loc ascLoc, 
 }
 
 
-private loc getImmediateParentOfClassGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, 
+
+
+
+
+
+private loc getImmediateParentGivenAnAscForCI(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] implementsMap, 
 																											  	rel [loc, loc] allInheritanceRelations) {
 	loc retLoc 		= DEFAULT_LOC;
 	loc foundLoc 	= DEFAULT_LOC;
+	bool interfaceParentFound = false;
 	set [loc] immediateParentClassSet 		= classOrInt in extendsMap 		? extendsMap[classOrInt] : {};
 	set [loc] immediateParentInterfaceSet 	= classOrInt in implementsMap 	? implementsMap[classOrInt] : {};
-	if (immediateParentClassSet != {}) {
-		if (size(immediateParentClassSet) > 1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
-		retLoc = getOneFrom(immediateParentClassSet);
-	} 
+	if (ascLoc in immediateParentInterfaceSet) {
+		retLoc = ascLoc;
+		interfaceParentFound = true;
+	}
 	else {
-		if (size(immediateParentInterfaceSet) == 1) {
-			retLoc = getOneFrom(immediateParentInterfaceSet);
-		}
-		else {
-			for (anImmediateParent <- immediateParentInterfaceSet) {
-				if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
-					foundLoc = anImmediateParent;
-					break;
-				}
-			} // for
-			retLoc = foundLoc;
-		}
+		for (anImmediateParent <- immediateParentInterfaceSet) {
+			if (inheritanceRelationExists(anImmediateParent, ascLoc, allInheritanceRelations)) {
+				foundLoc = anImmediateParent;
+				interfaceParentFound = true;
+				break;
+			}
+		} // for
+		retLoc = foundLoc;
+	}
+	if (!interfaceParentFound) {
+		if (immediateParentClassSet != {}) {
+			if (size(immediateParentClassSet) > 1) { throw "in getImmediateParentOfClassGivenAnAsc, loc <classOrInt>, has more than one class parents: <immediateParentClassSet>";}
+			retLoc = getOneFrom(immediateParentClassSet);
+		} 
 	}
 	return retLoc;																											  	
 }
@@ -433,11 +441,19 @@ private loc getImmediateParentOfClassGivenAnAsc(loc classOrInt, loc ascLoc,  map
 
 
 public loc getImmediateParentGivenAnAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, map[loc, set[loc]] implementsMap,  rel [loc, loc] allInheritanceRelations) {
-	if (isClass(classOrInt)) {return getImmediateParentOfClassGivenAnAsc(classOrInt, ascLoc, extendsMap, implementsMap, allInheritanceRelations);} 
-	if (isInterface(classOrInt)) { return getImmediateParentOfInterfaceGivenAnAsc(classOrInt, ascLoc,  extendsMap, allInheritanceRelations); } 
-	println("The loc <classOrInt> is not a class orinterface.");
+	if (isClass(classOrInt)) {
+		if (isClass(ascLoc)) { return getImmediateParentGivenAnAscForCC_II(classOrInt, ascLoc,  extendsMap, allInheritanceRelations); }
+		if (isInterface(ascLoc)) { return getImmediateParentGivenAnAscForCI(classOrInt, ascLoc,  extendsMap, implementsMap, allInheritanceRelations); }
+		else {
+			println("The loc <ascLoc> is not a class or interface.");
+			return DEFAULT_LOC;
+		}
+	} 
+	if (isInterface(classOrInt)) { return getImmediateParentGivenAnAscForCC_II(classOrInt, ascLoc,  extendsMap, allInheritanceRelations); } 
+	println("The loc <classOrInt> is not a class or interface.");
 	return DEFAULT_LOC;
 }
+
 
 
 public lrel [loc, loc] getInheritanceChainGivenAsc(loc classOrInt, loc ascLoc,  map[loc, set[loc]] extendsMap, 	map[loc, set[loc]] 	implementsMap,  
@@ -841,10 +857,10 @@ public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, l
 																				map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3  ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
-	println("Regular: <typeList>");
+	//println("Regular: <typeList>");
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
-		println("In updateTypesWithGenerics _aTypeSymbol is: <_aTypeSymbol>");
+		//println("In updateTypesWithGenerics _aTypeSymbol is: <_aTypeSymbol>");
 		visit (_aTypeSymbol) {
 			case aTypeArg:\typeArgument(loc decl) : {
 				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);	
@@ -991,10 +1007,14 @@ public list [TypeSymbol] getArgTypeSymbols(str methodStr, map [loc, set [str]] i
 
 public M3 getM3ForProjectLoc(loc projectLoc) {
 	M3 retM3; 
+	retM3 = createM3FromEclipseProject(projectLoc);
+	return retM3;
+	/*
 	loc m3FileLoc = beginPath + "/M3s/" + (projectLoc.authority + ".m3");
 	bool createM3 = false; 
 	try {
-		retM3 = readBinaryValueFile(#M3, m3FileLoc);
+		//retM3 = readTextValueFile(m3FileLoc);   It should change to a binary!!!!
+		retM3 = readTextValueFile(#M3, m3FileLoc);
 	}
 	catch IO(exc) : {
 		println("IO exception : <exc>");
@@ -1004,8 +1024,9 @@ public M3 getM3ForProjectLoc(loc projectLoc) {
 		println("Creating M3 model for <projectLoc>");
 		retM3 = createM3FromEclipseProject(projectLoc);
 		println("Created M3 model...");
-		writeBinaryValueFile(m3FileLoc, retM3); 
+		writeTextValueFile(m3FileLoc, retM3); 
 	}
 	return retM3;
+	*/
 }
 
