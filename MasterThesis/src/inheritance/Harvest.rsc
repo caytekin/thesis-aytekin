@@ -80,7 +80,7 @@ list [str] projectList = [
 "galleon-2.3.0",
 "ganttproject-2.1.1",
 "heritrix-1.14.4",
-//"hibernate-4.2.0",      // stack overflow in Rascal analysis
+"hibernate-4.2.0",      
 "hsqldb-2.0.0",
 "htmlunit-2.8",
 "informa-0.7.0-alpha2",

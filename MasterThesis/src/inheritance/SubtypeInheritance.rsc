@@ -311,8 +311,8 @@ private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
 private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol, rel [loc, loc] allInheritanceRelations) {
 	bool retBool = false;
 	if ( array(TypeSymbol component, int dimension) := declaredSymbol ) {
-		println("Declared symbol: <declaredSymbol>");
-		println("Passed symbol: <passedSymbol>");
+		//println("Declared symbol: <declaredSymbol>");
+		//println("Passed symbol: <passedSymbol>");
 		loc declaredLoc = getClassOrInterfaceFromTypeSymbol(declaredSymbol);
 		loc passedLoc 	= getClassOrInterfaceFromTypeSymbol(passedSymbol);	
 		if (inheritanceRelationExists(passedLoc, declaredLoc, allInheritanceRelations)) {
@@ -377,7 +377,7 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	if (methOrConstExpr@decl in typesMap) {
 		analyzeMethod = true; 
 		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
-		println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
+		//println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
 		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList, allInheritanceRelations,  projectM3);
 	}
 	else {	// method is not defined in the source, we try to get the method parameters wuth a heuristic.
@@ -388,9 +388,9 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	else { analyzeMethod = false; }
 	if (analyzeMethod) { 
 		if (size(finalDeclaredSymbolList) < size(passedSymbolList)) {	// the number of declared method arguments is less than the number of passed parameters 
-			println("For method call at: <methOrConstExpr@src>, the method:<methOrConstExpr@decl> ");
-			println("passed symbol list: <passedSymbolList>");
-			println("final declared symbol list: <finalDeclaredSymbolList>");
+			//println("For method call at: <methOrConstExpr@src>, the method:<methOrConstExpr@decl> ");
+			//println("passed symbol list: <passedSymbolList>");
+			//println("final declared symbol list: <finalDeclaredSymbolList>");
 			retList = [];
 		}
 		else {

@@ -1007,7 +1007,9 @@ public list [TypeSymbol] getArgTypeSymbols(str methodStr, map [loc, set [str]] i
 
 public M3 getM3ForProjectLoc(loc projectLoc) {
 	M3 retM3; 
+	println("Creating M3 model for <projectLoc>");
 	retM3 = createM3FromEclipseProject(projectLoc);
+	println("Created M3 model...");
 	return retM3;
 	/*
 	loc m3FileLoc = beginPath + "/M3s/" + (projectLoc.authority + ".m3");
