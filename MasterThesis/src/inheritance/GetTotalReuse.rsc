@@ -29,7 +29,7 @@ public void getTotalReuse() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://cobertura-1.9.4.1|; 
+	loc projectLoc = |project://VerySmallProject|; 
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	addedPercentagesFile = "AddedPercentagesStandAlone.txt";
 	str totalReuseFile = "TotalReuseFile.txt";
@@ -59,8 +59,6 @@ public void getTotalReuse() {
 	if (!exists(reuseFileLoc)) {
 		writeFile(reuseFileLoc, "sysver total_reuse \n");
 	}
-	else {
-		appendToFile(reuseFileLoc, "<projectM3.id>  <totalReuse> \n");
-	}
+	appendToFile(reuseFileLoc, "<projectM3.id.authority>  <totalReuse> \n");
 }
 
