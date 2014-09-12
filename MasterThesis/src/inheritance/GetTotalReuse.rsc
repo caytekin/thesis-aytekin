@@ -25,7 +25,7 @@ import inheritance::ExternalReuse;
 
 
 
-public void getTotalReuse() {
+public void main() {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
@@ -53,7 +53,16 @@ public void getTotalReuse() {
 	internalKeySet = {inhKey | <inhKey, inhType> <- internalReuseCases};
 	externalKeySet = {inhKey | <inhKey, inhType> <- externalReuseCases};
 	
-	int totalReuse = size(internalKeySet + externalKeySet);
+	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
+	rel [loc, loc] explicitInhRelations = getExplicitInhRelations(allInheritanceRelations, projectM3);
+	set [loc] allSystemTypes = getAllClassesAndInterfacesInProject(projectM3);
+	rel [loc, loc] systemCCExplicitInhRelations = {<_child, _parent> | <_child, _parent> <- explicitInhRelations, _child in allSystemTypes, _parent in allSystemTypes, isClass(_child), isClass(_parent)};
+
+	rel [loc, loc] totalReuseSet = (internalKeySet + externalKeySet) & systemCCExplicitInhRelations;
+	
+	println("\n Total reuse set: "); iprintln(totalReuseSet);
+	
+	int totalReuse = size(totalReuseSet);
 	println("Total reuse number for project : <projectLoc> is: <totalReuse>");
 
 	if (!exists(reuseFileLoc)) {

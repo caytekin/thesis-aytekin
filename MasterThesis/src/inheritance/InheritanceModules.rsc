@@ -1007,16 +1007,10 @@ public list [TypeSymbol] getArgTypeSymbols(str methodStr, map [loc, set [str]] i
 
 public M3 getM3ForProjectLoc(loc projectLoc) {
 	M3 retM3; 
-	println("Creating M3 model for <projectLoc>");
-	retM3 = createM3FromEclipseProject(projectLoc);
-	println("Created M3 model...");
-	return retM3;
-	/*
 	loc m3FileLoc = beginPath + "/M3s/" + (projectLoc.authority + ".m3");
 	bool createM3 = false; 
 	try {
-		//retM3 = readTextValueFile(m3FileLoc);   It should change to a binary!!!!
-		retM3 = readTextValueFile(#M3, m3FileLoc);
+		retM3 = readBinaryValueFile(#M3, m3FileLoc);
 	}
 	catch IO(exc) : {
 		println("IO exception : <exc>");
@@ -1026,9 +1020,9 @@ public M3 getM3ForProjectLoc(loc projectLoc) {
 		println("Creating M3 model for <projectLoc>");
 		retM3 = createM3FromEclipseProject(projectLoc);
 		println("Created M3 model...");
-		writeTextValueFile(m3FileLoc, retM3); 
+		writeBinaryValueFile(m3FileLoc, retM3); 
 	}
 	return retM3;
-	*/
+	
 }
 
