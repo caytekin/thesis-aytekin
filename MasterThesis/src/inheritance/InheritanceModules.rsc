@@ -185,7 +185,8 @@ private loc getCompilationUnitOfClassOrInterface(loc aClassOrInt, map [loc, set[
 			appendToFile(getFilename(projectM3.id, errorLog), "In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>\n\n");
 		;}
 		else {
-			throw ("In getCompilationUnitOfClassOrInterface(), the number of elements containing class <aClassOrInt> is <size(retLocSet)>. Set is <retLocSet>");
+			appendToFile(getFilename(projectM3.id, errorLog), "In getCompilationUnitOfClassOrInterface(), there is no element containing class <aClassOrInt> is <size(retLocSet)>. Set is empty.\n\n");
+			return DEFAULT_LOC;
 		}
 	}
 	return getOneFrom(retLocSet);
@@ -216,20 +217,22 @@ public list [Declaration] getASTsOfAClass(loc aClass, 	map [loc, set[loc]] inver
 	// Inner classes are NOT included here, they are already included in the outer classes AST
 	if ( !isInnerClass(aClass, invertedClassInterfaceMethodContainment) ) {
 		loc compUnit = getCompilationUnitOfClassOrInterface(aClass, invertedUnitContainment, projectM3 );
-		loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
-		Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
-		visit (compUnitAST) {
-			case classDefn:\class(_,_,_,bodies) : {
-				if (classDefn@decl == aClass) {
-					astsOfAClass += bodies;
+		if (compUnit != DEFAULT_LOC) {
+			loc fileOfUnit = getFileOfCompilationUnit(compUnit, declarationsMap);
+			Declaration compUnitAST = createAstsFromEclipseFile(fileOfUnit, true);
+			visit (compUnitAST) {
+				case classDefn:\class(_,_,_,bodies) : {
+					if (classDefn@decl == aClass) {
+						astsOfAClass += bodies;
+					}
 				}
+				case classDefn:\class(bodies) : {
+					if (classDefn@decl == aClass) {
+						astsOfAClass += bodies;
+					}
+				}		
 			}
-			case classDefn:\class(bodies) : {
-				if (classDefn@decl == aClass) {
-					astsOfAClass += bodies;
-				}
-			}		
-		}
+		} // if
 	}
 	return astsOfAClass;
 }
