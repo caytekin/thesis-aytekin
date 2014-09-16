@@ -27,9 +27,6 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	lo
 																		classOfReceiver == _descClass ||
 																		classOfReceiver in getDescendantsOfAClass(_descClass, allInheritanceRels)
 																		};
-	//println();
-	//println("Downcall set:");																		
-	//iprintln(<sort(downcallSet)>);
 	if (size(downcallSet) >= 1) {
 		tuple [loc _ascClass, loc _descClass, loc _ascIssuerMethod, loc _descDowncalledMethod] downcallCase = getOneFrom(downcallSet);
 		theIssuerMethod = downcallCase._ascIssuerMethod;
@@ -51,9 +48,6 @@ private tuple [bool, loc] isDowncall(loc invokedMethod, loc classOfReceiver, 	lo
 						// There are more than one descDowncalledmethod's. I put an arbitrarily slected one to the log
 						descDowncalledMethod = getOneFrom(anotherDowncallSet);
 						break;
-						//
-						//println("Problem with downcall at: <refToDowncall>. invokedMethod: <invokedMethod>, classOfReceiver: <classOfReceiver>, theIssuerMethod: <theIssuerMethod >");
-						//throw "Size of Another downcallset is greater than one. anotherDowncallSet : <anotherDowncallSet>";
 					}
 				}
 			}		
@@ -92,10 +86,6 @@ loc getDescOverridingMethod(set [loc] overridingMethods, loc _descClass,map [loc
 	}
 	return retMethod;
 }
-
-
-
-
 
 
 private rel [loc, loc, loc, loc] getDowncallCandidatesFromInitializers(map[loc, set[loc]] invertedClassAndInterfaceContainment , M3 projectM3) {

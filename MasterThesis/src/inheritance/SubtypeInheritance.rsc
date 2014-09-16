@@ -64,8 +64,6 @@ public list [TypeSymbol] getPassedSymbolList(Expression methExpr, M3 projectM3) 
 
 private lrel [inheritanceKey, inheritanceSubtype , loc]  getSubtypeResultViaAssignment(Expression lhs, Expression rhs, loc sourceRef, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype , loc ] retList = [];
-	//println("Assignment source ref: <sourceRef>");
-	// error NoSuchAnnotation retExpr@typ
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromAnnotation(lhs, projectM3);
 	TypeSymbol rhsTypeSymbol = getTypeSymbolFromAnnotation(rhs, projectM3);
 	if ( (lhsTypeSymbol == DEFAULT_TYPE_SYMBOL) || (rhsTypeSymbol == DEFAULT_TYPE_SYMBOL)) {
@@ -105,12 +103,10 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaAssignment(
 
 private lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeResultViaVariable(TypeSymbol lhsTypeSymbol, Expression rhs, list [Expression] fragments, M3 projectM3) {
 	lrel [inheritanceKey, inheritanceSubtype , loc ] retList = [];
-	//println("Variable decl: <rhs@src>");	
 	TypeSymbol rhsTypeSymbol = getTypeSymbolFromAnnotation(rhs, projectM3);
 	if (rhsTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 		tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(rhsTypeSymbol, lhsTypeSymbol); 
 		if (result.isSubtypeRel) {
-			//println("Fragments: "); iprintln(fragments); 
 			for (anExpression <- fragments) {
 				retList += <result.iKey, SUBTYPE_ASSIGNMENT_VAR_DECL, anExpression@decl>;
 			}
@@ -124,7 +120,6 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ]  getSubtypeViaVariables(
 	lrel [inheritanceKey, inheritanceSubtype , loc ] retList = [];
 	bool isConditional = false;
 	TypeSymbol lhsTypeSymbol = getTypeSymbolFromRascalType(typeOfVar);
-	//println("Type of var is: <typeOfVar> for variable: <fragments[0]@decl>");
 	visit (fragments[size(fragments) - 1]) {
 		case nullVar: \variable(_, _ , null()) : { 
 			// a null initialization should not be counted as subtype
@@ -265,7 +260,6 @@ private lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeResultViaForL
 			}
 		}
 		if (compTypeSymbol != DEFAULT_TYPE_SYMBOL) {
-			//println("For loop: <forLoopRef>");
 			tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(compTypeSymbol, paramTypeSymbol);
 			if (result.isSubtypeRel) { retList += <result.iKey, SUBTYPE_VIA_FOR_LOOP, forLoopRef>; }
 		}
@@ -279,8 +273,6 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaReturnStmt(
 	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
 	visit (returnStmt) {
 		case \return(retExpr) : {
-			//println("Via return statement: <retExpr@src>");
-			// error NoSuchAnnotation retExpr@typ
 			retTypeSymbol = getTypeSymbolFromAnnotation(retExpr, projectM3);
 			if (retTypeSymbol != DEFAULT_TYPE_SYMBOL) {
 				tuple [bool isSubtypeRel, inheritanceKey iKey] result = getSubtypeRelation(retTypeSymbol, 
@@ -297,7 +289,6 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaReturnStmt(
 
 private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
 	TypeSymbol retSymbol = DEFAULT_TYPE_SYMBOL;
-	//println("Vararg symbol is: <varargSymbol>");
 	if (array(TypeSymbol component, int dimension) := varargSymbol ) {
 		retSymbol = component;
 	}
@@ -311,16 +302,11 @@ private TypeSymbol getTypeSymbolOfVararg(TypeSymbol varargSymbol) {
 private bool isVararg(TypeSymbol passedSymbol, TypeSymbol declaredSymbol, rel [loc, loc] allInheritanceRelations) {
 	bool retBool = false;
 	if ( array(TypeSymbol component, int dimension) := declaredSymbol ) {
-		//println("Declared symbol: <declaredSymbol>");
-		//println("Passed symbol: <passedSymbol>");
 		loc declaredLoc = getClassOrInterfaceFromTypeSymbol(declaredSymbol);
 		loc passedLoc 	= getClassOrInterfaceFromTypeSymbol(passedSymbol);	
 		if (inheritanceRelationExists(passedLoc, declaredLoc, allInheritanceRelations)) {
 			retBool = true;
 		} 
-		//if (component == passedSymbol) {
-		//	retBool = true;
-		//}
 	}
 	return retBool;
 }
@@ -377,7 +363,6 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	if (methOrConstExpr@decl in typesMap) {
 		analyzeMethod = true; 
 		list [TypeSymbol] declaredSymbolList	= getDeclaredParameterTypes(methOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);
-		//println("For method call at: <methOrConstExpr@src>, method decl: <methOrConstExpr@decl>");
 		finalDeclaredSymbolList 				= updateDeclaredSymbolListForVararg(passedSymbolList, declaredSymbolList, allInheritanceRelations,  projectM3);
 	}
 	else {	// method is not defined in the source, we try to get the method parameters wuth a heuristic.
@@ -388,9 +373,6 @@ public lrel [inheritanceKey, inheritanceSubtype , loc ] getSubtypeViaParameterPa
 	else { analyzeMethod = false; }
 	if (analyzeMethod) { 
 		if (size(finalDeclaredSymbolList) < size(passedSymbolList)) {	// the number of declared method arguments is less than the number of passed parameters 
-			//println("For method call at: <methOrConstExpr@src>, the method:<methOrConstExpr@decl> ");
-			//println("passed symbol list: <passedSymbolList>");
-			//println("final declared symbol list: <finalDeclaredSymbolList>");
 			retList = [];
 		}
 		else {

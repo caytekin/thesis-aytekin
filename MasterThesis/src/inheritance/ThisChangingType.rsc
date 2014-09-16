@@ -84,7 +84,6 @@ private set [loc] getThisReferencesInClass(loc ascClass, map [loc, set [loc]] in
 	for (anAST <- ASTsOfOneClass ) {
 		retSet += getThisReferencesInAST(anAST);
 	}
-	//println("This references in class: <ascClass> are: "); iprintln(sort(retSet));
 	return retSet;
 }
 
@@ -114,7 +113,6 @@ private rel [loc, loc, loc] getThisChangingTypeCandidates(M3 projectM3) {
 				set[loc] candidateMethodReferences = getThisReferencesInMethod(aMethodOfAscClass, projectM3); 
 				allCandidateRefsInMethods += candidateMethodReferences;			
 				if (!isMethodOverriddenByAnyDescClass(aMethodOfAscClass, ascClass, descClass, invertedContainment, extendsMap, projectM3)) {
-					//println("Method: <aMethodOfAscClass> is not overridden by any desc class...");
 					for (aCandRef <- candidateMethodReferences ) {
 						candidateLog += <<descClass, ascClass>, <aMethodOfAscClass, aCandRef>>;
 						retRel += <descClass, ascClass, aMethodOfAscClass>;

@@ -254,8 +254,6 @@ private rel [inheritanceKey, inheritanceType] getFrameworkCases(M3 projectM3) {
 	rel [loc, loc]  extendsAndImplementsRel = {<_child, _parent> | <_child, _parent> <- projectM3@extends} + {<_child, _parent> | <_child, _parent> <- projectM3@implements} ;
 	set [loc] 		directChildrenOfNonSystemTypes = {_child | <_child, _parent> <- extendsAndImplementsRel, _parent in allNonSystemTypes};
 	retRel = {<<_child, _parent>, FRAMEWORK> | <_child, _parent> <- extendsAndImplementsRel, _parent in directChildrenOfNonSystemTypes};
-	//println("FRAMEWORK CASES: ");
-	//iprintln(sort(retRel));
 	return retRel;
 }
 

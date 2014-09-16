@@ -51,7 +51,6 @@ public rel [inheritanceKey, inheritanceType] getInternalReuseCases(M3 projectM3)
 	map [loc, set [loc]] fieldAccessFromClassMap 		= toMap({<accessor, accessed> | <accessor, accessed> <- projectM3@fieldAccess, isClass(accessor)});
 
 	for (oneClass <- intReuseClasses) {
-		// println("One class is: <oneClass>");
 		set [loc] ancestorClasses = { parent | <child, parent> <- allInheritanceRels, child == oneClass, isClass(parent)};
 		set [loc] ancestorFieldsMethods = {};
 		for (anAncestorClass <- ancestorClasses) {
