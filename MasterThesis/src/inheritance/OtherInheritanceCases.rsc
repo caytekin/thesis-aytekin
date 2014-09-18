@@ -168,7 +168,6 @@ private rel [inheritanceKey iKey, set [loc] otherParents] getOneGenericUsage(Exp
 	visit (castStmt) {
 		case \cast(castType, castExpr) : {  
 			TypeSymbol exprTypeSymbol = getTypeSymbolFromAnnotation(castExpr, projectM3); ;
-			// TODO Think about arrays, generics, etc. and test with examples!
 			TypeSymbol castTypeSymbol = getTypeSymbolFromRascalType(castType);
 			if (exprTypeSymbol := object()) {
 				loc genericParentCandidate = getClassOrInterfaceFromTypeSymbol(castTypeSymbol);

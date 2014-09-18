@@ -618,8 +618,6 @@ public TypeSymbol getTypeSymbolFromSimpleType(Type aType) {
 public TypeSymbol getTypeSymbolFromRascalType(Type rascalType) {
 	TypeSymbol retTypeSymbol = DEFAULT_TYPE_SYMBOL;
  	visit (rascalType) {
- 		 // I'm only interested in the simpleType and arrayType at the moment
- 		// TODO: I look only in simpleType and ArrayType. How about more complex types like parametrizdeType() 
  		case pType :\parameterizedType(simpleTypeOfParamType) : {
  			retTypeSymbol = getTypeSymbolFromSimpleType(simpleTypeOfParamType);
  		}
@@ -700,7 +698,6 @@ TypeSymbol getTypeSymbolOfLocDeclaration(loc definedLoc, map [loc, set[TypeSymbo
 
 loc getTypeVariableFromTypeSymbolForClassOrInt(TypeSymbol aTypeSymbol) {
 	loc typeVar = DEFAULT_LOC;
-	//println("getTypeVariableFromTypeSymbolForClassOrInt, TypeSymbol is: <aTypeSymbol>");
 	visit (aTypeSymbol) {
 		case _typeArgument:\typeParameter(loc decl, _) : {
 			typeVar = decl;
@@ -715,7 +712,6 @@ loc getTypeVariableFromTypeSymbolForClassOrInt(TypeSymbol aTypeSymbol) {
 
 loc getTypeVariableFromTypeSymbol(TypeSymbol aTypeSymbol) {
 	loc typeVar = DEFAULT_LOC;
-	//println("in getTypeVariableFromTypeSymbol, TypeSymbol is: <aTypeSymbol>");
 	visit (aTypeSymbol) {
 		case _typeArgument:\typeArgument(loc decl) : {
 			typeVar = decl;
@@ -741,8 +737,6 @@ list [loc] getTypeVariablesOfRecClass(loc recClassOrInt, map [loc, set [TypeSymb
 	for (aTypePar <- typeSymbolParList) {
 		typeVariablesList += getTypeVariableFromTypeSymbolForClassOrInt(aTypePar);
 	}
-	//println("Type variables for class : <recClassOrInt>");
-	//iprintln(typeVariablesList );
 	return typeVariablesList ;
 }
 
@@ -802,7 +796,6 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 	loc methodOwningClassOrInt = DEFAULT_LOC;
 	switch (methodOrConstExpr) {
 		case mCall:\methodCall(_,receiver:_,_,_) : {
-			//println("Method call at <methodOrConstExpr@decl> ");
 			methodOwningClassOrInt =  getDefiningClassOrInterfaceOfALoc(methodOrConstExpr@decl, invertedClassAndInterfaceContainment, projectM3);
 			if (methodOwningClassOrInt != DEFAULT_LOC) {
 				recTypeSymbol = receiver@typ;
@@ -836,7 +829,6 @@ TypeSymbol resolveGenericTypeSymbol(TypeSymbol genericTypeSymbol, Expression met
 			list 	[loc] typeVariablesOfRecClass 			= getTypeVariablesOfRecClass(methodOwningClassOrInt, typesMap); // type variables like T, X
 			// typeVariableMap holds the pair (typeVariable : typeParameter) with respect to the object, like (X : Shape)
 			map 	[loc, TypeSymbol] typeVariableMap 		= getTypeVariableMap(typeVariablesOfRecClass, recTypeParameters, methodOrConstExpr@src, projectM3);
-			// here NoSuchKey exception is thrown...  TODO TODO TODO
 			if (methodParameterTypeVariable notin typeVariableMap) {
 				println("methodParameterTypeVariable: <methodParameterTypeVariable> is not found in typeVariableMap: <typeVariableMap>");
 				println("method call to method: <methodOrConstExpr@decl> at source location: <methodOrConstExpr@src> ");
@@ -860,10 +852,8 @@ public list [TypeSymbol] updateTypesWithGenerics(Expression methodOrConstExpr, l
 																				map[loc, set[loc]] invertedClassAndInterfaceContainment, M3 projectM3  ) {
 	list [TypeSymbol] retList = [];
 	TypeSymbol currentTypeSymbol = DEFAULT_TYPE_SYMBOL;
-	//println("Regular: <typeList>");
 	for (_aTypeSymbol <- typeList) {
 		currentTypeSymbol = _aTypeSymbol;
-		//println("In updateTypesWithGenerics _aTypeSymbol is: <_aTypeSymbol>");
 		visit (_aTypeSymbol) {
 			case aTypeArg:\typeArgument(loc decl) : {
 				currentTypeSymbol = resolveGenericTypeSymbol(_aTypeSymbol, methodOrConstExpr, typesMap, invertedClassAndInterfaceContainment, projectM3);	
