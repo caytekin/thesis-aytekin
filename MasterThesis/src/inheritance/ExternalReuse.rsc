@@ -73,7 +73,20 @@ public lrel [inheritanceKey, inheritanceSubtype, loc, loc] getExternalReuseGener
 				}
 			}
 			else {	// LIMITATION! If the accessedLoc is defined outside of the project, we just insert the immediate parent and nothing else in between.
-				retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_INDIRECT, srcRef, accessedLoc>; 
+				if (isClass(classOrInterfaceOfReceiver)) {
+					 list [loc] ascInOrder = getAscendantsInOrder(classOrInterfaceOfReceiver, extendsMap);
+					 if (!isEmpty(ascInOrder)) {
+					 	println("Ascendants in order for <classOrInterfaceOfReceiver>:"); iprintln(ascInOrder); println("\n\n");
+					 	loc topAscInProject = last(ascInOrder);
+						lrel [loc, loc] inhChain = getInheritanceChainGivenAsc(classOrInterfaceOfReceiver, topAscInProject,  extendsMap, implementsMap,  declarationsMap, allInheritanceRelations);
+						for (aPair <- inhChain) {
+							retList += <aPair, EXTERNAL_REUSE_INDIRECT, srcRef, accessedLoc>; 
+						}
+					 }
+				}
+				else { 
+				 	retList += <<classOrInterfaceOfReceiver, immediateParentOfReceiver>, EXTERNAL_REUSE_INDIRECT, srcRef, accessedLoc>; 
+				}
 			}
 		}
 	}
@@ -157,6 +170,12 @@ private map [metricsType, num]  calculateExternalReuseIndirectPercentages(	rel [
 }
 
 
+void writeDirectExReuseRels(rel [inheritanceKey, inheritanceType] directExReusePairs, M3 projectM3) {
+	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
+	set [inheritanceKey] directCCExReuseRels = {<_child, _parent> | <<_child, _parent>, _iType> <- directExReusePairs, _child in allClassesInProject , _parent in allClassesInProject };
+	writeTextValueFile(getFilename(projectM3.id, exReuseDirectCCFile), directCCExReuseRels);
+}
+
 
 
 public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3) {
@@ -174,7 +193,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 	rel [loc, loc] 			allInheritanceRelations 	= getInheritanceRelations(projectM3);
 	map [loc, set[loc]] 	invertedUnitContainment 	= getInvertedUnitContainment(projectM3);
 	for (oneClass <- allClassesInProject) {
-		println("External reuse cases for class: <oneClass> are going to be collected...");
+		//println("External reuse cases for class: <oneClass> are going to be collected...");
 		list [Declaration] ASTsOfOneClass = getASTsOfAClass(oneClass, invClassInterfaceMethodContainment, invertedUnitContainment, declarationsMap, projectM3);
 		for (oneAST <- ASTsOfOneClass) {
 			visit(oneAST) {
@@ -199,6 +218,7 @@ public rel [inheritanceKey, inheritanceType] getExternalReuseCases(M3 projectM3)
 		resultRel += <aCase.iKey, EXTERNAL_REUSE>;
 	}
 	calculateExternalReuseIndirectPercentages(directExReusePairs, indirectExReusePairs, projectM3);
+	writeDirectExReuseRels(directExReusePairs, projectM3);
 	iprintToFile(getFilename(projectM3.id, externalReuseLogFile), allExternalReuseCases);
 	return resultRel;
 }

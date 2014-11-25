@@ -212,9 +212,9 @@ public rel [inheritanceKey, inheritanceType] getDowncallOccurrences(M3 projectM3
 	}
 	resultRel += {<<_child, _parent>, DOWNCALL_CANDIDATE> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates };
 	println("Result relation for down-call: "); iprintln(resultRel); println("\n\n\n");
-	int sizeOfActuals = size({<_child, _parent> | <<_child, _parent>, _actualCandidate> <- resultRel, _actualCandidate == DOWNCALL_ACTUAL} );
+	num sizeOfActuals = size({<_child, _parent> | <<_child, _parent>, _actualCandidate> <- resultRel, _actualCandidate == DOWNCALL_ACTUAL} );
 	print("Number of actual down-calls counted for project is:   " ); println("<sizeOfActuals> \n\n");
-	appendToFile(getFilename(projectM3.id, newMetricsFile), "numCCActualDC: <sizeOfActuals> \n");
+	writeTextValueFile(getFilename(projectM3.id, numDCOccFile), sizeOfActuals);
 	downcallLog += [<<_child, _parent>, <DEFAULT_LOC, _issMethod, _downcalledMethod>> | <_parent, _child, _issMethod, _downcalledMethod> <- downcallCandidates ];
 	iprintToFile(getFilename(projectM3.id,downcallLogFile), downcallLog);
 	return resultRel;

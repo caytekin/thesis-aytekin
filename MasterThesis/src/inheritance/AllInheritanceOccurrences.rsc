@@ -9,6 +9,7 @@ import List;
 import ListRelation;
 import DateTime;
 import util::Math;
+import ValueIO;
 
 import lang::java::m3::Core;
 import lang::java::jdt::m3::Core;
@@ -21,6 +22,8 @@ import inheritance::SubtypeInheritance;
 import inheritance::DowncallCases;
 import inheritance::OtherInheritanceCases;
 import inheritance::ThisChangingType;
+import inheritance::Harvest;
+
 
 
 
@@ -101,6 +104,16 @@ private rel [inheritanceKey, inheritanceType] getResultsOfImplicitUsage(rel [inh
 
 
 
+void writeDirectSubtypeRels(rel [inheritanceKey, inheritanceType] explicitFoundInhRels, M3 projectM3) {
+	set [loc] allClassesInProject = getAllClassesInProject(projectM3);
+	set [inheritanceKey] directCCSubtypeRels = {<_child, _parent> | <<_child, _parent>, _iType> <- explicitFoundInhRels, _iType == SUBTYPE, _child in allClassesInProject , _parent in allClassesInProject };
+	writeTextValueFile(getFilename(projectM3.id, subtypeDirectCCFile), directCCSubtypeRels);
+}
+
+
+
+
+
 
 // getExplicitResults filters the inheritanceResults according to  the criteria of the original article:
 // they count explicit relations only and they include candidates of downcall.
@@ -118,6 +131,10 @@ private rel [inheritanceKey, inheritanceType] getExplicitResults (rel [inheritan
 	rel [inheritanceKey, inheritanceType] addedImplicitRels = getResultsOfImplicitUsage(implicitFoundInhRels, projectM3);
 	rel [inheritanceKey, inheritanceType] allResults = explicitFoundInhRels + addedImplicitRels;
 	calculateSubtypeIndirectPercentages(explicitFoundInhRels, addedImplicitRels, projectM3);
+
+	writeDirectSubtypeRels(explicitFoundInhRels, projectM3);
+
+
 	println("ALL RESULTS -------------------------------------------------------------------");
 	iprintln(sort(allResults));
 	println("-------------------------------------------------------------------"); println();
@@ -291,6 +308,28 @@ private map [metricsType, num] calculateCCResults(rel [inheritanceKey, inheritan
 	CCResultsMap += (numCCUnknown: size(ccRelations- allFoundUsages));
 	CCResultsMap += (perCCUnknown: calcPercentage(CCResultsMap[numCCUnknown], CCResultsMap[numExplicitCC]));
 
+	num downcallOccurrences = readTextValueFile(#num, getFilename(projectM3.id, numDCOccFile));
+	CCResultsMap += (numCCDCOccurrence: downcallOccurrences);
+	CCResultsMap += (perCCDCOccurrence: calcPercentage(CCResultsMap[numCCDCOccurrence], CCResultsMap[numExplicitCC]));
+	 
+	set [inheritanceKey] subtypeDirectRels 				= readTextValueFile(#set[inheritanceKey], getFilename(projectM3.id, subtypeDirectCCFile));
+	set [inheritanceKey] exreuseNoSubtypeDirectRels 	= readTextValueFile(#set[inheritanceKey], getFilename(projectM3.id, exReuseDirectCCFile)) - subtypeDirectRels;
+	set [inheritanceKey] usedOnlyInReDirectRels 		= {<_child, _parent> | <<_child, _parent>, _iType> <- ccResults, _iType == INTERNAL_REUSE} - (exreuseNoSubtypeDirectRels + subtypeDirectRels); 
+
+	set [inheritanceKey] allUsedDirectRels				= subtypeDirectRels + exreuseNoSubtypeDirectRels + usedOnlyInReDirectRels ;
+
+	CCResultsMap += (numCCSubtypeDirect: size(subtypeDirectRels));
+	CCResultsMap += (perCCSubtypeDirect: calcPercentage(CCResultsMap[numCCSubtypeDirect], CCResultsMap[numExplicitCC]));
+
+	CCResultsMap += (numCCExreuseNoSubtypeDirect: size(exreuseNoSubtypeDirectRels));
+	CCResultsMap += (perCCExreuseNoSubtypeDirect : calcPercentage(CCResultsMap[numCCExreuseNoSubtypeDirect], CCResultsMap[numExplicitCC]));
+	
+	CCResultsMap += (numCCUsedOnlyInReDirect: size(usedOnlyInReDirectRels));
+	CCResultsMap += (perCCUsedOnlyInReDirect : calcPercentage(CCResultsMap[numCCUsedOnlyInReDirect], CCResultsMap[numExplicitCC]));
+	
+	CCResultsMap += (numCCTotalUsedDirect : size(allUsedDirectRels));
+	CCResultsMap += (perCCTotalUsedDirect : calcPercentage(CCResultsMap[numCCTotalUsedDirect], CCResultsMap[numExplicitCC]));
+
 	printResultSummaryToFile(ccResults, projectM3);
 
 	return CCResultsMap;
@@ -301,7 +340,7 @@ private void printCCResults(map [metricsType, num]  CCMetricResults, M3 projectM
 	println("RESULTS FOR CC EDGES:");
 	iprintln(CCMetricResults);
 	println("------------------------------------------------");	
-	for ( aCCMetric <- [numExplicitCC..perCCUnknown+1]) {
+	for ( aCCMetric <- [numExplicitCC..perCCTotalUsedDirect+1]) {
 		println("<getNameOfInheritanceMetric(aCCMetric)> 	: <CCMetricResults[aCCMetric]>");
 		appendToFile(getFilename(projectM3.id,resultsFile), "<CCMetricResults[aCCMetric]>\t" );
 	}
@@ -330,21 +369,44 @@ private void printResultsWhichAreParentChild(rel [inheritanceKey, inheritanceTyp
 	;}
 }
 
+list[loc] makeLocList(list [str] strList) {
+	list[loc] retList = [];
+	for (aStr <- strList) { 
+		loc projectLoc = |project://a|;
+		projectLoc.authority = aStr;
+		retList += projectLoc; 
+	}
+	return retList;
+}
+
+
+public void bulk1() {
+	list[str] bulkStrList = slice(projectList, 96, 5);
+	list[loc] bulk1 = makeLocList(bulkStrList);
+	analyzeBulkOfProjects(bulk1);
+}
+
+
+
+public void analyzeBulkOfProjects(list[loc] bulk) {
+	for (aProject <- bulk) {
+		 println("Analyzing project: <aProject>");
+		 analyzeAProject(aProject);
+	} 
+}
 
 
 
 
-public void main() {
+public void analyzeAProject(loc projectLoc) {
 	setPrecision(4);
 	rel [inheritanceKey, int] allInheritanceCases = {};	
 	println("Date: <printDate(now())>");
-	loc projectLoc = |project://DowncallProject|; 
 	makeDirectory(projectLoc);
 	M3 projectM3 = getM3ForProjectLoc(projectLoc);
 	writeFile(getFilename(projectM3.id, errorLog), "Error log for <projectM3.id.authority>\n" );
 	writeFile(getFilename(projectM3.id, resultSummaryFile), "RESULTS LOG: \n" );
 	writeFile(getFilename(projectM3.id, addedPercentagesFile), " ");
-	writeFile(getFilename(projectM3.id, newMetricsFile), "");
 	rel [loc, loc] allInheritanceRelations = getInheritanceRelations(projectM3);
 	
 	
@@ -405,18 +467,19 @@ public void main() {
 	map [metricsType, num] explicitIIMetricResults = calculateIIResults(explicitResults, systemExplicitInhRelations, projectM3);
 	
 	writeFile(getFilename(projectM3.id,resultsFile), "<projectM3.id.authority>\t" );
+
 	println("EXPLICIT RESULTS - EXPLICIT AND CANDIDATES");
 	printCCResults(explicitCCMetricResults, projectM3);
 	printCIResults(explicitCIMetricResults, projectM3);
 	printIIResults(explicitIIMetricResults, projectM3);
 	appendToFile(getFilename(projectM3.id,resultsFile), "\n" );
-	
+
 	
 	println("Total number of types analyzed: <size(getAllClassesAndInterfacesInProject(projectM3))>");
 	//printLog(getFilename(projectM3.id,downcallLogFile), "DOWNCALL LOG:");
+	printLog(getFilename(projectM3.id,subtypeLogFile), "SUBTYPE LOG:");
 	printLog(getFilename(projectM3.id,externalReuseLogFile), "EXTERNAL REUSE LOG:");
 	printLog(getFilename(projectM3.id,internalReuseLogFile), "INTERNAL REUSE LOG:");
-	printLog(getFilename(projectM3.id,subtypeLogFile), "SUBTYPE LOG:");
 	
 	
 }

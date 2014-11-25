@@ -61,7 +61,18 @@ public str getNameOfInheritanceMetric(metricsType iMetric) {
 		case numCCUnexplSuper			: {return "numCCUnexplSuper";}
 		case perCCUnexplSuper			: {return "perCCUnexplSuper";}
 		case numCCUnknown				: {return "numCCUnknown";}
-		case perCCUnknown				: {return "perCCUnknown";}		
+		case perCCUnknown				: {return "perCCUnknown";}	
+		
+		 case numCCDCOccurrence				: {return "numCCDCOccurrence";} 
+		 case perCCDCOccurrence				: {return "perCCDCOccurrence";} 
+		 case numCCSubtypeDirect			: {return "numCCSubtypeDirect";} 		
+		 case perCCSubtypeDirect			: {return "perCCSubtypeDirect";} 
+		 case numCCExreuseNoSubtypeDirect	:  {return "numCCExreuseNoSubtypeDirect";} 		
+		 case perCCExreuseNoSubtypeDirect	:  {return "perCCExreuseNoSubtypeDirect";} 
+		 case numCCUsedOnlyInReDirect		: {return "numCCUsedOnlyInReDirect";} 
+		 case perCCUsedOnlyInReDirect		: {return "perCCUsedOnlyInReDirect";} 
+		 case numCCTotalUsedDirect 			: {return "numCCTotalUsedDirect";} 
+		 case perCCTotalUsedDirect 			: {return "perCCTotalUsedDirect";} 
 		
 		case numExplicitCI				: {return "numExplicitCI";}			
   		case numOnlyCISubtype			: {return "numOnlyCISubtype";}

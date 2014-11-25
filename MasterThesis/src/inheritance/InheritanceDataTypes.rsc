@@ -38,29 +38,41 @@ public metricsType perCCUnexplCategory		= 1015;		// numCCUnexplCategory / numExp
 public metricsType numCCUnknown				= 1016;
 public metricsType perCCUnknown				= 1017;		// numCCUnknown / numExplicitCC
 
+public metricsType numCCDCOccurrence			= 1018;		
+public metricsType perCCDCOccurrence			= 1019;		// numCCDCOccurrence / numExplicitCC		
+public metricsType numCCSubtypeDirect			= 1020;		
+public metricsType perCCSubtypeDirect			= 1021;		// numCCSubtypeDirect / numExplicitCC
+public metricsType numCCExreuseNoSubtypeDirect	= 1022;		
+public metricsType perCCExreuseNoSubtypeDirect 	= 1023;		// numCCExreuseNoSubtypeDirect / numExplicitCC
+public metricsType numCCUsedOnlyInReDirect		= 1024;
+public metricsType perCCUsedOnlyInReDirect		= 1025;		// numCCUsedOnlyInReDirect / numExplicitCC
+public metricsType numCCTotalUsedDirect 		= 1026; 
+public metricsType perCCTotalUsedDirect 		= 1027; 	// numCCTotalUsedDirect / numExplicitCC
 
-public metricsType numExplicitCI			= 1018;
-public metricsType numOnlyCISubtype			= 1019;
-public metricsType perOnlyCISubtype			= 1020;		// numOnlyCISubtype / numExplicitCI
-public metricsType numExplainedCI			= 1021;
-public metricsType perExplainedCI			= 1022;		// numExplainedCI / numExplicitCI
-public metricsType numCategoryExplCI		= 1023;
-public metricsType perCategoryExplCI		= 1024;		// numCategoryExplCI / numExplicitCI
-public metricsType numUnexplainedCI			= 1025;
-public metricsType perUnexplainedCI			= 1026;		// numUnexplainedCI / numExplicitCI
 
 
-public metricsType numExplicitII			= 1027;
-public metricsType numIISubtype				= 1028;
-public metricsType perIISubtype				= 1029;		// numIISubtype / numExplicitII
-public metricsType numOnlyIIReuse			= 1030;
-public metricsType perOnlyIIReuse			= 1031;		// numOnlyIIReuse / numExplicitII
-public metricsType numExplainedII			= 1032;
-public metricsType perExplainedII			= 1033;		// numExplainedII / numExplicitII
-public metricsType numCategoryExplII		= 1034;
-public metricsType perCategoryExplII		= 1035;		// numCategoryExplII / numExplicitII
-public metricsType numUnexplainedII			= 1036;
-public metricsType perUnexplainedII			= 1037;		// numUnexplainedII / numExplicitII
+public metricsType numExplicitCI			= 1028;
+public metricsType numOnlyCISubtype			= 1029;
+public metricsType perOnlyCISubtype			= 1030;		// numOnlyCISubtype / numExplicitCI
+public metricsType numExplainedCI			= 1031;
+public metricsType perExplainedCI			= 1032;		// numExplainedCI / numExplicitCI
+public metricsType numCategoryExplCI		= 1033;
+public metricsType perCategoryExplCI		= 1034;		// numCategoryExplCI / numExplicitCI
+public metricsType numUnexplainedCI			= 1035;
+public metricsType perUnexplainedCI			= 1036;		// numUnexplainedCI / numExplicitCI
+
+
+public metricsType numExplicitII			= 1037;
+public metricsType numIISubtype				= 1038;
+public metricsType perIISubtype				= 1039;		// numIISubtype / numExplicitII
+public metricsType numOnlyIIReuse			= 1040;
+public metricsType perOnlyIIReuse			= 1041;		// numOnlyIIReuse / numExplicitII
+public metricsType numExplainedII			= 1042;
+public metricsType perExplainedII			= 1043;		// numExplainedII / numExplicitII
+public metricsType numCategoryExplII		= 1044;
+public metricsType perCategoryExplII		= 1045;		// numCategoryExplII / numExplicitII
+public metricsType numUnexplainedII			= 1046;
+public metricsType perUnexplainedII			= 1047;		// numUnexplainedII / numExplicitII
 
 
 public metricsType perAddedCCSubtype		= 1101;
@@ -121,11 +133,11 @@ public alias thisChangingTypeCandDetail = tuple [loc methodOfAscClass, loc sourc
 public alias thisChangingTypeOccurrence = tuple [loc sourceRef, loc invokedmethod];
 public alias categorySibling = loc;
 
- //public loc beginPath = |file:///home/aytekin/Documents/InheritanceLogs|; 
+ //public loc beginPath = |file:///home/aytekin/Documents/NewInheritanceLogs|; 
 
- public loc beginPath = |file://C:/Users/cigde_000/Documents/InheritanceLogs|;
+ public loc beginPath = |file://C:/Users/cigde_000/Documents/NewInheritanceLogs|;
 
- //public loc beginPath = |file://C:/Users/caytekin/InheritanceLogs|; 
+ //public loc beginPath = |file://C:/Users/caytekin/NewInheritanceLogs|; 
 
 public str internalReuseLogFile 		=  "InternalReuse.log";
 public str categoryLogFile 				=  "Category.log" ;
@@ -142,8 +154,9 @@ public str errorLog						=  "Error.log" ;
 public str resultSummaryFile			=  "ResultsSummary.log"; 
 public str addedPercentagesFile 		=  "AddedPercentages.txt";
 public str resultsMapFile 				=  "MapOfResults.txt";
-public str newMetricsFile				=  "NewMetrics.txt";
+public str numDCOccFile					=  "numDCOccFile.txt";
 
-
+public str subtypeDirectCCFile			= "SubtypeDirectCC.txt";
+public str exReuseDirectCCFile			= "ExReuseDirectCC.txt";
 
 
